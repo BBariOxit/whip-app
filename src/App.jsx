@@ -6,9 +6,12 @@ import {
   experimental_extendTheme as extendTheme,
   useColorScheme
 } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 function ModeToggle() {
   const { mode, setMode } = useColorScheme()
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
+  const prefersLightMode = useMediaQuery('(prefers-color-scheme: light)')
   return (
     <Button
       onClick={() => {
