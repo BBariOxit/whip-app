@@ -17,6 +17,9 @@ import Select from '@mui/material/Select'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness'
+import Container from '@mui/material/Container'
+import { AddBox } from '@mui/icons-material'
+
 function ModeSelect() {
   const { mode, setMode } = useColorScheme()
   const handleChange = (event) => {
@@ -26,8 +29,8 @@ function ModeSelect() {
   }
 
   return (
-    <Box sx={{ minWidth: 120 }}>
-      <FormControl sx={{ minWidth: 150 }}>
+    <Box sx={{minWidth: 120}}>
+      <FormControl sx={{ minWidth: 150, m: 1 }} size='small'>
         <InputLabel id= "label-select-dark-light-mode">mode</InputLabel>
         <Select
           labelId="label-select-dark-light-mode"
@@ -37,7 +40,7 @@ function ModeSelect() {
           onChange={handleChange}
         >
           <MenuItem value="light">
-            <div style={{display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <LightModeIcon fontSize='small'/> Light
             </div>
           </MenuItem>
@@ -57,37 +60,37 @@ function ModeSelect() {
   )
 }
 
-function ModeToggle() {
-  const { mode, setMode } = useColorScheme()
-
-  // const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
-  // const prefersLightMode = useMediaQuery('(prefers-color-scheme: light)')
-  return (
-    <Button
-      onClick={() => {
-        setMode(mode === 'light' ? 'dark' : 'light')
-      }}
-    >
-      {mode === 'light' ? 'Turn dark' : 'Turn light'}
-    </Button>
-  )
-}
-
 function App() {
-
   return (
-    <>
-      <hr></hr>
-      <ModeSelect/>
-      <hr></hr>
-      <ModeToggle />
-      <div>baophan</div>
-      <Button variant="text">Text</Button>
-      <Button variant="contained">Contained</Button>
-      <Button variant="outlined">Outlined</Button>
-      <AccessAlarmIcon/>
-      <ThreeDRotation/>
-    </>
+    <Container disableGutters maxWidth={false} sx={{ height: '100vh'}}>
+      <Box sx={{
+        backgroundColor: 'primary.light',
+        width: '100%',
+        height: '48px',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        <ModeSelect/>
+      </Box>
+      <Box sx={{
+        backgroundColor: 'primary.dark',
+        width: '100%',
+        height: '58px',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        board bar
+      </Box>
+      <Box sx={{
+        backgroundColor: 'primary.main',
+        width: '100%',
+        height: 'calc(100vh - 58px - 48px)',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        Board Content
+      </Box>
+    </Container>
   )
 }
 
