@@ -66,7 +66,7 @@ function App() {
       <Box sx={{
         backgroundColor: 'primary.light',
         width: '100%',
-        height: '48px',
+        height: (theme) => theme.trello.appBarHeight,
         display: 'flex',
         alignItems: 'center'
       }}>
@@ -75,7 +75,7 @@ function App() {
       <Box sx={{
         backgroundColor: 'primary.dark',
         width: '100%',
-        height: '58px',
+        height: (theme) => theme.trello.boardBarHeight,
         display: 'flex',
         alignItems: 'center'
       }}>
@@ -84,7 +84,7 @@ function App() {
       <Box sx={{
         backgroundColor: 'primary.main',
         width: '100%',
-        height: 'calc(100vh - 58px - 48px)',
+        height: (theme) => `calc(100vh - ${theme.trello.appBarHeight} - ${theme.trello.boardBarHeight})`,
         display: 'flex',
         alignItems: 'center'
       }}>
