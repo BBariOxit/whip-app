@@ -5,6 +5,7 @@ import { ReactComponent as trelloLogo } from '~/assets/trello.svg'
 import SvgIcon from '@mui/material/SvgIcon'
 import Typography from '@mui/material/Typography'
 import Workspaces from './Menu/Workspaces'
+import Recent from './Menu/Recent'
 
 function AppBar() {
   return (
@@ -22,6 +23,7 @@ function AppBar() {
           <Typography variant='span' sx={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'primary.main' }}>Trello</Typography>
         </Box>
         <Workspaces />
+        <Recent />
       </Box>
 
       <Box>
