@@ -6,6 +6,9 @@ import SvgIcon from '@mui/material/SvgIcon'
 import Typography from '@mui/material/Typography'
 import Workspaces from './Menu/Workspaces'
 import Recent from './Menu/Recent'
+import Starred from './Menu/Starred'
+import Templates from './Menu/Templates'
+import Button from '@mui/material/Button'
 
 function AppBar() {
   return (
@@ -24,6 +27,9 @@ function AppBar() {
         </Box>
         <Workspaces />
         <Recent />
+        <Starred />
+        <Templates />
+        <Button variant="outlined">Create</Button>
       </Box>
 
       <Box>
