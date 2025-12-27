@@ -1,10 +1,17 @@
-import DashboardIcon from '@mui/icons-material/Dashboard'
-import Box from '@mui/material/Box'
-import Chip from '@mui/material/Chip'
-import VpnLockIcon from '@mui/icons-material/VpnLock'
 import AddToDriveIcon from '@mui/icons-material/AddToDrive'
 import BoltIcon from '@mui/icons-material/Bolt'
+import DashboardIcon from '@mui/icons-material/Dashboard'
 import FilterListIcon from '@mui/icons-material/FilterList'
+import VpnLockIcon from '@mui/icons-material/VpnLock'
+import Avatar from '@mui/material/Avatar'
+import AvatarGroup from '@mui/material/AvatarGroup'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
+import Tooltip from '@mui/material/Tooltip'
+import avatar from '~/assets/avatar.png'
+import PersonAddIcon from '@mui/icons-material/PersonAdd'
+
 
 const MENU_STYLE = {
   color: 'primary.main',
@@ -68,7 +75,96 @@ function BoardBar() {
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-
+        <Button variant="outlined" startIcon = {<PersonAddIcon />}>Invite</Button>
+        <AvatarGroup
+          max={7}
+          sx={{
+            '& .MuiAvatar-root': {
+              width: '34px',
+              height: '34px',
+              fontSize: 16
+            }
+          }}
+        >
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src={avatar}
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-4.jpg'
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-9.jpg'
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-31.jpg'
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-18.jpg'
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-49.jpg'
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-43.jpg'
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-4.jpg'
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-9.jpg'
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-31.jpg'
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-18.jpg'
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-49.jpg'
+            />
+          </Tooltip>
+          <Tooltip title='phanbao'>
+            <Avatar
+              alt="Phan Bao"
+              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-43.jpg'
+            />
+          </Tooltip>
+        </AvatarGroup>
       </Box>
     </Box>
   )
