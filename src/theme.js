@@ -48,7 +48,7 @@ const theme = extendTheme({
       styleOverrides: {
         root: {
           textTransform: 'none',
-          borderWidth: '0.5px',
+          borderWidth: '0.5px'
           // '&:hover': { borderWidth: '0.5px' }
         }
       }
