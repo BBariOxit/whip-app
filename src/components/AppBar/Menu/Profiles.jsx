@@ -25,6 +25,7 @@ function Profiles() {
     <Box>
       <Tooltip title="Account settings">
         <IconButton
+        
           onClick={handleClick}
           size="small"
           sx={{ p: 0 }}

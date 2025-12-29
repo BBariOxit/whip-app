@@ -21,6 +21,7 @@ function Recent() {
   return (
     <Box>
       <Button
+        sx={{ color: '#B6C2CF' }}
         id="basic-button-recent"
         aria-controls={open ? 'basic-menu-recent' : undefined}
         aria-haspopup="true"
@@ -28,7 +29,7 @@ function Recent() {
         onClick={handleClick}
         endIcon={<ExpandMoreIcon />}
       >
-        recent
+        Recent
       </Button>
       <Menu
         id="basic-menu-recent"
