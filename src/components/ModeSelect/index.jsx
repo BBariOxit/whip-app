@@ -38,9 +38,18 @@ function ModeSelect() {
           onChange={handleChange}
           sx={{
             color: '#B6C2CF',
-            '.MuiOutlinedInput-notchedOutline': { color: '#B6C2CF' },
-            '&:hover .MuiOutlinedInput-notchedOutline': { color: '#B6C2CF' },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { color: '#B6C2CF' },
+            '.MuiOutlinedInput-notchedOutline': {
+              borderColor: '#B6C2CF',
+              // transition: 'border-color 0.2s ease, border-width 0.2s ease'
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#fff',
+              borderWidth: '1px !important'
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#fff',
+              borderWidth: '1px !important'
+            },
             '.MuiSvgIcon-root': { color: '#B6C2CF' }
           }}
         >
