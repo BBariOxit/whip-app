@@ -62,14 +62,17 @@ const theme = extendTheme({
       styleOverrides: {
         root: {
           fontSize: '0.875rem',
-          '& fieldset': {
-            borderWidth: '0.5px !important'
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderWidth: '0.5px !important',
+            transition: 'border-color 0.2s ease, border-width 0.2s ease'
           },
-          '&:hover fieldset': {
-            borderWidth: '1px !important'
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderWidth: '2px !important',
+            borderColor: '#B6C2CF'
           },
-          '&.Mui-focused fieldset': {
-            borderWidth: '1px !important'
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderWidth: '2px !important',
+            borderColor: '#B6C2CF'
           }
         }
       }

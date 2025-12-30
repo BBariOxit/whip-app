@@ -89,9 +89,18 @@ function AppBar() {
             '& input': { color: '#B6C2CF' },
             '& label.Mui-focused': { color: '#B6C2CF' },
             '& .MuiOutlinedInput-root': {
-              '& fieldset': { borderColor: '#B6C2CF' },
-              '&:hover fieldset': { borderColor: '#B6C2CF' },
-              '&.Mui-focused fieldset': { borderColor: '#B6C2CF' }
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#B6C2CF',
+                transition: 'border-color 0.2s ease, border-width 0.2s ease'
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#fff',
+                borderWidth: '1px !important'
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#fff',
+                borderWidth: '1px !important'
+              }
             }
           }}/>
         <ModeSelect />
