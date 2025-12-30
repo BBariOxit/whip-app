@@ -63,16 +63,17 @@ const theme = extendTheme({
         root: {
           fontSize: '0.875rem',
           '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#B6C2CF',
             borderWidth: '0.5px !important',
-            transition: 'border-color 0.2s ease, border-width 0.2s ease'
+            // transition: 'border-color 0.2s ease, border-width 0.2s ease'
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderWidth: '2px !important',
-            borderColor: '#B6C2CF'
+            borderColor: '#fff',
+            borderWidth: '1px !important'
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderWidth: '2px !important',
-            borderColor: '#B6C2CF'
+            borderColor: '#fff',
+            borderWidth: '1px !important'
           }
         }
       }
