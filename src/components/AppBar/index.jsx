@@ -91,7 +91,7 @@ function AppBar() {
             '& .MuiOutlinedInput-root': {
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: '#B6C2CF',
-                // transition: 'border-color 0.2s ease, border-width 0.2s ease'
+                transition: 'border-color 0.2s ease, border-width 0.2s ease'
               },
               '&:hover .MuiOutlinedInput-notchedOutline': {
                 borderColor: '#fff',
