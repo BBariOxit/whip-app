@@ -39,7 +39,8 @@ function BoardBar() {
       paddingX: 2,
       overflowX: 'auto',
       bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#34495e' : '#1976d2'),
-      borderBottom: '1px solid #B6C2CF'
+      borderBottom: '1px solid #B6C2CF',
+      '&::-webkit-scrollbar-track': { m: 2 }
     }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -92,7 +93,12 @@ function BoardBar() {
             '& .MuiAvatar-root': {
               width: '34px',
               height: '34px',
-              fontSize: 16
+              fontSize: 16,
+              color: 'white',
+              borderColor: '#B6C2CF',
+              borderWidth: '3px',
+              cursor: 'pointer'
+              // '&:first-of-type': { bgcolor: '#a4b0be' }
             }
           }}
         >
