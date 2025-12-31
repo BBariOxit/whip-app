@@ -15,6 +15,7 @@ import React from 'react'
 import Tooltip from '@mui/material/Tooltip'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import AddCardIcon from '@mui/icons-material/AddCard'
+import DragHandleIcon from '@mui/icons-material/DragHandle'
 
 
 const COLUMN_HEADER_HEIGHT = '50px'
@@ -41,8 +42,11 @@ function BoardContent() {
         maxWidth: '300px',
         bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#333643' : '#ebecf0'),
         ml: 2,
-        borderRadius: '6px'
+        borderRadius: '6px',
+        color: (theme) => (theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643')
       }}>
+
+        {/* header */}
         <Box sx={{
           height: COLUMN_HEADER_HEIGHT,
           p: 2,
@@ -50,7 +54,13 @@ function BoardContent() {
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <Typography>Column Title</Typography>
+          <Typography
+            sx={{
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+          >Column Title</Typography>
+          {/* dropdown menu */}
           <Box>
             <Tooltip title='more options'>
               <ExpandMoreIcon
@@ -99,9 +109,13 @@ function BoardContent() {
             </Menu>
           </Box>
         </Box>
+
+        {/* list card */}
         <Box sx={{}}>
           List card
         </Box>
+
+        {/* footer */}
         <Box sx={{
           height: COLUMN_FOOTER_HEIGHT,
           p: 2,
@@ -109,7 +123,10 @@ function BoardContent() {
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          Footer
+          <Button startIcon={<AddCardIcon />}>Add new card</Button>
+          <Tooltip title='Drag to move'>
+            <DragHandleIcon sx={{ cursor: 'pointer' }}/>
+          </Tooltip>
         </Box>
       </Box>
     </Box>
