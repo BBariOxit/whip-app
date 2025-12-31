@@ -1,22 +1,29 @@
+import AddCardIcon from '@mui/icons-material/AddCard'
 import Cloud from '@mui/icons-material/Cloud'
 import ContentCopy from '@mui/icons-material/ContentCopy'
 import ContentCut from '@mui/icons-material/ContentCut'
 import ContentPaste from '@mui/icons-material/ContentPaste'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+import DragHandleIcon from '@mui/icons-material/DragHandle'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Card from '@mui/material/Card'
+import CardActions from '@mui/material/CardActions'
+import CardContent from '@mui/material/CardContent'
+import CardMedia from '@mui/material/CardMedia'
 import Divider from '@mui/material/Divider'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
-import React from 'react'
 import Tooltip from '@mui/material/Tooltip'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
-import AddCardIcon from '@mui/icons-material/AddCard'
-import DragHandleIcon from '@mui/icons-material/DragHandle'
-
+import Typography from '@mui/material/Typography'
+import React from 'react'
+import bg from '~/assets/bg.jpg'
+import GroupIcon from '@mui/icons-material/Group'
+import CommentIcon from '@mui/icons-material/Comment'
+import AttachmentIcon from '@mui/icons-material/Attachment'
 
 const COLUMN_HEADER_HEIGHT = '50px'
 const COLUMN_FOOTER_HEIGHT = '56px'
@@ -43,6 +50,8 @@ function BoardContent() {
         bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#333643' : '#ebecf0'),
         ml: 2,
         borderRadius: '6px',
+        height: 'fit-content',
+        maxHeight: (theme) => `calc(${theme.trello.boardContentHeight} - ${theme.spacing(5)})`,
         color: (theme) => (theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643')
       }}>
 
@@ -111,8 +120,127 @@ function BoardContent() {
         </Box>
 
         {/* list card */}
-        <Box sx={{}}>
-          List card
+        <Box sx={{
+          p: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          maxHeight: (theme) => `calc(
+          ${theme.trello.boardContentHeight} -
+          ${theme.spacing(5)} -
+          ${COLUMN_HEADER_HEIGHT} -
+          ${COLUMN_FOOTER_HEIGHT}
+          )`
+        }}>
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardMedia
+              sx={{ height: 140 }}
+              image={bg}
+              title="green iguana"
+            />
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>Phan Thái Bảo (PTB)</Typography>
+            </CardContent>
+            <CardActions sx={{ p: '0, 4px, 8px, 4px' }}>
+              <Button size="small" startIcon={<GroupIcon />}>20</Button>
+              <Button size="small" startIcon={<CommentIcon />}>15</Button>
+              <Button size="small" startIcon={<AttachmentIcon />}>10</Button>
+            </CardActions>
+          </Card>
+
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>card 01</Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>card 01</Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>card 01</Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>card 01</Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>card 01</Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>card 01</Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>card 01</Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>card 01</Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>card 01</Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>card 01</Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{
+            cursor: 'pointer',
+            boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+          }}>
+            <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+              <Typography>card 01</Typography>
+            </CardContent>
+          </Card>
         </Box>
 
         {/* footer */}
