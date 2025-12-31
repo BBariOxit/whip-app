@@ -1,3 +1,4 @@
+import { Margin } from '@mui/icons-material'
 import { experimental_extendTheme as extendTheme } from '@mui/material/styles'
 
 
@@ -45,6 +46,9 @@ const theme = extendTheme({
           },
           '*::-webkit-scrollbar-thumb:hover': {
             backgroundColor: '#B6C2CF'
+          },
+          '*::-webkit-scrollbar-track': {
+            margin: 2
           }
         }
       }
@@ -63,22 +67,25 @@ const theme = extendTheme({
         root: { fontSize: '0.875rem' }
       }
     },
+    MuiTypography: {
+      styleOverrides: {
+        '&.MuiTypography-body1': { fontSize: '0.875rem' }
+      }
+    },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
           fontSize: '0.875rem',
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#B6C2CF',
             borderWidth: '0.5px !important',
             transition: 'border-color 0.2s ease, border-width 0.2s ease'
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#fff',
-            borderWidth: '1px !important'
+            borderWidth: '2px #B6C2CF !important'
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#fff',
-            borderWidth: '1px !important'
+            borderWidth: '2px #B6C2CF !important',
+            borderColor: '#B6C2CF'
           }
         }
       }
