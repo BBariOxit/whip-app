@@ -11,7 +11,7 @@ import Chip from '@mui/material/Chip'
 import Tooltip from '@mui/material/Tooltip'
 import avatar from '~/assets/avatar.png'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
-
+import { capitalizeFirstLetter } from '~/utils/formatters'
 
 const MENU_STYLE = {
   color: '#B6C2CF',
@@ -27,7 +27,7 @@ const MENU_STYLE = {
   }
 }
 
-function BoardBar() {
+function BoardBar({ board }) {
   return (
     <Box px={2} sx={{
       width: '100%',
@@ -47,13 +47,13 @@ function BoardBar() {
         <Chip
           sx={MENU_STYLE}
           icon={<DashboardIcon />}
-          label="phanbao dashboard"
+          label={board?.title}
           clickable
         />
         <Chip
           sx={MENU_STYLE}
           icon={<VpnLockIcon />}
-          label="Public/Private Workspace"
+          label={capitalizeFirstLetter(board?.type)}
           clickable
         />
         <Chip
