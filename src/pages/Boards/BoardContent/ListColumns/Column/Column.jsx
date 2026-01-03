@@ -18,7 +18,7 @@ import Typography from '@mui/material/Typography'
 import React from 'react'
 import ListCard from './ListCards/ListCard'
 
-function Column() {
+function Column({ column }) {
   const [anchorEl, setAnchorEl] = React.useState(null)
   const open = Boolean(anchorEl)
   const handleClick = (event) => { setAnchorEl(event.currentTarget)}
@@ -49,7 +49,7 @@ function Column() {
           fontWeight: 'bold',
           cursor: 'pointer'
         }}
-        >Column Title</Typography>
+        >{column?.title}</Typography>
         {/* dropdown menu */}
         <Box>
           <Tooltip title='more options'>
@@ -100,7 +100,7 @@ function Column() {
         </Box>
       </Box>
       {/* ListCard */}
-      < ListCard />
+      < ListCard cards={column?.cards}/>
       {/* footer */}
       <Box sx={{
         height: (theme) => theme.trello.columnFooterHeight,
