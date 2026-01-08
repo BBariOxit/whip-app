@@ -35,6 +35,9 @@ function Column({ column }) {
     transform: CSS.Translate.toString(transform),
     transition,
     height: '100%',
+    // Chiều cao phải luôn max 100% vì nếu không sẽ lỗi lúc kéo column ngắn qua một cái column dài thì phải kéo
+    // ở khu vực giữa giữa rất khó chịu . Lưu ý lúc này phải kết hợp với {...listeners}
+    // nằm ở Box chứ không phải ở div ngoài cùng để tránh trường hợp kéo vào vùng xanh.
     opacity: isDragging ? 0.5 : undefined
   }
 
@@ -46,6 +49,7 @@ function Column({ column }) {
   const orderedCards = mapOrder(column?.cards, column?.cardOrderIds, '_id')
 
   return (
+    //phải bọc div ở đây vì vấn đề chiều cao của column khi kéo thả sẽ có bug kiểu flickering
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
       <Box
         {...listeners}
