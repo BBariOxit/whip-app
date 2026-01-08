@@ -1,16 +1,15 @@
-import Box from '@mui/material/Box'
-import ListColumns from './ListColumns/ListColumns'
-import { mapOrder } from '~/utils/sorts'
 import {
   DndContext,
-  PointerSensor,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
-import { useState, useEffect } from 'react'
+import Box from '@mui/material/Box'
+import { useEffect, useState } from 'react'
+import { mapOrder } from '~/utils/sorts'
+import ListColumns from './ListColumns/ListColumns'
 
 function BoardContent({ board }) {
   //https://docs.dndkit.com/api-documentation/sensors
@@ -45,7 +44,7 @@ function BoardContent({ board }) {
   }, [board])
 
   const handleDragEnd = (e) => {
-    // console.log('handleDragEnd:', e)
+    console.log('handleDragEnd:', e)
     const { active, over } = e
 
     //kiểm tra nếu ko tồn tại over (kéo linh tinh ra ngoài thì return luôn tránh lỗi)

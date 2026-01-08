@@ -28,7 +28,7 @@ function Column({ column }) {
     data: { ...column }
   })
   const dndKitColumnStyles = {
-    touchAction: 'none',
+    // touchAction: 'none', // dành cho sensor default dạng PointerSensor
     // Nếu sử dụng CSS.Transform như docs sẽ lỗi kiểu stretch
     // https://github.com/clauderic/dnd-kit/issues/117
     transform: CSS.Translate.toString(transform),
@@ -44,10 +44,7 @@ function Column({ column }) {
 
   return (
     <Box
-      ref={setNodeRef}
-      style={dndKitColumnStyles}
-      {...attributes}
-      {...listeners}
+      ref={setNodeRef} style={dndKitColumnStyles} {...attributes} {...listeners}
       sx={{
         minWidth: '300px',
         maxWidth: '300px',
