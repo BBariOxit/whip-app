@@ -106,7 +106,7 @@ function BoardContent({ board }) {
       setOrderedColumns(prevColumns => {
         // tìm vị trí (index) của cái overCard trong column đích (nơi mà activeCard sắp đc thả)
         const overCardIndex = overColumn?.cards.findIndex(card => card._id === overCardId)
-        
+
         // Logic tính toán "cardIndex mới" (trên hoặc dưới của overCard), lấy chuẩn ra từ code của thư viện
         let newCardIndex
         const isBelowOverItem = active.rect.current.translated &&
@@ -116,6 +116,24 @@ function BoardContent({ board }) {
 
         //Clone mảng OrderedColumnsState cũ ra một cái mới để xử lý data rồi return – cập nhật lại OrderedColumnsState mới
         const nextColumn = structuredClone(prevColumns)
+        const nextActiveColumn = nextColumn.find(column => column._id === activeColumn._id)
+        const nextOverColumn = nextColumn.find(column => column._id === overColumn._id)
+
+        if (nextActiveColumn) {
+          //Xóa card ở cái column active (cũng có thể hiểu là column cũ, cái lúc mà kéo card ra khỏi nó để sang column khác)
+          nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
+          //cập nhật lại mảng cardOrderIds cho chuẩn dữ liệu
+          nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
+        }
+
+        if (nextOverColumn) {
+          // Kiểm tra xem card đang kéo nó có tồn tại ở overColumn chưa, nếu có thì cần xóa nó trước
+          nextOverColumn.cards = nextOverColumn.cards.filter(card => card._id !== activeDraggingCardId)
+          // Tiếp theo là thêm cái card đang kéo vào overColumn theo vị trí index mới
+          nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, activeDraggingCardData)
+          //cập nhật lại mảng cardOrderIds cho chuẩn dữ liệu
+          nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
+        }
 
         // console.log('isBelowOverItem: ', isBelowOverItem)
         // console.log('modifier: ', modifier)
