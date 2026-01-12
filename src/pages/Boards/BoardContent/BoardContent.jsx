@@ -1,19 +1,19 @@
 import {
   DndContext,
+  DragOverlay,
   MouseSensor,
   TouchSensor,
+  defaultDropAnimationSideEffects,
   useSensor,
-  useSensors,
-  DragOverlay,
-  defaultDropAnimationSideEffects
+  useSensors
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import Box from '@mui/material/Box'
 import { useEffect, useState } from 'react'
 import { mapOrder } from '~/utils/sorts'
-import ListColumns from './ListColumns/ListColumns'
 import Column from './ListColumns/Column/Column'
 import Card from './ListColumns/Column/ListCards/Card/Card'
+import ListColumns from './ListColumns/ListColumns'
 
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN: 'ACTIVE_DRAG_ITEM_TYPE_COLUMN',
@@ -97,6 +97,32 @@ function BoardContent({ board }) {
 
     //nếu ko tồn tại 1 trong 2 column thì ko làm gì hết tránh crash trang
     if (!activeColumn || !overColumn) return
+
+    // Xử lý logic ở đây chỉ khi kéo card qua 2 column khác nhau,
+    // còn nếu kéo card trong chính column ban đầu của nó thì không làm gì.
+    // Vì đây đang là đoạn xử lý lúc kéo (handleDragOver),
+    // còn xử lý lúc kéo xong xuôi thì nó lại là vấn đề khác ở (handleDragEnd)
+    if (activeColumn !== overColumn) {
+      setOrderedColumns(prevColumns => {
+        // tìm vị trí (index) của cái overCard trong column đích (nơi mà activeCard sắp đc thả)
+        const overCardIndex = overColumn?.cards.findIndex(card => card._id === overCardId)
+        
+        // Logic tính toán "cardIndex mới" (trên hoặc dưới của overCard), lấy chuẩn ra từ code của thư viện
+        let newCardIndex
+        const isBelowOverItem = active.rect.current.translated &&
+          active.rect.current.translated.top > over.rect.top + over.rect.height
+        const modifier = isBelowOverItem ? 1 : 0
+        newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards?.length + 1
+
+        //Clone mảng OrderedColumnsState cũ ra một cái mới để xử lý data rồi return – cập nhật lại OrderedColumnsState mới
+        const nextColumn = structuredClone(prevColumns)
+
+        // console.log('isBelowOverItem: ', isBelowOverItem)
+        // console.log('modifier: ', modifier)
+        // console.log('newCardIndex: ', newCardIndex)
+        return nextColumn
+      })
+    }
   }
 
   // Trigger khi thả(drop) một phần tử, khi kết thúc hành động kéo 1 phần tử
@@ -104,7 +130,7 @@ function BoardContent({ board }) {
     // console.log('handleDragEnd:', e)
 
     if (activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.CARD) {
-      console.log('hành động kéo thả card - tạm thời ko làm gì cả')
+      // console.log('hành động kéo thả card - tạm thời ko làm gì cả')
       return
     }
 
