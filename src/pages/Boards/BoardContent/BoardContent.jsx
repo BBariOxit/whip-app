@@ -119,6 +119,7 @@ function BoardContent({ board }) {
         const nextActiveColumn = nextColumn.find(column => column._id === activeColumn._id)
         const nextOverColumn = nextColumn.find(column => column._id === overColumn._id)
 
+        //column cũ
         if (nextActiveColumn) {
           //Xóa card ở cái column active (cũng có thể hiểu là column cũ, cái lúc mà kéo card ra khỏi nó để sang column khác)
           nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
@@ -126,6 +127,7 @@ function BoardContent({ board }) {
           nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
         }
 
+        //column mới
         if (nextOverColumn) {
           // Kiểm tra xem card đang kéo nó có tồn tại ở overColumn chưa, nếu có thì cần xóa nó trước
           nextOverColumn.cards = nextOverColumn.cards.filter(card => card._id !== activeDraggingCardId)
