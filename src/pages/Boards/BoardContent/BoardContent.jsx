@@ -175,12 +175,59 @@ function BoardContent({ board }) {
       //nếu ko tồn tại 1 trong 2 column thì ko làm gì hết tránh crash trang
       if (!activeColumn || !overColumn) return
 
+      console.log('activeDragItemData: ', activeDragItemData)
+
       // console.log('oldColumnWhenDraggingCard: ', oldColumnWhenDraggingCard)
       // console.log('overColumn: ', overColumn)
       // Phải dùng tới .columnId hoặc oldColumnWhenDraggingCard._id (set vào state từ bước handleDragStart) chứ không phải activeData
       // trong scope handleDragEnd này vì sau khi đi qua onDragOver tới đây là state của card đã bị cập nhật một lần rồi.
       if (oldColumnWhenDraggingCard._id !== overColumn._id) {
         // Hành động kéo thả card giữa 2 column khác nhau
+        setOrderedColumns(prevColumns => {
+        // tìm vị trí (index) của cái overCard trong column đích (nơi mà activeCard sắp đc thả)
+          const overCardIndex = overColumn?.cards.findIndex(card => card._id === overCardId)
+
+          // Logic tính toán "cardIndex mới" (trên hoặc dưới của overCard), lấy chuẩn ra từ code của thư viện
+          let newCardIndex
+          const isBelowOverItem = active.rect.current.translated &&
+            active.rect.current.translated.top > over.rect.top + over.rect.height
+          const modifier = isBelowOverItem ? 1 : 0
+          newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards?.length + 1
+
+          //Clone mảng OrderedColumnsState cũ ra một cái mới để xử lý data rồi return – cập nhật lại OrderedColumnsState mới
+          const nextColumn = structuredClone(prevColumns)
+          const nextActiveColumn = nextColumn.find(column => column._id === activeColumn._id)
+          const nextOverColumn = nextColumn.find(column => column._id === overColumn._id)
+
+          //column cũ
+          if (nextActiveColumn) {
+            //Xóa card ở cái column active (cũng có thể hiểu là column cũ, cái lúc mà kéo card ra khỏi nó để sang column khác)
+            nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
+            //cập nhật lại mảng cardOrderIds cho chuẩn dữ liệu
+            nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
+          }
+
+          //column mới
+          if (nextOverColumn) {
+            // Kiểm tra xem card đang kéo nó có tồn tại ở overColumn chưa, nếu có thì cần xóa nó trước
+            nextOverColumn.cards = nextOverColumn.cards.filter(card => card._id !== activeDraggingCardId)
+            // Đối với trường hợp dragEnd thì phải cập nhật lại chuẩn dữ liệu columnId trong card 
+            // sau khi kéo card giữa 2 column khác nhau.
+            const rebuild_activeDraggingCardData = {
+              ...activeDraggingCardData,
+              columnId: nextOverColumn._id
+            }
+            // Tiếp theo là thêm cái card đang kéo vào overColumn theo vị trí index mới
+            nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, rebuild_activeDraggingCardData)
+            //cập nhật lại mảng cardOrderIds cho chuẩn dữ liệu
+            nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
+          }
+
+          // console.log('isBelowOverItem: ', isBelowOverItem)
+          // console.log('modifier: ', modifier)
+          // console.log('newCardIndex: ', newCardIndex)
+          return nextColumn
+        })
       } else {
         // Hành động kéo thả card trong cùng 1 cái column
 
@@ -254,7 +301,7 @@ function BoardContent({ board }) {
       // Thuật toán phát hiện va chạm (nếu không có nó thì card với cover lớn sẽ không kéo qua Column được vì
       // lúc này nó đang bị conflict giữa card và column), chúng ta sẽ dùng closestCorners thay vì closestCenter
       // https://docs.dndkit.com/api-documentation/context-provider/collision-detection-algorithms
-      collisionDetection={closestCorners} 
+      collisionDetection={closestCorners}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
