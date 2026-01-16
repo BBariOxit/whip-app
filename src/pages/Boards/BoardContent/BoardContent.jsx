@@ -7,6 +7,7 @@ import {
   useSensor,
   useSensors,
   closestCorners,
+  closestCenter,
   pointerWithin,
   rectIntersection,
   getFirstCollision
@@ -289,6 +290,7 @@ function BoardContent({ board }) {
   // Chúng ta sẽ custom lại chiến lược / thuật toán phát hiện va chạm tối ưu cho việc kéo thả card giữa nhiều columns
   // args = arguments = Các Đối số, tham số
   const collisionDetectionStrategy = useCallback((args) => {
+    // trường hợp kéo column thì dùng thuật toán closestCorners là chuẩn nhất
     if (activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) {
       return closestCorners({ ...args })
     }
@@ -296,17 +298,32 @@ function BoardContent({ board }) {
     const pointerIntersections = pointerWithin(args)
     //thuật toán phát hiện va chạm sẽ trả về một mảng các va chạm ở đây
     const intersections = !!pointerIntersections?.length ? pointerIntersections : rectIntersection(args)
-    //tìm overId đầu tiên trong đám intersections ở trên  
-    let overId = getFirstCollision(intersections)
+    //tìm overId đầu tiên trong đám intersections ở trên
+    let overId = getFirstCollision(intersections, 'id')
 
     if (overId) {
+      // Nếu cái over nó là column thì sẽ tìm tới cái cardId gần nhất bên trong khu vực va chạm đó dựa vào
+      // thuật toán phát hiện va chạm closestCenter hoặc closestCorners đều được. Tuy nhiên ở đây dùng
+      // closestCenter mình thấy mượt mà hơn.
+      const checkColumn = orderedColumns.find(column => column._id === overId)
+      if (checkColumn) {
+        // console.log('overId before: ', overId)
+        overId = closestCenter({
+          ...args,
+          droppableContainers: args.droppableContainers.filter(container => {
+            return (container.id !== overId) && (checkColumn?.cardOrderIds?.includes(container.id))
+          })
+        })[0]?.id
+        // console.log('overId after: ', overId)
+      }
+
       lastOverId.current = overId
       return [{ id: overId }]
     }
 
     //nếu overId là null thì trả về mảng rỗng - tránh bug crash trang
     return lastOverId.current ? [{ id: lastOverId.current }] : []
-  }, [activeDragItemType])
+  }, [activeDragItemType, orderedColumns])
 
   return (
     <DndContext
