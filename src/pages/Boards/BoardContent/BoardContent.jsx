@@ -19,6 +19,7 @@ import { mapOrder } from '~/utils/sorts'
 import Column from './ListColumns/Column/Column'
 import Card from './ListColumns/Column/ListCards/Card/Card'
 import ListColumns from './ListColumns/ListColumns'
+import { generatePlaceholderCard } from '~/utils/formatters'
 
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN: 'ACTIVE_DRAG_ITEM_TYPE_COLUMN',
@@ -104,6 +105,10 @@ function BoardContent({ board }) {
       if (nextActiveColumn) {
         //Xóa card ở cái column active (cũng có thể hiểu là column cũ, cái lúc mà kéo card ra khỏi nó để sang column khác)
         nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
+        // thêm placeholder card nếu column bị rỗng, bị kéo hết card đi ko còn card nào nữa
+        if (nextActiveColumn.cards.length === 0) {
+          nextActiveColumn.cards = [generatePlaceholderCard(nextActiveColumn)]
+        }
         //cập nhật lại mảng cardOrderIds cho chuẩn dữ liệu
         nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
       }
@@ -120,6 +125,10 @@ function BoardContent({ board }) {
         }
         // Tiếp theo là thêm cái card đang kéo vào overColumn theo vị trí index mới
         nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, rebuild_activeDraggingCardData)
+
+        // xóa Placeholder Card đi nếu nó đang tồn tại
+        nextOverColumn.cards = nextOverColumn.cards.filter(card => !card.FE_PlaceholderCard)
+
         //cập nhật lại mảng cardOrderIds cho chuẩn dữ liệu
         nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
       }
@@ -127,6 +136,7 @@ function BoardContent({ board }) {
       // console.log('isBelowOverItem: ', isBelowOverItem)
       // console.log('modifier: ', modifier)
       // console.log('newCardIndex: ', newCardIndex)
+      console.log('nextColumn: ', nextColumn)
       return nextColumn
     })
   }
@@ -248,7 +258,7 @@ function BoardContent({ board }) {
 
     //xử lý kéo thả column trong boardContent
     if (activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) {
-      console.log('hành động kéo thả column')
+      // console.log('hành động kéo thả column')
       //nếu vị trí sau khi kéo thả khác với vị trí ban đầu
       if (active.id != over.id) {
         //lấy vị trí cũ (từ thằng active)
