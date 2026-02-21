@@ -11,7 +11,7 @@ function Board() {
 
   useEffect(() => {
     // tạm thời fix cứng boardId, sẽ sử dụng react-router-dom sau
-    const boardId = '6985e9cddd57777a3243d1ff'
+    const boardId = '69996f5ffacfa157400e51df'
     // call api
     fetchBoardDetailAPI(boardId)
       .then((board) => {
