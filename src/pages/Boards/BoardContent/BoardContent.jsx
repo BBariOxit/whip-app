@@ -1,8 +1,8 @@
 import {
   DndContext,
   DragOverlay,
-  MouseSensor,
-  TouchSensor,
+  // MouseSensor,
+  // TouchSensor,
   defaultDropAnimationSideEffects,
   useSensor,
   useSensors,
@@ -12,6 +12,7 @@ import {
   // rectIntersection,
   getFirstCollision
 } from '@dnd-kit/core'
+import { MouseSensor, TouchSensor } from '~/customLibs/DndkitSensors'
 import { arrayMove } from '@dnd-kit/sortable'
 import Box from '@mui/material/Box'
 import { useEffect, useState, useCallback, useRef } from 'react'
