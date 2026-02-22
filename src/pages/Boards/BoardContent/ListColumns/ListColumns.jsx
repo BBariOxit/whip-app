@@ -73,7 +73,7 @@ function ListColumns({ columns }) {
             p: 1,
             borderRadius: '6px',
             height: 'fit-content',
-            bgcolor: '#ffffff3d',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#333643' : '#ebecf0',
             display: 'flex',
             flexDirection: 'column',
             gap: 1
@@ -87,20 +87,26 @@ function ListColumns({ columns }) {
               value={newColumntitle}
               onChange = {(e) => setNewColumntitle(e.target.value)}
               sx={{
-                '& label': { color: '#B6C2CF' },
-                '& input': { color: '#B6C2CF' },
-                '& label.Mui-focused': { color: '#B6C2CF' },
+                '& label': {
+                  color: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643'
+                },
+                '& input': {
+                  color: (theme) => theme.palette.primary.main
+                },
+                '& label.Mui-focused': {
+                  color: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643'
+                },
                 '& .MuiOutlinedInput-root': {
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#B6C2CF',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643',
                     transition: 'border-color 0.2s ease, border-width 0.2s ease'
                   },
                   '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#fff',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#333643',
                     borderWidth: '1px !important'
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#fff',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#333643',
                     borderWidth: '1px !important'
                   }
                 }
@@ -109,22 +115,22 @@ function ListColumns({ columns }) {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Button
                 onClick={addNewColumn}
-                variant='contained' color='success' size='small'
+                variant='contained' color='primary' size='small'
                 sx={{
                   boxShadow: 'none',
                   border: '0.5px solid',
-                  borderColor: (theme) => theme.palette.success.main,
+                  borderColor: (theme) => theme.palette.primary.main,
                   '&:hover': {
-                    bgcolor: (theme) => theme.palette.success.main
+                    bgcolor: (theme) => theme.palette.primary.main
                   }
                 }}
               >Add column</Button>
               <CloseIcon
                 onClick= {toogleOpenNewColumnForm}
                 sx={{
-                  color: '#333643',
+                  color: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643',
                   cursor: 'pointer',
-                  '&:hover': { color: '#B6C2CF' }
+                  '&:hover': { opacity: 0.7 }
                 }}
                 fontSize='small'
               />
