@@ -26,6 +26,8 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Opacity } from '@mui/icons-material'
 
+import { toast } from 'react-toastify'
+
 function Column({ column }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
@@ -59,7 +61,7 @@ function Column({ column }) {
 
   const addNewCard = () => {
     if (!newCardtitle) {
-      // console.error('please enter Card title')
+      toast.error('please enter Card title')
       return
     }
     // console.log(newCardtitle)
