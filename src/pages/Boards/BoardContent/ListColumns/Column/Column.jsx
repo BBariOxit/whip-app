@@ -28,7 +28,7 @@ import { Opacity } from '@mui/icons-material'
 
 import { toast } from 'react-toastify'
 
-function Column({ column }) {
+function Column({ column, createNewCard }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
     data: { ...column }
@@ -59,13 +59,19 @@ function Column({ column }) {
 
   const [newCardtitle, setNewCardtitle] = useState('')
 
-  const addNewCard = () => {
+  const addNewCard = async () => {
     if (!newCardtitle) {
       toast.error('please enter Card title')
       return
     }
-    // console.log(newCardtitle)
-    // gọi API ở đây
+
+    // tạo dữ liệu card để gọi
+    const newCardData = {
+      title: newCardtitle,
+      columnId: column._id
+    }
+    // gọi lên props func createNewCard nằm ở component cha cao nhất (board/_id.jsx)
+    await createNewCard(newCardData)
 
     // đóng trạng thái thêm Card mới và clear input
     toogleOpenNewCardForm()
