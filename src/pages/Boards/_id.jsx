@@ -25,8 +25,16 @@ function Board() {
       ...newColumnData,
       boardId:board._id
     })
-    console.log('createdColumn:', createdColumn)
     // cập nhật state board
+
+    // Phía Front-end chúng ta phải tự làm đúng lại state data board (thay vì phải gọi lại api fetchBoardDetailsAPI)
+    // Lưu ý: cách làm này phụ thuộc vào tùy lựa chọn và đặc thù dự án,
+    // có nơi thì BE sẽ hỗ trợ trả về luôn toàn bộ Board dù đây có là api tạo Column hay Card đi chăng nữa. 
+    // => Lúc này FE sẽ nhàn hơn.
+    const newBoard = { ...board }
+    newBoard.columns.push(createdColumn)
+    newBoard.columnOrderIds.push(createdColumn._id)
+    setBoard(newBoard)
   }
 
   // func này có nhiệm vụ gọi API tạo mới column và làm lại dữ liệu state board
@@ -35,8 +43,13 @@ function Board() {
       ...newCardData,
       boardId:board._id
     })
-    console.log('createdCard:', createdCard)
     // cập nhật state board
+    const newBoard = { ...board }
+    const columnToUpdate = newBoard.columns.find(column => column._id === createdCard.columnId)
+    if (columnToUpdate) {
+      columnToUpdate.cards.push(createdCard)
+      columnToUpdate.cardOrderIds.push(createdCard._id)
+    }
   }
 
   return (
