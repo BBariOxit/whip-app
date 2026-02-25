@@ -5,6 +5,8 @@ import BoardBar from './BoardBar/BoardBar'
 import BoardContent from './BoardContent/BoardContent'
 // import { mockData } from '~/apis/mock-data'
 import { fetchBoardDetailAPI, createNewCardAPI, createNewColumnAPI } from '~/apis'
+import { generatePlaceholderCard } from '~/utils/formatters'
+import { isEmpty } from 'lodash-es'
 
 function Board() {
   const [board, setBoard] = useState(null)
@@ -15,6 +17,13 @@ function Board() {
     // call api
     fetchBoardDetailAPI(boardId)
       .then((board) => {
+        // xử lý vấn đề kéo thả vào một column rỗng
+        board.columns.forEach(column => {
+          if (isEmpty(column.cards)) {
+            column.cards = [generatePlaceholderCard(column)]
+            column.cardOrderIds = [generatePlaceholderCard(column)._id]
+          }
+        })
         setBoard(board)
       })
   }, [])
@@ -25,8 +34,11 @@ function Board() {
       ...newColumnData,
       boardId:board._id
     })
-    // cập nhật state board
+    // khi tạo column mới sẽ chưa có card => xử lý vấn đề kéo thả vào một column rỗng
+    createdColumn.cards = [generatePlaceholderCard(createdColumn)]
+    createdColumn.cardOrderIds = [generatePlaceholderCard(createdColumn)._id]
 
+    // cập nhật state board
     // Phía Front-end chúng ta phải tự làm đúng lại state data board (thay vì phải gọi lại api fetchBoardDetailsAPI)
     // Lưu ý: cách làm này phụ thuộc vào tùy lựa chọn và đặc thù dự án,
     // có nơi thì BE sẽ hỗ trợ trả về luôn toàn bộ Board dù đây có là api tạo Column hay Card đi chăng nữa. 
