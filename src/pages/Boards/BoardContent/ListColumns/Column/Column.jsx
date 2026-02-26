@@ -17,7 +17,6 @@ import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import React from 'react'
 import ListCard from './ListCards/ListCard'
-import { mapOrder } from '~/utils/sorts'
 import { useState } from 'react'
 import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
@@ -51,7 +50,8 @@ function Column({ column, createNewCard }) {
   const handleClick = (event) => { setAnchorEl(event.currentTarget)}
   const handleClose = () => {setAnchorEl(null)}
 
-  const orderedCards = mapOrder(column?.cards, column?.cardOrderIds, '_id')
+  // cards đã được sắp xếp ở comp cha cao nhất
+  const orderedCards = column.cards
 
 
   const [openNewCardForm, setOpenNewCardForm] = useState(false)
