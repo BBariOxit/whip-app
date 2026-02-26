@@ -15,7 +15,7 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
 
   const [newColumntitle, setNewColumntitle] = useState('')
 
-  const addNewColumn = async () => {
+  const addNewColumn = () => {
     if (!newColumntitle) {
       toast.error('please enter column title', { position: 'bottom-left' })
       return
@@ -25,7 +25,7 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
       title: newColumntitle
     }
     // gọi lên props func createNewColumn nằm ở component cha cao nhất (board/_id.jsx)
-    await createNewColumn(newColumnData)
+    createNewColumn(newColumnData)
 
     // đóng trạng thái thêm column mới và clear input
     toogleOpenNewColumnForm()

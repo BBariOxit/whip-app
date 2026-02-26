@@ -59,7 +59,7 @@ function Column({ column, createNewCard }) {
 
   const [newCardtitle, setNewCardtitle] = useState('')
 
-  const addNewCard = async () => {
+  const addNewCard = () => {
     if (!newCardtitle) {
       toast.error('please enter Card title')
       return
@@ -71,7 +71,7 @@ function Column({ column, createNewCard }) {
       columnId: column._id
     }
     // gọi lên props func createNewCard nằm ở component cha cao nhất (board/_id.jsx)
-    await createNewCard(newCardData)
+    createNewCard(newCardData)
 
     // đóng trạng thái thêm Card mới và clear input
     toogleOpenNewCardForm()
