@@ -1,33 +1,38 @@
 import {
   DndContext,
   DragOverlay,
+  closestCorners,
   // MouseSensor,
   // TouchSensor,
   defaultDropAnimationSideEffects,
-  useSensor,
-  useSensors,
-  closestCorners,
+  // rectIntersection,
+  getFirstCollision,
   // closestCenter,
   pointerWithin,
-  // rectIntersection,
-  getFirstCollision
+  useSensor,
+  useSensors
 } from '@dnd-kit/core'
-import { MouseSensor, TouchSensor } from '~/customLibs/DndkitSensors'
 import { arrayMove } from '@dnd-kit/sortable'
 import Box from '@mui/material/Box'
-import { useEffect, useState, useCallback, useRef } from 'react'
-import { mapOrder } from '~/utils/sorts'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { MouseSensor, TouchSensor } from '~/customLibs/DndkitSensors'
+import { generatePlaceholderCard } from '~/utils/formatters'
 import Column from './ListColumns/Column/Column'
 import Card from './ListColumns/Column/ListCards/Card/Card'
 import ListColumns from './ListColumns/ListColumns'
-import { generatePlaceholderCard } from '~/utils/formatters'
 
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN: 'ACTIVE_DRAG_ITEM_TYPE_COLUMN',
   CARD: 'ACTIVE_DRAG_ITEM_TYPE_CARD'
 }
 
-function BoardContent({ board, createNewColumn, createNewCard, moveColumn }) {
+function BoardContent({
+  board,
+  createNewColumn,
+  createNewCard,
+  moveColumn,
+  moveCardSameColumn
+}) {
   //https://docs.dndkit.com/api-documentation/sensors
   // nếu dùng Pointer sensor mặc định thì phải kết hợp với thuộc tính css touchAction: none ở những
   // phần tử kéo thả - nhưng mà còn bug
@@ -64,8 +69,8 @@ function BoardContent({ board, createNewColumn, createNewCard, moveColumn }) {
   const lastOverId = useRef(null)
 
   useEffect(() => {
-    const oderedColumns = mapOrder(board?.columns, board?.columnOrderIds, '_id')
-    setOrderedColumns(oderedColumns)
+    // column đã được sắp xếp ở comp cha cao nhất
+    setOrderedColumns(board.columns)
   }, [board])
 
   //tìm 1 cái column theo cardId
@@ -240,6 +245,8 @@ function BoardContent({ board, createNewColumn, createNewCard, moveColumn }) {
         const newCardIndex = overColumn?.cards?.findIndex((c) => c._id === overCardId)
         // Dùng arrayMove vì kéo card trong một cái column thì tương tự với logic kéo column trong một cái board content
         const dndOrderedCards = arrayMove(oldColumnWhenDraggingCard?.cards, oldCardIndex, newCardIndex)
+        const dndOrderedCardIds = dndOrderedCards.map(card => card._id)
+
         // console.log(dndOrderedCards)
         setOrderedColumns(prevColumns => {
           //Clone mảng OrderedColumnsState cũ ra một cái mới để xử lý data rồi return – cập nhật lại OrderedColumnsState mới
@@ -249,11 +256,14 @@ function BoardContent({ board, createNewColumn, createNewCard, moveColumn }) {
           const targetColumn = nextColumns.find(c => c._id === overColumn._id)
           //cập nhật lại 2 giá trị mới là card và cardOrderIds trong cái targetColumn
           targetColumn.cards = dndOrderedCards
-          targetColumn.cardOrderIds = dndOrderedCards.map(card => card._id)
+          targetColumn.cardOrderIds = dndOrderedCardIds
 
           //trả về giá trị state mới chuẩn vị trí
           return nextColumns
         })
+
+        // Gọi lên props function moveCardSameColumn nằm ở component cha cao nhất (boards/_id.jsx)
+        moveCardSameColumn(dndOrderedCards, dndOrderedCardIds, oldColumnWhenDraggingCard._id)
       }
     }
 
@@ -270,11 +280,11 @@ function BoardContent({ board, createNewColumn, createNewCard, moveColumn }) {
         // Code của arrayMove ở đây: dnd-kit/packages/sortable/src/utilities/arrayMove.ts
         const dndOrderedColumns = arrayMove(orderedColumns, oldColumnIndex, newColumnIndex)
 
-        // Gọi lên props function moveColumns nằm ở component cha cao nhất (boards/_id.jsx)
-        moveColumn(dndOrderedColumns)
-
         // Vẫn gọi update State ở đây để tránh delay hoặc Flickering giao diện lúc kéo thả cần phải chờ gọi API
         setOrderedColumns(dndOrderedColumns)
+
+        // Gọi lên props function moveColumns nằm ở component cha cao nhất (boards/_id.jsx)
+        moveColumn(dndOrderedColumns)
       }
     }
 
