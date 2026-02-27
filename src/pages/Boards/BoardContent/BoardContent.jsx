@@ -143,7 +143,8 @@ function BoardContent({
 
       // nếu function này được gọi từ handleDragEnd nghĩa là đã kéo thả xong, lúc này mới xử lý gọi API 1 lần ở đây
       if (triggerFrom === 'handleDragEnd') {
-        moveCardifferentColumn(activeDraggingCardId,
+        moveCardifferentColumn(
+          activeDraggingCardId,
           oldColumnWhenDraggingCard._id,
           nextOverColumn._id,
           nextColumns
