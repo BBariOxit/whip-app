@@ -23,9 +23,10 @@ import CloseIcon from '@mui/icons-material/Close'
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Opacity } from '@mui/icons-material'
+import { Opacity, Warning } from '@mui/icons-material'
 
 import { toast } from 'react-toastify'
+import { useConfirm } from 'material-ui-confirm'
 
 function Column({ column, createNewCard }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -78,6 +79,47 @@ function Column({ column, createNewCard }) {
     setNewCardtitle('')
   }
 
+  // xử lý xóa 1 column và cards bên trong nó
+  const confirmDeleteColumn = useConfirm()
+  const handleDeleteColumn = async () => {
+    try {
+      // Đợi người dùng nhấn xác nhận
+      await confirmDeleteColumn({
+        title: 'Delete column?',
+        description: 'This action will permanently delete your Column and its Cards! Are you sure?',
+        confirmationText: 'confirm'
+        // cancellationText: 'Ko,
+        // dialogProps: {
+        //   sx: {
+        //     '& .MuiDialogActions-root': {
+        //       mt: 0,
+        //       pt: 0,
+        //       mb: 1
+        //     }
+        //   },
+        //   PaperProps: {
+        //     sx: (theme) => ({
+        //       backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.background.paper,
+        //       color: theme.palette.text.primary,
+        //       backgroundImage: 'none'
+        //     })
+        //   }
+        // },
+        // buttonOrder: ['confirm', 'cancel'],
+        // allowClose: false,
+        // confirmationButtonProps: { color: 'primary', variant: 'outlined', border: '10px' },
+        // cancellationButtonProps: { color: 'inherit' }
+        // confirmationKeyword: 'phanBao'
+      })
+
+      // Nếu nó nhấn OK thì code chạy tiếp xuống đây
+      console.log('ID:', column._id)
+      console.log('Title:', column.title)
+    } catch (error) {
+      console.log('Hú hồn, tí thì xóa nhầm!')
+    }
+  }
+
   return (
     //phải bọc div ở đây vì vấn đề chiều cao của column khi kéo thả sẽ có bug kiểu flickering
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
@@ -125,14 +167,24 @@ function Column({ column, createNewCard }) {
               anchorEl={anchorEl}
               open={open}
               onClose={handleClose}
+              onClick={handleClose}
               MenuListProps={{
                 'aria-labelledby': 'basic-column-dropdown'
               }}
             >
-              <MenuItem>
-                <ListItemIcon><AddCardIcon fontSize="small" /></ListItemIcon>
+              <MenuItem
+                onClick={toogleOpenNewCardForm}
+                sx={{
+                  '&:hover': {
+                    color: (theme) => theme.palette.primary.main,
+                    '& .add-Card-Icon': { color: (theme) => theme.palette.primary.main }
+                  }
+                }}
+              >
+                <ListItemIcon><AddCardIcon className='add-Card-Icon' fontSize="small" /></ListItemIcon>
                 <ListItemText>Add new card</ListItemText>
-              </MenuItem><MenuItem>
+              </MenuItem>
+              <MenuItem>
                 <ListItemIcon><ContentCut fontSize="small" /></ListItemIcon>
                 <ListItemText>Cut</ListItemText>
               </MenuItem>
@@ -146,9 +198,17 @@ function Column({ column, createNewCard }) {
               </MenuItem>
 
               <Divider />
-              <MenuItem>
-                <ListItemIcon><DeleteForeverIcon fontSize="small" /></ListItemIcon>
-                <ListItemText>Remove this column</ListItemText>
+              <MenuItem
+                onClick={handleDeleteColumn}
+                sx={{
+                  '&:hover': {
+                    color: (theme) => theme.palette.primary.main,
+                    '& .delete-Forever-Icon': { color: (theme) => theme.palette.primary.main }
+                  }
+                }}
+              >
+                <ListItemIcon><DeleteForeverIcon className='delete-Forever-Icon' fontSize="small" /></ListItemIcon>
+                <ListItemText>Delete this column</ListItemText>
               </MenuItem>
               <MenuItem>
                 <ListItemIcon><Cloud fontSize="small" /></ListItemIcon>
