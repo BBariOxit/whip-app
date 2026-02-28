@@ -28,7 +28,7 @@ import { Opacity, Warning } from '@mui/icons-material'
 import { toast } from 'react-toastify'
 import { useConfirm } from 'material-ui-confirm'
 
-function Column({ column, createNewCard }) {
+function Column({ column, createNewCard, deleteColumnDetails }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
     data: { ...column }
@@ -113,6 +113,8 @@ function Column({ column, createNewCard }) {
       })
 
       // Nếu nó nhấn OK thì code chạy tiếp xuống đây
+      deleteColumnDetails(column._id)
+
       console.log('ID:', column._id)
       console.log('Title:', column.title)
     } catch (error) {
