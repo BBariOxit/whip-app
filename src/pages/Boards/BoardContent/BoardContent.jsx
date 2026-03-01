@@ -15,7 +15,7 @@ import {
 import { arrayMove } from '@dnd-kit/sortable'
 import Box from '@mui/material/Box'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { MouseSensor, TouchSensor } from '~/customLibs/DndkitSensors'
+import { MouseSensor, TouchSensor } from '~/customLibs/DndKitSensors'
 import { generatePlaceholderCard } from '~/utils/formatters'
 import Column from './ListColumns/Column/Column'
 import Card from './ListColumns/Column/ListCards/Card/Card'

@@ -1,2 +1,2 @@
 //chứa các biến , api endpoint api root
-export const API_ROOT = 'http://localhost:2008'
+export const API_ROOT = 'https://whip-api.onrender.com'
