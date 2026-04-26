@@ -1,4 +1,5 @@
 import AddCardIcon from '@mui/icons-material/AddCard'
+import CloseIcon from '@mui/icons-material/Close'
 import Cloud from '@mui/icons-material/Cloud'
 import ContentCopy from '@mui/icons-material/ContentCopy'
 import ContentCut from '@mui/icons-material/ContentCut'
@@ -13,22 +14,28 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
+import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import React from 'react'
+import React, { useState } from 'react'
 import ListCard from './ListCards/ListCard'
-import { useState } from 'react'
-import TextField from '@mui/material/TextField'
-import CloseIcon from '@mui/icons-material/Close'
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Opacity, Warning } from '@mui/icons-material'
 
-import { toast } from 'react-toastify'
 import { useConfirm } from 'material-ui-confirm'
+import { toast } from 'react-toastify'
 
-function Column({ column, createNewCard, deleteColumnDetails }) {
+import { cloneDeep } from 'lodash-es'
+import { useDispatch, useSelector } from 'react-redux'
+import { createNewCardAPI, deleteColumnDetailAPI } from '~/apis'
+import { selectCurrentActive, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
+
+
+function Column({ column }) {
+  const dispatch = useDispatch()
+  const board = useSelector(selectCurrentActive)
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
     data: { ...column }
@@ -60,7 +67,7 @@ function Column({ column, createNewCard, deleteColumnDetails }) {
 
   const [newCardtitle, setNewCardtitle] = useState('')
 
-  const addNewCard = () => {
+  const addNewCard = async () => {
     if (!newCardtitle) {
       toast.error('please enter Card title')
       return
@@ -71,8 +78,30 @@ function Column({ column, createNewCard, deleteColumnDetails }) {
       title: newCardtitle,
       columnId: column._id
     }
-    // gọi lên props func createNewCard nằm ở component cha cao nhất (board/_id.jsx)
-    createNewCard(newCardData)
+    // gọi API tạo mới card và làm lại dữ liệu state board
+    const createdCard = await createNewCardAPI({
+      ...newCardData,
+      boardId:board._id
+    })
+    // cập nhật state board
+
+    // tương tự hàm createNewColumn, chúng ta cũng cloneDeep
+    const newBoard = cloneDeep(board)
+    const columnToUpdate = newBoard.columns.find(column => column._id === createdCard.columnId)
+    if (columnToUpdate) {
+      // nếu column rỗng (đang chứa 1 cái placeholder-card)
+      if (columnToUpdate.cards.some(card => card.FE_PlaceholderCard)) {
+        columnToUpdate.cards = [createdCard]
+        columnToUpdate.cardOrderIds = [createdCard._id]
+      } else {
+        // ngược lại column đã có data thì push vào cuối mảng
+        columnToUpdate.cards.push(createdCard)
+        columnToUpdate.cardOrderIds.push(createdCard._id)
+      }
+    }
+    console.log(columnToUpdate)
+    // setBoard(newBoard)
+    dispatch(updateCurrentActiveBoard(newBoard))
 
     // đóng trạng thái thêm Card mới và clear input
     toogleOpenNewCardForm()
@@ -112,11 +141,22 @@ function Column({ column, createNewCard, deleteColumnDetails }) {
         // confirmationKeyword: 'phanBao'
       })
 
-      // Nếu nó nhấn OK thì code chạy tiếp xuống đây
-      deleteColumnDetails(column._id)
+      // xử lý xóa 1 column và card bên trong nó
+      // cập nhật lại cho chuẩn dữ liệu state board
+      
+      // Tương tự đoạn xử lý chỗ hàm moveColumns nên không ảnh hưởng Redux Toolkit Immutability gì ở đây cả.
+      const newBoard = { ...board }
+      newBoard.columns = newBoard.columns.filter(c => c._id !== column._id)
+      newBoard.columnOrderIds = newBoard.columnOrderIds.filter(_id => _id !== column._id)
+      // setBoard(newBoard)
+      dispatch(updateCurrentActiveBoard(newBoard))
+  
+      // gọi API xử lý phía BE
+      deleteColumnDetailAPI(column._id).then(res => {
+        toast.success(res?.deleteResult)
+        console.log(res)
+      })
 
-      console.log('ID:', column._id)
-      console.log('Title:', column.title)
     } catch (error) {
       console.log('Hú hồn, tí thì xóa nhầm!')
     }
