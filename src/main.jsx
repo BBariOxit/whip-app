@@ -15,6 +15,9 @@ import { ConfirmProvider } from 'material-ui-confirm'
 import { store } from '~/redux/store'
 import { Provider } from 'react-redux'
 
+// cấu hình react router dom  với browser router
+import { BrowserRouter } from 'react-router-dom'
+
 function Root() {
   const { mode, systemMode } = useColorScheme()
   const effectiveMode = mode === 'system' ? systemMode : mode
@@ -30,32 +33,36 @@ function Root() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <Provider store={store}>
-    <CssVarsProvider theme={theme}>
-      <ConfirmProvider defaultOptions={{
-        dialogProps: {
-          sx: {
-            '& .MuiDialogActions-root': {
-              mt: 0,
-              pt: 0,
-              mb: 1
-            }
-          },
-          PaperProps: {
-            sx: (theme) => ({
-              backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.background.paper,
-              color: theme.palette.text.primary,
-              backgroundImage: 'none'
-            })
-          }
-        },
-        buttonOrder: ['confirm', 'cancel'],
-        allowClose: false,
-        confirmationButtonProps: { color: 'primary', variant: 'outlined', border: '10px' },
-        cancellationButtonProps: { color: 'inherit' }
-      }}>
-        <Root />
-      </ConfirmProvider>
-    </CssVarsProvider>
-  </Provider>
+  <BrowserRouter>
+    <Provider store={store}>
+      <CssVarsProvider theme={theme}>
+        <ConfirmProvider 
+          defaultOptions={{
+            dialogProps: {
+              sx: {
+                '& .MuiDialogActions-root': {
+                  mt: 0,
+                  pt: 0,
+                  mb: 1
+                }
+              },
+              PaperProps: {
+                sx: (theme) => ({
+                  backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.background.paper,
+                  color: theme.palette.text.primary,
+                  backgroundImage: 'none'
+                })
+              }
+            },
+            buttonOrder: ['confirm', 'cancel'],
+            allowClose: false,
+            confirmationButtonProps: { color: 'primary', variant: 'outlined', border: '10px' },
+            cancellationButtonProps: { color: 'inherit' }
+          }}
+        >
+          <Root />
+        </ConfirmProvider>
+      </CssVarsProvider>
+    </Provider>
+  </BrowserRouter>
 )
