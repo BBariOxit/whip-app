@@ -22,19 +22,19 @@ import {
   updateBoardDetailAPI,
   updateColumnDetailAPI
 } from '~/apis'
+import { useParams } from 'react-router-dom'
 
 function Board() {
   const dispatch = useDispatch()
   // ko dùng state của component nữa, mà dùng redux
   // const [board, setBoard] = useState(null)
   const board = useSelector(selectCurrentActive)
+  const { boardId } = useParams()
 
   useEffect(() => {
-    // tạm thời fix cứng boardId, sẽ sử dụng react-router-dom sau
-    const boardId = '69996f5ffacfa157400e51df'
     // call api
     dispatch(fetchBoardDetailAPI(boardId))
-  }, [dispatch])
+  }, [dispatch, boardId])
 
   // func này có nhiệm vụ gọi API và xử lý khi kéo thả column xong
   // khi di chuyển column trong cùng một board
