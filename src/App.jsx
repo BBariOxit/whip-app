@@ -1,6 +1,9 @@
 import Board from '~/pages/Boards/_id'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import NotFound from '~/pages/404/NotFound'
+// import LoginForm from '~/pages/Auth/LoginForm'
+// import RegisterForm from '~/pages/Auth/RegisterForm'
+import Auth from '~/pages/Auth/Auth'
 
 function App() {
   return (
@@ -15,6 +18,10 @@ function App() {
       } />
       {/* Board details */}
       <Route path="/boards/:boardId" element={<Board />} />
+
+      {/* Authentications */}
+      <Route path="/login" element={<Auth />} />
+      <Route path="/register" element={<Auth />} />
 
       {/* Route 404 not found page  */}
       <Route path="*" element={<NotFound />} />
