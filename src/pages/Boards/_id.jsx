@@ -1,7 +1,4 @@
-import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
 import Container from '@mui/material/Container'
-import Typography from '@mui/material/Typography'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import AppBar from '~/components/AppBar/AppBar'
@@ -15,14 +12,13 @@ import BoardContent from './BoardContent/BoardContent'
 
 // import { mockData } from '~/apis/mock-data'
 import { cloneDeep } from 'lodash-es'
-import { toast } from 'react-toastify'
+import { useParams } from 'react-router-dom'
 import {
-  deleteColumnDetailAPI,
   moveCarDifferentColumnlAPI,
   updateBoardDetailAPI,
   updateColumnDetailAPI
 } from '~/apis'
-import { useParams } from 'react-router-dom'
+import PageLoadingSpinner from '~/components/Loading/pageLoadingSpinner'
 
 function Board() {
   const dispatch = useDispatch()
@@ -113,19 +109,7 @@ function Board() {
   }
 
   if (!board) {
-    return (
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 2,
-        width: '100vw',
-        height: '100vh'
-      }}>
-        <CircularProgress />
-        <Typography>Loading board...</Typography>
-      </Box>
-    )
+    return <PageLoadingSpinner caption="Loading board..." />
   }
 
   return (

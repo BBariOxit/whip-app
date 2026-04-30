@@ -4,6 +4,7 @@ import NotFound from '~/pages/404/NotFound'
 // import LoginForm from '~/pages/Auth/LoginForm'
 // import RegisterForm from '~/pages/Auth/RegisterForm'
 import Auth from '~/pages/Auth/Auth'
+import AccountVerification from '~/pages/Auth/AccountVerification'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
       {/* Authentications */}
       <Route path="/login" element={<Auth />} />
       <Route path="/register" element={<Auth />} />
+      <Route path='/account/verification' element={<AccountVerification />} />
 
       {/* Route 404 not found page  */}
       <Route path="*" element={<NotFound />} />
