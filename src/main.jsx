@@ -18,6 +18,11 @@ import { Provider } from 'react-redux'
 // cấu hình react router dom  với browser router
 import { BrowserRouter } from 'react-router-dom'
 
+// Cấu hình Redux-Persist
+import { PersistGate } from 'redux-persist/integration/react'
+import { persistStore } from 'redux-persist'
+const persistor = persistStore(store)
+
 function Root() {
   const { mode, systemMode } = useColorScheme()
   const effectiveMode = mode === 'system' ? systemMode : mode
@@ -35,34 +40,36 @@ function Root() {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <Provider store={store}>
-      <CssVarsProvider theme={theme}>
-        <ConfirmProvider 
-          defaultOptions={{
-            dialogProps: {
-              sx: {
-                '& .MuiDialogActions-root': {
-                  mt: 0,
-                  pt: 0,
-                  mb: 1
+      <PersistGate persistor={persistor}>
+        <CssVarsProvider theme={theme}>
+          <ConfirmProvider 
+            defaultOptions={{
+              dialogProps: {
+                sx: {
+                  '& .MuiDialogActions-root': {
+                    mt: 0,
+                    pt: 0,
+                    mb: 1
+                  }
+                },
+                PaperProps: {
+                  sx: (theme) => ({
+                    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                    backgroundImage: 'none'
+                  })
                 }
               },
-              PaperProps: {
-                sx: (theme) => ({
-                  backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.background.paper,
-                  color: theme.palette.text.primary,
-                  backgroundImage: 'none'
-                })
-              }
-            },
-            buttonOrder: ['confirm', 'cancel'],
-            allowClose: false,
-            confirmationButtonProps: { color: 'primary', variant: 'outlined', border: '10px' },
-            cancellationButtonProps: { color: 'inherit' }
-          }}
-        >
-          <Root />
-        </ConfirmProvider>
-      </CssVarsProvider>
+              buttonOrder: ['confirm', 'cancel'],
+              allowClose: false,
+              confirmationButtonProps: { color: 'primary', variant: 'outlined', border: '10px' },
+              cancellationButtonProps: { color: 'inherit' }
+            }}
+          >
+            <Root />
+          </ConfirmProvider>
+        </CssVarsProvider>
+      </PersistGate>
     </Provider>
   </BrowserRouter>
 )
