@@ -23,6 +23,10 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { persistStore } from 'redux-persist'
 const persistor = persistStore(store)
 
+// Kỹ thuật inject store vào file authorizeAxios
+import { injectStore } from '~/utils/authorizeAxios'
+injectStore(store)
+
 function Root() {
   const { mode, systemMode } = useColorScheme()
   const effectiveMode = mode === 'system' ? systemMode : mode
