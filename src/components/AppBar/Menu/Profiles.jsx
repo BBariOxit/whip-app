@@ -14,6 +14,7 @@ import avatar from '~/assets/avatar.png'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectCurrentUser, logoutUserAPI } from '~/redux/user/userSlice'
 import { useConfirm } from 'material-ui-confirm'
+import { Link } from 'react-router-dom'
 
 function Profiles() {
   const [anchorEl, setAnchorEl] = React.useState(null)
@@ -68,11 +69,14 @@ function Profiles() {
           'aria-labelledby': 'basic-button-profiles'
         }}
       >
-        <MenuItem sx={{
-          '&:hover': { color: 'primary.main' }
-        }}>
-          <Avatar src={currentUser?.avatar} sx={{ width: 28, height: 28, mr: 2 }} /> Profile
-        </MenuItem>
+        <Link to='/settings/account' style={{color: 'inherit'}}> 
+          <MenuItem sx={{
+            '&:hover': { color: 'primary.main' }
+          }}>
+            <Avatar src={currentUser?.avatar} sx={{ width: 28, height: 28, mr: 2 }} /> Profile
+          </MenuItem>
+        </Link>
+
         {/* <MenuItem>
           <Avatar src={currentUser?.avatar} sx={{ width: 28, height: 28, mr: 2 }}/> My account
         </MenuItem> */}
