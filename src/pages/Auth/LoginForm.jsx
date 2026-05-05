@@ -35,6 +35,7 @@ function LoginForm() {
 
   const submitLogIn = (data) => {
     const { email, password } = data
+    
     toast.promise(
       dispatch(loginUserAPI({ email, password })).unwrap(),
       { pending: 'Login in... '},
