@@ -70,7 +70,7 @@ function AccountTab() {
 
   const uploadAvatar = (e) => {
     // Lấy file thông qua e.target?.files[0] và validate nó trước khi xử lý
-    console.log('e.target?.files[0]: ', e.target?.files[0])
+    // console.log('e.target?.files[0]: ', e.target?.files[0])
     const error = singleFileValidator(e.target?.files[0])
     if (error) {
       toast.error(error)
@@ -81,12 +81,25 @@ function AccountTab() {
     let reqData = new FormData()
     reqData.append('avatar', e.target?.files[0])
     // Cách để log được dữ liệu thông qua FormData
-    for (const value of reqData.values()) {
-      
-    }
+    // for (const value of reqData.values()) {
+    //   console.log('value: ', value)
+    // }
 
     // Gọi API...
-
+    toast.promise(
+      dispatch(updateUserAPI(reqData)),
+      { pending: 'Uploading... ' },
+    ).then(res => {
+      // Đoạn này phải kiểm tra không có lỗi (update thành công) thì mới thực hiện các hành động cần thiết
+      if (!res.error) {
+        toast.success('Avatar uploaded successfully!')
+      }
+      // Lưu ý, dù có lỗi hoặc thành công thì cũng phải clear giá trị của file input,
+      // nếu không thì sẽ không thể chọn cùng một file liên tiếp được.
+      e.target.value = ''
+    }).catch(error => {
+      console.log(error)
+    })
   }
 
   return (
