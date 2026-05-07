@@ -8,6 +8,7 @@ import AccountVerification from '~/pages/Auth/AccountVerification'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import Settings from '~/pages/Settings/Settings'
+import Boards from '~/pages/Boards/index'
 
 
 /**
@@ -40,6 +41,7 @@ function App() {
 
         {/* Board details */}
         <Route path="/boards/:boardId" element={<Board />} />
+        <Route path="/boards" element={<Boards />} />
 
         {/* User settings */}
         <Route path='/settings/account' element={<Settings />} />
