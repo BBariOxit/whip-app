@@ -8,3 +8,8 @@ if (process.env.BUILD_MODE === 'production') {
 }
 console.log(apiRoot)
 export const API_ROOT = apiRoot
+
+//mặc định 
+export const DEFAULT_PAGE = 1
+export const DEFAULT_ITEMS_PER_PAGE = 12
+
