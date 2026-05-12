@@ -27,8 +27,9 @@ import { useConfirm } from 'material-ui-confirm'
 import { toast } from 'react-toastify'
 
 import { cloneDeep } from 'lodash-es'
+import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
-import { createNewCardAPI, deleteColumnDetailAPI } from '~/apis'
+import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI } from '~/apis'
 import { selectCurrentActive, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 
 
@@ -162,6 +163,19 @@ function Column({ column }) {
     }
   }
 
+  const onUpdateColumnTitle = (newTitle) => {
+    // gọi api update column và xử lý dữ liệu board ở redux
+    updateColumnDetailAPI(column._id, { title: newTitle }).then(() => {
+      const newBoard = cloneDeep(board)
+      const columnToUpdate = newBoard.columns.find(c => column._id === c._id)
+      if (columnToUpdate) {
+        columnToUpdate.title = newTitle
+      }
+      // setBoard(newBoard)
+      dispatch(updateCurrentActiveBoard(newBoard))
+    })
+  }
+
   return (
     //phải bọc div ở đây vì vấn đề chiều cao của column khi kéo thả sẽ có bug kiểu flickering
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
@@ -186,12 +200,17 @@ function Column({ column }) {
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <Typography variant='h6' sx={{
+          {/* <Typography variant='h6' sx={{
             fontSize: '1.2rem',
             fontWeight: 'bold',
             cursor: 'pointer'
           }}
-          >{column?.title}</Typography>
+          >{column?.title}</Typography> */}
+          <ToggleFocusInput
+            value={column?.title}
+            onChangedValue={onUpdateColumnTitle}
+            data-no-dnd="true"
+          />
           {/* dropdown menu */}
           <Box>
             <Tooltip title='more options'>
