@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import AppBar from '~/components/AppBar/AppBar'
-import PageLoadingSpinner from '~/components/Loading/PageLoadingSpinner'
+import PageLoadingSpinner from '~/components/Loading/pageLoadingSpinner'
 import Container from '@mui/material/Container'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
