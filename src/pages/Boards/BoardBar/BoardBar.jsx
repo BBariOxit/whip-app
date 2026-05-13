@@ -12,6 +12,7 @@ import Tooltip from '@mui/material/Tooltip'
 import avatar from '~/assets/avatar.png'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import { capitalizeFirstLetter } from '~/utils/formatters'
+import BoardUserGroup from './BoardUserGroup'
 
 const MENU_STYLE = {
   color: '#B6C2CF',
@@ -88,101 +89,9 @@ function BoardBar({ board }) {
             '&:hover': { borderColor: '#B6C2CF' }
           }}
         >Invite</Button>
-        <AvatarGroup
-          max={7}
-          sx={{
-            gap: '10px',
-            '& .MuiAvatar-root': {
-              width: '34px',
-              height: '34px',
-              fontSize: 16,
-              color: 'white',
-              borderColor: '#B6C2CF',
-              borderWidth: '3px',
-              cursor: 'pointer'
-              // '&:first-of-type': { bgcolor: '#a4b0be' }
-            }
-          }}
-        >
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src={avatar}
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-4.jpg'
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-9.jpg'
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-31.jpg'
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-18.jpg'
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-49.jpg'
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-43.jpg'
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-4.jpg'
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-9.jpg'
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-31.jpg'
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-18.jpg'
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-49.jpg'
-            />
-          </Tooltip>
-          <Tooltip title='phanbao'>
-            <Avatar
-              alt="Phan Bao"
-              src='https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/meme-meo-43.jpg'
-            />
-          </Tooltip>
-        </AvatarGroup>
+        
+         {/* xử lý hiển thị danh sách thành viên của board */}
+        <BoardUserGroup />
       </Box>
     </Box>
   )

@@ -19,6 +19,7 @@ import {
   updateColumnDetailAPI
 } from '~/apis'
 import PageLoadingSpinner from '~/components/Loading/pageLoadingSpinner'
+import ActiveCard from '~/components/Modal/ActiveCard/ActiveCard'
 
 function Board() {
   const dispatch = useDispatch()
@@ -114,6 +115,7 @@ function Board() {
 
   return (
     <Container disableGutters maxWidth={false} sx={{ height: '100vh' }}>
+      <ActiveCard />
       <AppBar />
       <BoardBar board={board}/>
       <BoardContent
