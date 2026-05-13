@@ -33,10 +33,14 @@ import CardUserGroup from './CardUserGroup'
 import CardDescriptionMdEditor from './CardDescriptionMdEditor'
 import CardActivitySection from './CardActivitySection'
 import bgFallback from '../../../assets/bg.jpg'
-
-
-
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  clearCurrentActiveCard,
+  selectCurrentActiveCard,
+  updateCurrentActiveCard
+} from '~/redux/activeCard/activeCardSlice'
 import { styled } from '@mui/material/styles'
+
 const SidebarItem = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -61,10 +65,13 @@ const SidebarItem = styled(Box)(({ theme }) => ({
  * Note: Modal là một low-component mà bọn MUI sử dụng bên trong những thứ như Dialog, Drawer, Menu, Popover. Ở đây dĩ nhiên chúng ta có thể sử dụng Dialog cũng không thành vấn đề gì, nhưng sẽ sử dụng Modal để dễ linh hoạt tùy biến giao diện từ con số 0 cho phù hợp với mọi nhu cầu nhé.
  */
 function ActiveCard() {
-  const [isOpen, setIsOpen] = useState(true)
-  const handleOpenModal = () => setIsOpen(true)
+  const dispatch = useDispatch()
+  // const [isOpen, setIsOpen] = useState(true)
+  // const handleOpenModal = () => setIsOpen(true)
+
   const handleCloseModal = () => {
-    setIsOpen(false)
+    // setIsOpen(false)
+    dispatch(clearCurrentActiveCard())
   }
 
   const onUpdateCardTitle = (newTitle) => {
@@ -88,7 +95,7 @@ function ActiveCard() {
   return (
     <Modal
       disableScrollLock
-      open={isOpen}
+      open={true}
       onClose={handleCloseModal} // Sử dụng onClose trong trường hợp muốn đóng Modal bằng nút ESC hoặc click ra ngoài Modal
       sx={{ overflowY: 'auto' }}>
       <Box sx={{
