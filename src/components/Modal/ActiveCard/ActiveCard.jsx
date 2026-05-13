@@ -40,6 +40,7 @@ import {
   updateCurrentActiveCard
 } from '~/redux/activeCard/activeCardSlice'
 import { styled } from '@mui/material/styles'
+import { updateCardDetailsAPI } from '~/apis'
 
 const SidebarItem = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -66,6 +67,7 @@ const SidebarItem = styled(Box)(({ theme }) => ({
  */
 function ActiveCard() {
   const dispatch = useDispatch()
+  const activeCard = useSelector(selectCurrentActiveCard)
   // const [isOpen, setIsOpen] = useState(true)
   // const handleOpenModal = () => setIsOpen(true)
 
@@ -74,9 +76,21 @@ function ActiveCard() {
     dispatch(clearCurrentActiveCard())
   }
 
+  // func goi api dùng chung cho các trường hợp update card title, description, cover, comment...
+  const callApiUpdateCard = async (updateData) => {
+    const updatedCard = await updateCardDetailsAPI(activeCard._id, updateData)
+
+    // B1: Cập nhật lại cái card đang active trong modal hiện tại
+    dispatch(updateCurrentActiveCard(updatedCard))
+
+    // B2: Cập nhật lại cái bản ghi card trong cái activeBoard (nested data)
+    // dispatch(updateCardInBoard(updatedCard))
+
+    return updatedCard
+  }
+
   const onUpdateCardTitle = (newTitle) => {
-    console.log(newTitle.trim())
-    // Gọi API...
+    callApiUpdateCard({ title: newTitle.trim() })
   }
 
   const onUploadCardCover = (event) => {
@@ -120,13 +134,16 @@ function ActiveCard() {
           <CancelIcon color="error" sx={{ '&:hover': { color: 'error.light' } }} onClick={handleCloseModal} />
         </Box>
 
-        <Box sx={{ mb: 4 }}>
-          <img
-            style={{ width: '100%', height: '320px', borderRadius: '6px', objectFit: 'cover' }}
-            src={bgFallback}
-            alt="card-cover"
-          />
-        </Box>
+        {activeCard?.cover &&
+          <Box sx={{ mb: 4 }}>
+            <img
+              style={{ width: '100%', height: '320px', borderRadius: '6px', objectFit: 'cover' }}
+              src={activeCard?.cover}
+              alt="card-cover"
+            />
+          </Box>
+        }
+
 
         <Box sx={{ mb: 1, mt: -3, pr: 2.5, display: 'flex', alignItems: 'center', gap: 1 }}>
           <CreditCardIcon />
@@ -134,7 +151,7 @@ function ActiveCard() {
           {/* Feature 01: Xử lý tiêu đề của Card */}
           <ToggleFocusInput
             inputFontSize='22px'
-            value={'card?.title'}
+            value={activeCard?.title}
             onChangedValue={onUpdateCardTitle} />
         </Box>
 
