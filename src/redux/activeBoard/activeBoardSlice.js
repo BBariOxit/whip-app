@@ -59,6 +59,9 @@ export const activeBoardSlice = createSlice({
     builder.addCase(fetchBoardDetailAPI.fulfilled, (state, action) => {
       // Lưu ý: Khi dùng extraReducers thì dữ liệu trả về ở action.payload chính là cái response.data đã được return từ bên trong hàm fetchBoardDetailAPI
       let board = action.payload
+
+      // thành viên trong board sẽ gộp lại của 2 mảng owners và members
+      board.FE_allUser = [...board.owners, ...board.members]
       
       // sắp xếp thứ tự các column luôn ở đây trước khi dữ liệu xuống dưới các comp con
       board.columns = mapOrder(board.columns, board.columnOrderIds, '_id')
