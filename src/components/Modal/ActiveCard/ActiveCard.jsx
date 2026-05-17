@@ -1,47 +1,46 @@
-import { useState } from 'react'
-import Box from '@mui/material/Box'
-import Modal from '@mui/material/Modal'
-import Typography from '@mui/material/Typography'
-import CreditCardIcon from '@mui/icons-material/CreditCard'
-import CancelIcon from '@mui/icons-material/Cancel'
-import Grid from '@mui/material/Unstable_Grid2'
-import Stack from '@mui/material/Stack'
-import Divider from '@mui/material/Divider'
-import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
-import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined'
-import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined'
-import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined'
-import AttachFileOutlinedIcon from '@mui/icons-material/AttachFileOutlined'
-import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined'
-import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined'
-import AspectRatioOutlinedIcon from '@mui/icons-material/AspectRatioOutlined'
-import AddToDriveOutlinedIcon from '@mui/icons-material/AddToDriveOutlined'
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined'
-import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined'
-import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
-import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined'
+import AddToDriveOutlinedIcon from '@mui/icons-material/AddToDriveOutlined'
 import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined'
+import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined'
+import AspectRatioOutlinedIcon from '@mui/icons-material/AspectRatioOutlined'
+import AttachFileOutlinedIcon from '@mui/icons-material/AttachFileOutlined'
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined'
+import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined'
+import CancelIcon from '@mui/icons-material/Cancel'
+import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
+import CreditCardIcon from '@mui/icons-material/CreditCard'
+import DvrOutlinedIcon from '@mui/icons-material/DvrOutlined'
+import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined'
+import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined'
+import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
 import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined'
 import SubjectRoundedIcon from '@mui/icons-material/SubjectRounded'
-import DvrOutlinedIcon from '@mui/icons-material/DvrOutlined'
+import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined'
+import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined'
+import Box from '@mui/material/Box'
+import Divider from '@mui/material/Divider'
+import Modal from '@mui/material/Modal'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import Grid from '@mui/material/Unstable_Grid2'
 
+import { styled } from '@mui/material/styles'
+import { useDispatch, useSelector } from 'react-redux'
+import { toast } from 'react-toastify'
+import { updateCardDetailsAPI } from '~/apis'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
-import { singleFileValidator } from '~/utils/validators'
-import { toast } from 'react-toastify'
-import CardUserGroup from './CardUserGroup'
-import CardDescriptionMdEditor from './CardDescriptionMdEditor'
-import CardActivitySection from './CardActivitySection'
-import bgFallback from '../../../assets/bg.jpg'
-import { useDispatch, useSelector } from 'react-redux'
+import { updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
 import {
-  clearCurrentActiveCard,
+  clearAndHideCurrentActiveCard,
   selectCurrentActiveCard,
+  selectIsShowModalActiveCard,
   updateCurrentActiveCard
 } from '~/redux/activeCard/activeCardSlice'
-import { styled } from '@mui/material/styles'
-import { updateCardDetailsAPI } from '~/apis'
-import { updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
+import { singleFileValidator } from '~/utils/validators'
+import CardActivitySection from './CardActivitySection'
+import CardDescriptionMdEditor from './CardDescriptionMdEditor'
+import CardUserGroup from './CardUserGroup'
 
 const SidebarItem = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -64,17 +63,20 @@ const SidebarItem = styled(Box)(({ theme }) => ({
 }))
 
 /**
- * Note: Modal là một low-component mà bọn MUI sử dụng bên trong những thứ như Dialog, Drawer, Menu, Popover. Ở đây dĩ nhiên chúng ta có thể sử dụng Dialog cũng không thành vấn đề gì, nhưng sẽ sử dụng Modal để dễ linh hoạt tùy biến giao diện từ con số 0 cho phù hợp với mọi nhu cầu nhé.
+ * Note: Modal là một low-component mà bọn MUI sử dụng bên trong những thứ như Dialog, Drawer, Menu, Popover.
+ * Ở đây dĩ nhiên chúng ta có thể sử dụng Dialog cũng không thành vấn đề gì,
+ * nhưng sẽ sử dụng Modal để dễ linh hoạt tùy biến giao diện từ con số 0 cho phù hợp với mọi nhu cầu.
  */
 function ActiveCard() {
   const dispatch = useDispatch()
   const activeCard = useSelector(selectCurrentActiveCard)
+  const isShowModalActiveCard = useSelector(selectIsShowModalActiveCard) 
   // const [isOpen, setIsOpen] = useState(true)
   // const handleOpenModal = () => setIsOpen(true)
 
   const handleCloseModal = () => {
     // setIsOpen(false)
-    dispatch(clearCurrentActiveCard())
+    dispatch(clearAndHideCurrentActiveCard())
   }
 
   // func goi api dùng chung cho các trường hợp update card title, description, cover, comment...
@@ -99,7 +101,6 @@ function ActiveCard() {
   }
 
   const onUploadCardCover = (event) => {
-    console.log(event.target?.files[0])
     const error = singleFileValidator(event.target?.files[0])
     if (error) {
       toast.error(error)
@@ -115,10 +116,16 @@ function ActiveCard() {
     )
   }
 
+  // Dùng async await ở đây để component con CardActivitySection
+  // chờ và nếu thành công thì mới clear thẻ input comment
+  const onAddCardComment = async (commentToAdd) => {
+    await callApiUpdateCard({commentToAdd})
+  }
+
   return (
     <Modal
       disableScrollLock
-      open={true}
+      open={isShowModalActiveCard}
       onClose={handleCloseModal} // Sử dụng onClose trong trường hợp muốn đóng Modal bằng nút ESC hoặc click ra ngoài Modal
       sx={{ overflowY: 'auto' }}>
       <Box sx={{
@@ -194,7 +201,10 @@ function ActiveCard() {
               </Box>
 
               {/* Feature 04: Xử lý các hành động, ví dụ comment vào Card */}
-              <CardActivitySection />
+              <CardActivitySection
+                cardComments={activeCard?.comments}
+                onAddCardComment={onAddCardComment}
+              />
             </Box>
           </Grid>
 
