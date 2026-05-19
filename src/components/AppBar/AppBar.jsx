@@ -115,6 +115,7 @@ function AppBar() {
               }
             }
           }}/>
+          {/* dark - light mode */}
         <ModeSelect />
 
         < Notifications />

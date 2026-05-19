@@ -44,9 +44,9 @@ function Root() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <BrowserRouter>
-    <Provider store={store}>
-      <PersistGate persistor={persistor}>
+  <Provider store={store}>
+    <PersistGate persistor={persistor}>
+      <BrowserRouter>
         <CssVarsProvider theme={theme}>
           <ConfirmProvider 
             defaultOptions={{
@@ -75,7 +75,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Root />
           </ConfirmProvider>
         </CssVarsProvider>
-      </PersistGate>
-    </Provider>
-  </BrowserRouter>
+      </BrowserRouter>
+    </PersistGate>
+  </Provider>
 )
