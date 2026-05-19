@@ -27,6 +27,12 @@ const persistor = persistStore(store)
 // Kỹ thuật inject store vào file authorizeAxios
 import { injectStore } from '~/utils/authorizeAxios'
 injectStore(store)
+ 
+// Cấu hình Socket-io phía client tại đây và export ra biến socketIoInstance
+// https://socket.io/how-to-use-with-react
+import { io } from 'socket.io-client'
+import { API_ROOT } from '~/utils/constants'
+export const socketIoInstance = io(API_ROOT)
 
 function Root() {
   const { mode, systemMode } = useColorScheme()
@@ -44,9 +50,9 @@ function Root() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <BrowserRouter>
-    <Provider store={store}>
-      <PersistGate persistor={persistor}>
+  <Provider store={store}>
+    <PersistGate persistor={persistor}>
+      <BrowserRouter>
         <CssVarsProvider theme={theme}>
           <ConfirmProvider 
             defaultOptions={{
@@ -75,7 +81,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Root />
           </ConfirmProvider>
         </CssVarsProvider>
-      </PersistGate>
-    </Provider>
-  </BrowserRouter>
+      </BrowserRouter>
+    </PersistGate>
+  </Provider>
 )

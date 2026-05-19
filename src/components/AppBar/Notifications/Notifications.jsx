@@ -16,7 +16,16 @@ import GroupAddIcon from '@mui/icons-material/GroupAdd'
 import DoneIcon from '@mui/icons-material/Done'
 import NotInterestedIcon from '@mui/icons-material/NotInterested'
 import { useSelector, useDispatch } from 'react-redux'
-import { selectCurrentNotifications, fetchInvitationsAPI, updateBoardInvitationAPI } from '~/redux/notifications/notificationsSlice'
+import {
+  selectCurrentNotifications,
+  fetchInvitationsAPI,
+  updateBoardInvitationAPI,
+  addNotification
+} from '~/redux/notifications/notificationsSlice'
+import { socketIoInstance } from '~/main'
+import { selectCurrentUser } from '~/redux/user/userSlice'
+
+import { useNavigate } from 'react-router-dom'
 
 const BOARD_INVITATION_STATUS = {
   PENDING: 'PENDING',
@@ -29,10 +38,22 @@ function Notifications() {
   const open = Boolean(anchorEl)
   const handleClickNotificationIcon = (event) => {
     setAnchorEl(event.currentTarget)
+
+    // khi click vào phần icon thông báo thì tắt trạng thái có thông báo mới
+    setNewNotification(false)
   }
   const handleClose = () => {
     setAnchorEl(null)
   }
+
+  // khởi tạo navigate
+  const navigate = useNavigate()
+
+  // state để theo dõi xem có thông báo mới hay ko
+  const [newNotification, setNewNotification] = useState(false)
+
+  // lấy thông tin user hiện tại đang đăng nhập
+  const currentUser = useSelector(selectCurrentUser)
 
   // lấy dữ liệu notifications trong redux
   const notifications = useSelector(selectCurrentNotifications)
@@ -41,7 +62,28 @@ function Notifications() {
   const dispatch = useDispatch()
   useEffect(() => {
     dispatch(fetchInvitationsAPI())
-  }, [dispatch])
+
+    // tạo một func xử lý khi nhận đc sự kiện real time
+    const onRecieveNewInvitation = (invitation) => {
+      // Nếu thằng user đang đăng nhập hiện tại trong redux chính là thằng invitee trong bản ghi invitation
+      if (invitation.inviteeId === currentUser._id) {
+        // B1: thêm bản ghi invitation mới vào redux
+        dispatch(addNotification(invitation))
+
+        // B2: cập nhật trạng thái đang có thông báo đến
+        setNewNotification(true)
+      }
+    }
+    
+    // lắng nghe 1 sự kiện real time tên là "BE_USER_INVITED_TO_BOARD"
+    socketIoInstance.on('BE_USER_INVITED_TO_BOARD', onRecieveNewInvitation)
+
+    // dọn dẹp, tắt sự kiện listener khi component unmount
+    return () => {
+      socketIoInstance.off('BE_USER_INVITED_TO_BOARD', onRecieveNewInvitation)
+    }
+
+  }, [dispatch, currentUser._id])
 
   // cập nhật trạng thái của một lời mời
   const updateBoardInvitation = (status, invitationId) => {
@@ -49,7 +91,10 @@ function Notifications() {
     // console.log('invitationId: ', invitationId)
     dispatch(updateBoardInvitationAPI({ status, invitationId }))
       .then(res => {
-        console.log('Update result: ', res.payload)
+        // console.log('Update result: ', res.payload)
+        if (res.payload.boardInvitation.status === BOARD_INVITATION_STATUS.ACCEPTED) {
+          navigate(`/boards/${res.payload.boardInvitation.boardId}`)
+        }
       })
   }
 
@@ -58,7 +103,9 @@ function Notifications() {
       <Tooltip title="Notifications">
         <Badge
           color="warning"
-          variant="dot"
+          // variant="dot"
+          // variant="none"
+          variant={newNotification ? 'dot' : 'none'}
           sx={{ cursor: 'pointer' }}
           id="basic-button-open-notification"
           aria-controls={open ? 'basic-notification-drop-down' : undefined}
@@ -67,7 +114,7 @@ function Notifications() {
           onClick={handleClickNotificationIcon}
         >
           <NotificationsNoneIcon sx={{
-            color: '#B6C2CF',
+            color: newNotification ? 'warning.light' : '#B6C2CF',
             '&:hover': { color: '#ffffff' },
             transition: 'color 0.2s ease'
           }} />
