@@ -1,30 +1,23 @@
-import { useState } from 'react'
 import AppsIcon from '@mui/icons-material/Apps'
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
-import Badge from '@mui/material/Badge'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
+import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import SvgIcon from '@mui/material/SvgIcon'
-import TextField from '@mui/material/TextField'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
+import { Link } from 'react-router-dom'
 import { ReactComponent as trelloLogo } from '~/assets/trello.svg'
 import ModeSelect from '~/components/ModeSelect/ModeSelect'
+import Profiles from './Menu/Profiles'
 import Recent from './Menu/Recent'
 import Starred from './Menu/Starred'
 import Templates from './Menu/Templates'
 import Workspaces from './Menu/Workspaces'
-import Tooltip from '@mui/material/Tooltip'
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
-import Profiles from './Menu/Profiles'
-import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
-import InputAdornment from '@mui/material/InputAdornment'
-import SearchIcon from '@mui/icons-material/Search'
-import CloseIcon from '@mui/icons-material/Close'
-import { Link } from 'react-router-dom'
 import Notifications from './Notifications/Notifications'
+import AutoCompleteSearchBoard from './SearchBoards/AutoCompleteSearchBoard'
 
 function AppBar() {
-  const [searchValue, setSearchValue] = useState('')
   return (
     <Box sx={{
       width: '100%',
@@ -71,51 +64,10 @@ function AppBar() {
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <TextField
-          id="outlined-search"
-          label="Search..."
-          type="text"
-          size='small'
-          value={searchValue}
-          onChange = {(e) => setSearchValue(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: '#B6C2CF' }}/>
-              </InputAdornment>
-            ),
-            endAdornment: (
-              <InputAdornment position="end">
-                <CloseIcon
-                  onClick= {() => setSearchValue('')}
-                  fontSize='small'
-                  sx={{ color: searchValue ? '#B6C2CF' : 'transparent', cursor: 'pointer' }}
-                />
-              </InputAdornment>
-            )
-          }}
-          sx={{
-            minWidth: '120px',
-            maxWidth: '180px',
-            '& label': { color: '#B6C2CF' },
-            '& input': { color: '#B6C2CF' },
-            '& label.Mui-focused': { color: '#B6C2CF' },
-            '& .MuiOutlinedInput-root': {
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#B6C2CF',
-                transition: 'border-color 0.2s ease, border-width 0.2s ease'
-              },
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#fff',
-                borderWidth: '1px !important'
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#fff',
-                borderWidth: '1px !important'
-              }
-            }
-          }}/>
-          {/* dark - light mode */}
+        {/* tìm kiếm nhanh một cái board */}
+        <AutoCompleteSearchBoard />
+        
+        {/* dark - light mode */}
         <ModeSelect />
 
         < Notifications />
