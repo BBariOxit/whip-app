@@ -9,15 +9,15 @@ const COLUMN_FOOTER_HEIGHT = '56px'
 // Neo SaaS Theme Combo 13
 const APP_COLORS = {
   light: {
-    primary: '#2563eb', // Blue 600
-    bgApp: '#dfe1e6', // Muted grey for main background
-    bgColumn: '#ebecf0', // Soft grey for columns
-    bgCard: '#ffffff', // Crisp white for cards
-    bgAppBar: '#ffffff', // Crisp white for app bar
-    bgBoardBar: '#dfe1e6', // Matches main background
-    textPrimary: '#172b4d',
-    textSecondary: '#44546f',
-    border: '#c1c7d0'
+    primary: '#2563eb',
+    bgApp: '#f8fafc', // slate-50
+    bgColumn: '#f1f5f9', // slate-100 for contrast
+    bgCard: '#ffffff',
+    bgAppBar: '#ffffff',
+    bgBoardBar: '#f8fafc',
+    textPrimary: '#0f172a',
+    textSecondary: '#475569',
+    border: '#cbd5e1' // slate-300 for better visibility
   },
   dark: {
     primary: '#3b82f6', // Blue 500
@@ -88,7 +88,10 @@ const theme = extendTheme({
       styleOverrides: (theme) => ({
         body: {
           fontFamily: 'Inter, sans-serif',
-          // Neo SaaS Dark mode background subtle gradient
+          ...(theme.palette.mode === 'light' && {
+            backgroundImage: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+            backgroundAttachment: 'fixed'
+          }),
           ...(theme.palette.mode === 'dark' && {
             backgroundImage: 'radial-gradient(circle at top left, rgba(59,130,246,0.12), transparent 30%), linear-gradient(to bottom, #0f1117, #0f1117)',
             backgroundAttachment: 'fixed'
@@ -155,10 +158,10 @@ const theme = extendTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           backgroundColor: theme.palette.background.paper,
-          borderRadius: '14px',
+          borderRadius: '16px',
           border: `1px solid ${theme.palette.divider}`,
           boxShadow: theme.palette.mode === 'light' 
-            ? '0 2px 8px rgba(15,23,42,0.04)' 
+            ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' // shadow-md
             : 'none',
           transition: 'all 0.2s ease-in-out',
           '&:hover': {

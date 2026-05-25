@@ -28,7 +28,7 @@ function AppBar() {
       gap: 2,
       paddingX: 2,
       overflowX: 'auto',
-      bgcolor: 'background.paper',
+      bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'background.paper' : '#e0f2fe'),
       borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
       boxShadow: (theme) => (theme.palette.mode === 'light'
         ? '0 1px 3px 0 rgb(0 0 0 / 0.05)'
