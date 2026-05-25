@@ -37,7 +37,7 @@ function ToggleFocusInput({ value, onChangedValue, inputFontSize = '16px', ...pr
       // Magic here :D
       sx={{
         '& label': {},
-        '& input': { fontSize: inputFontSize, fontWeight: 'bold' },
+        '& input': { fontSize: inputFontSize, fontWeight: 700, letterSpacing: '-0.02em' },
         '& .MuiOutlinedInput-root': {
           backgroundColor: 'transparent',
           '& fieldset': { borderColor: 'transparent' }

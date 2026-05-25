@@ -105,14 +105,16 @@ function ListColumns({ columns }) {
             minWidth: '250px',
             maxWidth: '250px',
             mx: 2,
-            borderRadius: '6px',
+            borderRadius: '20px',
             height: 'fit-content',
-            bgcolor: '#ffffff3d'
+            bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(22,27,34,0.75)' : theme.palette.background.column),
+            backdropFilter: 'blur(12px)',
+            border: (theme) => (theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid #dbe3ee')
           }}>
             <Button
               startIcon={<NoteAddIcon />}
               sx={{
-                color: 'white',
+                color: 'text.secondary',
                 width: '100%',
                 justifyContent: 'flex-start',
                 pl: 2.5,
@@ -125,9 +127,11 @@ function ListColumns({ columns }) {
             maxWidth: '250px',
             mx: 2,
             p: 1,
-            borderRadius: '6px',
+            borderRadius: '20px',
             height: 'fit-content',
-            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#333643' : '#ebecf0',
+            bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(22,27,34,0.75)' : theme.palette.background.column),
+            backdropFilter: 'blur(12px)',
+            border: (theme) => (theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid #dbe3ee'),
             display: 'flex',
             flexDirection: 'column',
             gap: 1
@@ -142,25 +146,25 @@ function ListColumns({ columns }) {
               onChange = {(e) => setNewColumntitle(e.target.value)}
               sx={{
                 '& label': {
-                  color: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643'
+                  color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#334155'
                 },
                 '& input': {
                   color: (theme) => theme.palette.primary.main
                 },
                 '& label.Mui-focused': {
-                  color: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643'
+                  color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7'
                 },
                 '& .MuiOutlinedInput-root': {
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#475569' : '#cbd5e1',
                     transition: 'border-color 0.2s ease, border-width 0.2s ease'
                   },
                   '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#333643',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7',
                     borderWidth: '1px !important'
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#333643',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7',
                     borderWidth: '1px !important'
                   }
                 }
@@ -183,7 +187,7 @@ function ListColumns({ columns }) {
               <CloseIcon
                 onClick= {toogleOpenNewColumnForm}
                 sx={{
-                  color: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643',
+                  color: 'text.secondary',
                   cursor: 'pointer',
                   '&:hover': { opacity: 0.7 }
                 }}

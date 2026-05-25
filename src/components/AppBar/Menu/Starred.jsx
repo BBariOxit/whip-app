@@ -21,7 +21,7 @@ function Starred() {
   return (
     <Box>
       <Button
-        sx={{ color: '#B6C2CF' }}
+        sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#475569' }}
         id="basic-button-starred"
         aria-controls={open ? 'basic-menu-starred' : undefined}
         aria-haspopup="true"
