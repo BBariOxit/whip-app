@@ -11,16 +11,16 @@ import BoardUserGroup from './BoardUserGroup'
 import InviteBoardUser from './InviteBoardUser'
 
 const MENU_STYLE = {
-  color: '#B6C2CF',
+  color: 'text.primary',
   bgcolor: 'transparent',
   border: 'none',
   paddingX: '5px',
   borderRadius: '4px',
   '& .MuiSvgIcon-root': {
-    color: '#B6C2CF'
+    color: 'text.primary'
   },
   '&:hover': {
-    bgcolor: 'primary.50'
+    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#334155' : 'rgba(0,0,0,0.05)'
   }
 }
 
@@ -35,8 +35,8 @@ function BoardBar({ board }) {
       gap: 2,
       paddingX: 2,
       overflowX: 'auto',
-      bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#34495e' : '#1976d2'),
-      borderBottom: '1px solid #B6C2CF',
+      bgcolor: 'background.boardBar',
+      borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
       '&::-webkit-scrollbar-track': { m: 2 }
     }}
     >

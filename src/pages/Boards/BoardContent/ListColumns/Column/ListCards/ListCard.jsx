@@ -6,7 +6,7 @@ function ListCard({ cards }) {
   return (
     <SortableContext items={cards?.map(c => c._id)} strategy={verticalListSortingStrategy}>
       <Box sx={{
-        p: '0 5px 5px 5px',
+        p: '6px 5px 5px 5px',
         m: '0 5px',
         display: 'flex',
         flexDirection: 'column',
@@ -20,10 +20,10 @@ function ListCard({ cards }) {
         ${theme.trello.columnFooterHeight}
         )`,
         '&::-webkit-scrollbar-thumb': {
-          backgroundColor: (theme) => (theme.palette.mode === 'dark' ? '#868e96ff' : '#B6C2CF')
+          backgroundColor: (theme) => (theme.palette.mode === 'dark' ? '#475569' : '#cbd5e1')
         },
         '&::-webkit-scrollbar-thumb:hover': {
-          backgroundColor: (theme) => (theme.palette.mode === 'dark' ? '#a6a7b0ff' : '#9199a0ff')
+          backgroundColor: (theme) => (theme.palette.mode === 'dark' ? '#64748b' : '#94a3b8')
         }
       }}>
         {cards?.map(card => (

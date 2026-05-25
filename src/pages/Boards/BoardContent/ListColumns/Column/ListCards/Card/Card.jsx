@@ -47,10 +47,9 @@ function Card({ card }) {
       ref={setNodeRef} style={dndKitCardStyles} {...attributes} {...listeners}
       sx={{
         cursor: 'pointer',
-        boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)',
-        overflow: 'unset',
+        overflow: 'hidden',
         display: card?.FE_PlaceholderCard ? 'none' : 'block',
-        border: '1px solid transparent',
+        bgcolor: 'background.paper',
         '&:hover': {
           borderColor: (theme) => theme.palette.primary.main
         }
@@ -64,7 +63,7 @@ function Card({ card }) {
         <Typography>{card?.title}</Typography>
       </CardContent>
       {showCardAction() &&
-        <CardActions sx={{ p: '0, 4px, 8px, 4px' }}>
+        <CardActions sx={{ p: '0 4px 16px 12px' }}>
           {!!card?.memberIds?.length &&
             <Button size="small" startIcon={<GroupIcon />}>{card?.memberIds?.length}</Button>
           }

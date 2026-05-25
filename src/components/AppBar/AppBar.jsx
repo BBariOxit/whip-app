@@ -28,20 +28,33 @@ function AppBar() {
       gap: 2,
       paddingX: 2,
       overflowX: 'auto',
-      bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#1D2125' : '#0652DD'),
+      bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'background.paper' : '#e0f2fe'),
+      borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+      boxShadow: (theme) => (theme.palette.mode === 'light'
+        ? '0 1px 3px 0 rgb(0 0 0 / 0.05)'
+        : 'none'),
       '&::-webkit-scrollbar-track': { m: 2 }
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Link to="/boards">
           <Tooltip title="Boards List">
-            <AppsIcon sx={{ color: '#B6C2CF', verticalAlign: 'middle' }}/>
+            <AppsIcon sx={{
+              color: 'text.secondary',
+              verticalAlign: 'middle'
+            }}/>
           </Tooltip>
         </Link>
 
         <Link to='/' style={{ color: 'inherit' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <SvgIcon component={trelloLogo} fontSize='small' inheritViewBox sx={{ color: '#B6C2CF' }}/>
-            <Typography variant='span' sx={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#B6C2CF' }}>Trello</Typography>
+            <SvgIcon component={trelloLogo} fontSize='small' inheritViewBox sx={{
+              color: (theme) => theme.palette.mode === 'dark' ? 'text.secondary' : 'primary.main'
+            }}/>
+            <Typography variant='span' sx={{
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              color: (theme) => theme.palette.mode === 'dark' ? 'text.secondary' : 'primary.main'
+            }}>Trello</Typography>
           </Box>
         </Link>
 
@@ -52,7 +65,7 @@ function AppBar() {
           <Templates />
           <Button
             sx={{
-              color: '#B6C2CF',
+              color: 'text.secondary',
               border: 'none',
               '&:hover': { border:'none' }
             }}
@@ -73,7 +86,10 @@ function AppBar() {
         < Notifications />
 
         <Tooltip title="Help">
-          <HelpOutlineIcon sx={{ cursor: 'pointer', color: '#B6C2CF' }}/>
+          <HelpOutlineIcon sx={{
+            cursor: 'pointer',
+            color: 'text.secondary'
+          }}/>
         </Tooltip>
         <Profiles />
       </Box>

@@ -21,7 +21,7 @@ function Templates() {
   return (
     <Box>
       <Button
-        sx={{ color: '#B6C2CF' }}
+        sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#475569' }}
         id="basic-button-templates"
         aria-controls={open ? 'basic-menu-templates' : undefined}
         aria-haspopup="true"

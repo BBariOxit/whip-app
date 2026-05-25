@@ -114,8 +114,8 @@ function Notifications() {
           onClick={handleClickNotificationIcon}
         >
           <NotificationsNoneIcon sx={{
-            color: newNotification ? 'warning.light' : '#B6C2CF',
-            '&:hover': { color: '#ffffff' },
+            color: (theme) => newNotification ? 'warning.light' : (theme.palette.mode === 'dark' ? '#94a3b8' : '#64748b'),
+            '&:hover': { color: (theme) => theme.palette.mode === 'dark' ? '#e2e8f0' : '#0f172a' },
             transition: 'color 0.2s ease'
           }} />
         </Badge>

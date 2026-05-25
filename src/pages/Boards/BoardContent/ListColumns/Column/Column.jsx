@@ -184,12 +184,14 @@ function Column({ column }) {
         sx={{
           minWidth: '300px',
           maxWidth: '300px',
-          bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#333643' : '#ebecf0'),
+          bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(22,27,34,0.75)' : theme.palette.background.column),
+          backdropFilter: 'blur(12px)',
+          border: (theme) => (theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid #dbe3ee'),
           ml: 2,
-          borderRadius: '6px',
+          borderRadius: '20px',
           height: 'fit-content',
           maxHeight: (theme) => `calc(${theme.trello.boardContentHeight} - ${theme.spacing(5)})`,
-          color: (theme) => (theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643')
+          color: 'text.primary'
         }}>
 
         {/* header */}
@@ -313,21 +315,21 @@ function Column({ column }) {
                 value={newCardtitle}
                 onChange = {(e) => setNewCardtitle(e.target.value)}
                 sx={{
-                  '& label': { color: 'text.primary' },
+                  '& label': { color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#334155' },
                   '& input': {
                     color: (theme) => theme.palette.primary.main,
-                    bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#333643' : 'white')
+                    bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#0f172a' : '#ffffff')
                   },
-                  '& label.Mui-focused': { color: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : theme.palette.primary.main },
+                  '& label.Mui-focused': { color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7' },
                   '& .MuiOutlinedInput-root': {
                     '& fieldset': {
-                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : theme.palette.primary.main
+                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#475569' : '#cbd5e1'
                     },
                     '&:hover fieldset': {
-                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : theme.palette.primary.main
+                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7'
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : theme.palette.primary.main
+                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7'
                     }
                   },
                   '& .MuiOutlinedInput-input': {
@@ -352,7 +354,7 @@ function Column({ column }) {
                 <CloseIcon
                   onClick= {toogleOpenNewCardForm}
                   sx={{
-                    color: (theme) => theme.palette.mode === 'dark' ? '#B6C2CF' : '#333643',
+                    color: 'text.secondary',
                     cursor: 'pointer',
                     '&:hover': { opacity: 0.7 }
                   }}
