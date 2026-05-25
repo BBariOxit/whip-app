@@ -9,7 +9,7 @@ const COLUMN_FOOTER_HEIGHT = '56px'
 // Neo SaaS Theme Combo 13
 const APP_COLORS = {
   light: {
-    primary: '#2563eb',
+    primary: '#3b82f6', // Blue 500 (softer blue)
     bgApp: '#f8fafc', // slate-50
     bgColumn: '#f1f5f9', // slate-100 for contrast
     bgCard: '#ffffff',
@@ -159,6 +159,7 @@ const theme = extendTheme({
         root: ({ theme }) => ({
           backgroundColor: theme.palette.background.paper,
           borderRadius: '16px',
+          overflow: 'hidden', // Ensures images don't spill over the rounded corners
           border: `1px solid ${theme.palette.divider}`,
           boxShadow: theme.palette.mode === 'light' 
             ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' // shadow-md

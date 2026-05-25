@@ -47,7 +47,7 @@ function Card({ card }) {
       ref={setNodeRef} style={dndKitCardStyles} {...attributes} {...listeners}
       sx={{
         cursor: 'pointer',
-        overflow: 'unset',
+        overflow: 'hidden',
         display: card?.FE_PlaceholderCard ? 'none' : 'block',
         bgcolor: 'background.paper',
         '&:hover': {
@@ -63,7 +63,7 @@ function Card({ card }) {
         <Typography>{card?.title}</Typography>
       </CardContent>
       {showCardAction() &&
-        <CardActions sx={{ p: '0, 4px, 8px, 4px' }}>
+        <CardActions sx={{ p: '0 4px 16px 12px' }}>
           {!!card?.memberIds?.length &&
             <Button size="small" startIcon={<GroupIcon />}>{card?.memberIds?.length}</Button>
           }

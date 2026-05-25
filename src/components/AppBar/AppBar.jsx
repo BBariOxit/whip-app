@@ -53,7 +53,7 @@ function AppBar() {
             <Typography variant='span' sx={{
               fontSize: '1.2rem',
               fontWeight: 'bold',
-              color: 'text.primary'
+              color: (theme) => theme.palette.mode === 'dark' ? 'text.secondary' : 'primary.main'
             }}>Trello</Typography>
           </Box>
         </Link>
