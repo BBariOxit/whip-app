@@ -53,7 +53,7 @@ function Profiles() {
           aria-expanded={open ? 'true' : undefined}
         >
           <Avatar
-            sx={{ width: 34, height: 34 }}
+            sx={{ width: 34, height: 34, border: '3px solid white' }}
             alt='phan bao'
             src={currentUser?.avatar}
           />

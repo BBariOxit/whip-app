@@ -50,6 +50,7 @@ function Card({ card }) {
         overflow: 'hidden',
         display: card?.FE_PlaceholderCard ? 'none' : 'block',
         bgcolor: 'background.paper',
+        flexShrink: 0, // Không cho card bị shrink khi list có nhiều card
         '&:hover': {
           borderColor: (theme) => theme.palette.primary.main
         }
@@ -63,7 +64,7 @@ function Card({ card }) {
         <Typography>{card?.title}</Typography>
       </CardContent>
       {showCardAction() &&
-        <CardActions sx={{ p: '0 4px 16px 12px' }}>
+        <CardActions sx={{ p: '0 4px 8px 12px' }}>
           {!!card?.memberIds?.length &&
             <Button size="small" startIcon={<GroupIcon />}>{card?.memberIds?.length}</Button>
           }

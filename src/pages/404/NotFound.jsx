@@ -11,7 +11,7 @@ function NotFound() {
   return (
     <Box sx={{
       width: '100vw',
-      height: '100vh',
+      height: 'calc(100vh / 0.9)',
       bgcolor: '#25344C',
       color: 'white'
     }}>
