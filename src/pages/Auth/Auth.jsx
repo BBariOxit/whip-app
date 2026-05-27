@@ -21,7 +21,7 @@ function Auth() {
     <Box sx={{
       display: 'flex',
       flexDirection: 'column',
-      minHeight: '100vh',
+      minHeight: 'calc(100vh / 0.9)',
       alignItems: 'center',
       justifyContent: 'flex-start',
       background: `url("${loginRegisterBg}")`,

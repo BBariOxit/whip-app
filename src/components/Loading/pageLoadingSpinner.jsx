@@ -10,7 +10,7 @@ function PageLoadingSpinner({ caption }) {
       justifyContent: 'center',
       gap: 2,
       width: '100vw',
-      height: '100vh'
+      height: 'calc(100vh / 0.9)'
     }}>
       <CircularProgress />
       <Typography>{caption}</Typography>
