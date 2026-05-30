@@ -90,3 +90,8 @@ export const inviteUserToBoardAPI = async (data) => {
   toast.success('User invited to board successfully!')
   return response.data
 }
+
+export const createNewCardLabelAPI = async (newLabelData) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/labels`, newLabelData)
+  return response.data
+}

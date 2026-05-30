@@ -24,13 +24,14 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Unstable_Grid2'
 
+import React, { useState } from 'react'
 import { styled } from '@mui/material/styles'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
 import { updateCardDetailsAPI } from '~/apis'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
-import { updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
+import { updateCardInBoard, selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
 import {
   clearAndHideCurrentActiveCard,
   selectCurrentActiveCard,
@@ -41,6 +42,7 @@ import { singleFileValidator } from '~/utils/validators'
 import CardActivitySection from './CardActivitySection'
 import CardDescriptionMdEditor from './CardDescriptionMdEditor'
 import CardUserGroup from './CardUserGroup'
+import CardLabelsPopover from './CardLabelsPopover'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 
@@ -74,6 +76,11 @@ function ActiveCard() {
   const activeCard = useSelector(selectCurrentActiveCard)
   const isShowModalActiveCard = useSelector(selectIsShowModalActiveCard) 
   const currentUser = useSelector(selectCurrentUser)
+  const board = useSelector(selectCurrentActive)
+  const [anchorElLabels, setAnchorElLabels] = useState(null)
+  
+  const boardLabels = board?.labels || []
+  const cardLabels = boardLabels.filter(label => activeCard?.labelIds?.includes(label._id))
 
   // const [isOpen, setIsOpen] = useState(true)
   // const handleOpenModal = () => setIsOpen(true)
@@ -130,6 +137,10 @@ function ActiveCard() {
     callApiUpdateCard({incomingMemberInfo})
   }
 
+  const onUpdateCardLabels = (newLabelIds) => {
+    callApiUpdateCard({ labelIds: newLabelIds })
+  }
+
   return (
     <Modal
       disableScrollLock
@@ -182,14 +193,39 @@ function ActiveCard() {
         <Grid container spacing={2} sx={{ mb: 3 }}>
           {/* Left side */}
           <Grid xs={12} sm={9}>
-            <Box sx={{ mb: 3 }}>
-              <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Members</Typography>
+            <Box sx={{ mb: 3, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              <Box>
+                <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Members</Typography>
 
-              {/* Feature 02: Xử lý các thành viên của Card */}
-              <CardUserGroup 
-                cardMemberIds={activeCard?.memberIds}
-                onUpdateCardMembers={onUpdateCardMembers}
-              />
+                {/* Feature 02: Xử lý các thành viên của Card */}
+                <CardUserGroup 
+                  cardMemberIds={activeCard?.memberIds}
+                  onUpdateCardMembers={onUpdateCardMembers}
+                />
+              </Box>
+              
+              {!!cardLabels.length && (
+                <Box>
+                  <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Labels</Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {cardLabels.map(label => (
+                      <Box key={label._id} sx={{
+                        bgcolor: label.color, px: 1.5, py: 0.5, borderRadius: 1, color: 'white', fontWeight: 600, fontSize: 14
+                      }}>
+                        {label.title}
+                      </Box>
+                    ))}
+                    <Box onClick={(e) => setAnchorElLabels(e.currentTarget)} sx={{
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f',
+                      px: 1.5, py: 0.5, borderRadius: 1, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#33485D' : theme.palette.grey[300] }
+                    }}>
+                      <AddOutlinedIcon fontSize="small" />
+                    </Box>
+                  </Box>
+                </Box>
+              )}
             </Box>
 
             <Box sx={{ mb: 3 }}>
@@ -247,7 +283,15 @@ function ActiveCard() {
               </SidebarItem>
 
               <SidebarItem><AttachFileOutlinedIcon fontSize="small" />Attachment</SidebarItem>
-              <SidebarItem><LocalOfferOutlinedIcon fontSize="small" />Labels</SidebarItem>
+              <SidebarItem className="active" onClick={(e) => setAnchorElLabels(e.currentTarget)}>
+                <LocalOfferOutlinedIcon fontSize="small" />Labels
+              </SidebarItem>
+              <CardLabelsPopover
+                anchorEl={anchorElLabels}
+                handleClose={() => setAnchorElLabels(null)}
+                activeCard={activeCard}
+                onUpdateCardLabels={onUpdateCardLabels}
+              />
               <SidebarItem><TaskAltOutlinedIcon fontSize="small" />Checklist</SidebarItem>
               <SidebarItem><WatchLaterOutlinedIcon fontSize="small" />Dates</SidebarItem>
               <SidebarItem><AutoFixHighOutlinedIcon fontSize="small" />Custom Fields</SidebarItem>
