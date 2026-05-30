@@ -67,12 +67,11 @@ function Card({ card }) {
       }
       <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
         {!!cardLabels.length &&
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.5, mb: 1 }}>
             {cardLabels.map(label => (
               <Box key={label._id} sx={{
                 bgcolor: label.color,
                 height: 8,
-                width: 40,
                 borderRadius: 1
               }} title={label.title} />
             ))}

@@ -6,11 +6,12 @@ import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import CheckIcon from '@mui/icons-material/Check'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { useSelector, useDispatch } from 'react-redux'
-import { selectCurrentActive, addNewLabel } from '~/redux/activeBoard/activeBoardSlice'
-import { createNewCardLabelAPI } from '~/apis'
+import { selectCurrentActive, addNewLabel, updateLabelOptimistic, deleteLabelOptimistic } from '~/redux/activeBoard/activeBoardSlice'
+import { createNewCardLabelAPI, updateCardLabelAPI, deleteCardLabelAPI } from '~/apis'
 
-const COLORS = ['#4bce97', '#e2b203', '#faa53d', '#f87462', '#9f8fef', '#579dff']
+const COLORS = ['#4bce97', '#e2b203', '#faa53d', '#f87462', '#9f8fef', '#579dff', '#22a06b', '#008da6', '#c9372c', '#42526e']
 
 function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabels }) {
   const dispatch = useDispatch()
@@ -18,7 +19,8 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
   const boardLabels = board?.labels || []
   const cardLabelIds = activeCard?.labelIds || []
 
-  const [isCreating, setIsCreating] = useState(false)
+  const [viewMode, setViewMode] = useState('LIST') // 'LIST', 'CREATE', 'EDIT'
+  const [editingLabelId, setEditingLabelId] = useState(null)
   const [newTitle, setNewTitle] = useState('')
   const [newColor, setNewColor] = useState(COLORS[0])
 
@@ -32,18 +34,38 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
     onUpdateCardLabels(newLabelIds)
   }
 
-  const handleCreateLabel = async () => {
+  const handleSaveLabel = async () => {
     if (!newColor) return
-    const newLabelData = {
-      boardId: board._id,
+    const labelData = {
       title: newTitle.trim(),
       color: newColor
     }
-    const createdLabel = await createNewCardLabelAPI(newLabelData)
-    dispatch(addNewLabel(createdLabel))
-    setIsCreating(false)
+    
+    if (viewMode === 'CREATE') {
+      labelData.boardId = board._id
+      const createdLabel = await createNewCardLabelAPI(labelData)
+      dispatch(addNewLabel(createdLabel))
+    } else if (viewMode === 'EDIT') {
+      const updatedLabel = await updateCardLabelAPI(editingLabelId, labelData)
+      dispatch(updateLabelOptimistic(updatedLabel))
+    }
+    setViewMode('LIST')
     setNewTitle('')
     setNewColor(COLORS[0])
+  }
+
+  const handleDeleteLabel = async () => {
+    await deleteCardLabelAPI(editingLabelId)
+    dispatch(deleteLabelOptimistic(editingLabelId))
+    setViewMode('LIST')
+  }
+
+  const handleEditClick = (e, label) => {
+    e.stopPropagation() // Prevent triggering toggleLabel
+    setEditingLabelId(label._id)
+    setNewTitle(label.title)
+    setNewColor(label.color)
+    setViewMode('EDIT')
   }
 
   const open = Boolean(anchorEl)
@@ -56,14 +78,16 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
       anchorEl={anchorEl}
       onClose={() => {
         handleClose()
-        setIsCreating(false)
+        setViewMode('LIST')
       }}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
     >
       <Box sx={{ width: 300, p: 2 }}>
-        {isCreating ? (
+        {viewMode !== 'LIST' ? (
           <>
-            <Typography sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>Create a label</Typography>
+            <Typography sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
+              {viewMode === 'CREATE' ? 'Create a label' : 'Edit label'}
+            </Typography>
             <TextField
               fullWidth
               size="small"
@@ -89,13 +113,18 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
               ))}
             </Box>
             <Stack direction="row" spacing={1}>
-              <Button variant="contained" color="primary" fullWidth onClick={handleCreateLabel}>
-                Create
+              <Button variant="contained" color="primary" fullWidth onClick={handleSaveLabel}>
+                Save
               </Button>
-              <Button variant="outlined" color="inherit" fullWidth onClick={() => setIsCreating(false)}>
-                Cancel
-              </Button>
+              {viewMode === 'EDIT' && (
+                <Button variant="contained" color="error" fullWidth onClick={handleDeleteLabel}>
+                  Delete
+                </Button>
+              )}
             </Stack>
+            <Button variant="outlined" color="inherit" fullWidth onClick={() => setViewMode('LIST')} sx={{ mt: 1 }}>
+              Cancel
+            </Button>
           </>
         ) : (
           <>
@@ -104,31 +133,43 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
               {boardLabels.map(label => {
                 const isChecked = cardLabelIds.includes(label._id)
                 return (
-                  <Box
-                    key={label._id}
-                    onClick={() => toggleLabel(label._id)}
-                    sx={{
-                      bgcolor: label.color,
-                      minHeight: 32,
-                      borderRadius: 1,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      px: 1.5,
-                      py: 0.5,
-                      color: 'white',
-                      fontWeight: 600,
-                      '&:hover': { opacity: 0.8 }
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{label.title}</Typography>
-                    {isChecked && <CheckIcon fontSize="small" />}
+                  <Box key={label._id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      onClick={() => toggleLabel(label._id)}
+                      sx={{
+                        bgcolor: label.color,
+                        flex: 1,
+                        minHeight: 32,
+                        borderRadius: 1,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        px: 1.5,
+                        py: 0.5,
+                        color: 'white',
+                        fontWeight: 600,
+                        '&:hover': { opacity: 0.8 }
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{label.title}</Typography>
+                      {isChecked && <CheckIcon fontSize="small" />}
+                    </Box>
+                    <Box onClick={(e) => handleEditClick(e, label)} sx={{
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      p: 1, borderRadius: 1, '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#33485D' : theme.palette.grey[300] }
+                    }}>
+                      <EditOutlinedIcon fontSize="small" />
+                    </Box>
                   </Box>
                 )
               })}
             </Stack>
-            <Button variant="contained" color="inherit" fullWidth onClick={() => setIsCreating(true)} sx={{ boxShadow: 'none' }}>
+            <Button variant="contained" color="inherit" fullWidth onClick={() => {
+              setViewMode('CREATE')
+              setNewTitle('')
+              setNewColor(COLORS[0])
+            }} sx={{ boxShadow: 'none' }}>
               Create a new label
             </Button>
           </>
