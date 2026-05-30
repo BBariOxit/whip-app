@@ -90,3 +90,18 @@ export const inviteUserToBoardAPI = async (data) => {
   toast.success('User invited to board successfully!')
   return response.data
 }
+
+export const createNewCardLabelAPI = async (newLabelData) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/labels`, newLabelData)
+  return response.data
+}
+
+export const updateCardLabelAPI = async (labelId, updateData) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/labels/${labelId}`, updateData)
+  return response.data
+}
+
+export const deleteCardLabelAPI = async (labelId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/labels/${labelId}`)
+  return response.data
+}

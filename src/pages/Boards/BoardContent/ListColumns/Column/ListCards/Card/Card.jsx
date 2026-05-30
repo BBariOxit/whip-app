@@ -10,11 +10,16 @@ import Typography from '@mui/material/Typography'
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useDispatch } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { updateCurrentActiveCard, showModalActiveCard } from '~/redux/activeCard/activeCardSlice'
+import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
+import Box from '@mui/material/Box'
 
 function Card({ card }) {
   const dispatch = useDispatch()
+  const board = useSelector(selectCurrentActive)
+  const boardLabels = board?.labels || []
+  const cardLabels = boardLabels.filter(label => card?.labelIds?.includes(label._id))
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card._id,
@@ -61,6 +66,17 @@ function Card({ card }) {
         <CardMedia sx={{ height: 140 }}image={card?.cover}/>
       }
       <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
+        {!!cardLabels.length &&
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.5, mb: 1 }}>
+            {cardLabels.map(label => (
+              <Box key={label._id} sx={{
+                bgcolor: label.color,
+                height: 8,
+                borderRadius: 1
+              }} title={label.title} />
+            ))}
+          </Box>
+        }
         <Typography>{card?.title}</Typography>
       </CardContent>
       {showCardAction() &&
