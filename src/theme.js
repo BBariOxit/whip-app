@@ -11,7 +11,7 @@ const APP_COLORS = {
   light: {
     primary: '#3b82f6', // Blue 500 (softer blue)
     bgApp: '#f8fafc', // slate-50
-    bgColumn: '#f1f5f9', // slate-100 for contrast
+    bgColumn: '#e2e8f0', // slate-200 for excellent contrast with white cards
     bgCard: '#ffffff',
     bgAppBar: '#ffffff',
     bgBoardBar: '#f8fafc',

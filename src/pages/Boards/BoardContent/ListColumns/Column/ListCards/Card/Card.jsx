@@ -1,12 +1,15 @@
 import AttachmentIcon from '@mui/icons-material/Attachment'
 import CommentIcon from '@mui/icons-material/Comment'
 import GroupIcon from '@mui/icons-material/Group'
+import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined'
+import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined'
 import Button from '@mui/material/Button'
 import MuiCard from '@mui/material/Card'
 import CardActions from '@mui/material/CardActions'
 import CardContent from '@mui/material/CardContent'
 import CardMedia from '@mui/material/CardMedia'
 import Typography from '@mui/material/Typography'
+import dayjs from 'dayjs'
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -14,6 +17,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { updateCurrentActiveCard, showModalActiveCard } from '~/redux/activeCard/activeCardSlice'
 import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
 import Box from '@mui/material/Box'
+import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
 
 function Card({ card }) {
   const dispatch = useDispatch()
@@ -35,8 +39,10 @@ function Card({ card }) {
     border: isDragging ? '1px solid' : undefined
   }
 
+  const dueDateState = getDueDateState(card?.dueDate, card?.dueComplete)
+
   const showCardAction = () => {
-    return !!card?.memberIds?.length || !!card?.comments?.length || !!card?.attachments?.length
+    return !!card?.memberIds?.length || !!card?.comments?.length || !!card?.attachments?.length || !!card?.dueDate
   }
 
   const setActiveCard = () => {
@@ -80,7 +86,25 @@ function Card({ card }) {
         <Typography>{card?.title}</Typography>
       </CardContent>
       {showCardAction() &&
-        <CardActions sx={{ p: '0 4px 8px 12px' }}>
+        <CardActions sx={{ p: '0 8px 8px 8px', gap: 0.5, flexWrap: 'wrap' }}>
+          {card?.dueDate && (
+            <Button
+              size="small"
+              startIcon={dueDateState === 'completed' ? <TaskAltOutlinedIcon /> : <WatchLaterOutlinedIcon />}
+              sx={(theme) => ({
+                bgcolor: getDueDateColor(dueDateState, theme),
+                color: getDueDateTextColor(dueDateState, theme),
+                fontSize: '12px',
+                fontWeight: 600,
+                borderRadius: 2,
+                px: 1,
+                minWidth: 'unset',
+                '&:hover': { bgcolor: getDueDateColor(dueDateState, theme), opacity: 0.85 }
+              })}
+            >
+              {dayjs(card.dueDate).format('DD MMM')}
+            </Button>
+          )}
           {!!card?.memberIds?.length &&
             <Button size="small" startIcon={<GroupIcon />}>{card?.memberIds?.length}</Button>
           }

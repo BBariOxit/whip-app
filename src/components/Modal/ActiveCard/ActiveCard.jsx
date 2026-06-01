@@ -18,11 +18,13 @@ import SubjectRoundedIcon from '@mui/icons-material/SubjectRounded'
 import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined'
 import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined'
 import Box from '@mui/material/Box'
+import Checkbox from '@mui/material/Checkbox'
 import Divider from '@mui/material/Divider'
 import Modal from '@mui/material/Modal'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Unstable_Grid2'
+import dayjs from 'dayjs'
 
 import React, { useState } from 'react'
 import { styled } from '@mui/material/styles'
@@ -39,10 +41,12 @@ import {
   updateCurrentActiveCard
 } from '~/redux/activeCard/activeCardSlice'
 import { singleFileValidator } from '~/utils/validators'
+import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
 import CardActivitySection from './CardActivitySection'
 import CardDescriptionMdEditor from './CardDescriptionMdEditor'
 import CardUserGroup from './CardUserGroup'
 import CardLabelsPopover from './CardLabelsPopover'
+import CardDatesPopover from './CardDatesPopover'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 
@@ -78,9 +82,13 @@ function ActiveCard() {
   const currentUser = useSelector(selectCurrentUser)
   const board = useSelector(selectCurrentActive)
   const [anchorElLabels, setAnchorElLabels] = useState(null)
+  const [anchorElDates, setAnchorElDates] = useState(null)
   
   const boardLabels = board?.labels || []
   const cardLabels = boardLabels.filter(label => activeCard?.labelIds?.includes(label._id))
+
+  // Tính trạng thái due date
+  const dueDateState = getDueDateState(activeCard?.dueDate, activeCard?.dueComplete)
 
   // const [isOpen, setIsOpen] = useState(true)
   // const handleOpenModal = () => setIsOpen(true)
@@ -139,6 +147,14 @@ function ActiveCard() {
 
   const onUpdateCardLabels = (newLabelIds) => {
     callApiUpdateCard({ labelIds: newLabelIds })
+  }
+
+  const onUpdateCardDates = (dateData) => {
+    callApiUpdateCard(dateData)
+  }
+
+  const onToggleDueComplete = () => {
+    callApiUpdateCard({ dueComplete: !activeCard?.dueComplete })
   }
 
   return (
@@ -226,6 +242,50 @@ function ActiveCard() {
                   </Box>
                 </Box>
               )}
+
+              {activeCard?.dueDate && (
+                <Box>
+                  <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Dates</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Checkbox
+                      checked={!!activeCard?.dueComplete}
+                      onChange={onToggleDueComplete}
+                      size="small"
+                      sx={(theme) => ({
+                        p: 0,
+                        color: getDueDateColor(dueDateState, theme),
+                        '&.Mui-checked': { color: getDueDateColor('completed', theme) }
+                      })}
+                    />
+                    <Box sx={(theme) => ({
+                      bgcolor: getDueDateColor(dueDateState, theme),
+                      color: getDueDateTextColor(dueDateState, theme),
+                      px: 1.5, py: 0.5, borderRadius: 1,
+                      fontWeight: 600, fontSize: 14,
+                      display: 'flex', alignItems: 'center', gap: 0.5,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      '&:hover': { opacity: 0.85 }
+                    })}
+                    onClick={(e) => setAnchorElDates(e.currentTarget)}
+                    >
+                      {dueDateState === 'completed'
+                        ? <TaskAltOutlinedIcon sx={{ fontSize: 16 }} />
+                        : <WatchLaterOutlinedIcon sx={{ fontSize: 16 }} />
+                      }
+                      <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>
+                        {dayjs(activeCard.dueDate).format('DD MMM [at] HH:mm')}
+                      </Box>
+                      {dueDateState === 'overdue' && (
+                        <Box component="span" sx={{ fontSize: 12, ml: 0.8, fontWeight: 700, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>OVERDUE</Box>
+                      )}
+                      {dueDateState === 'completed' && (
+                        <Box component="span" sx={{ fontSize: 12, ml: 0.8, fontWeight: 700, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>COMPLETE</Box>
+                      )}
+                    </Box>
+                  </Box>
+                </Box>
+              )}
             </Box>
 
             <Box sx={{ mb: 3 }}>
@@ -293,7 +353,15 @@ function ActiveCard() {
                 onUpdateCardLabels={onUpdateCardLabels}
               />
               <SidebarItem><TaskAltOutlinedIcon fontSize="small" />Checklist</SidebarItem>
-              <SidebarItem><WatchLaterOutlinedIcon fontSize="small" />Dates</SidebarItem>
+              <SidebarItem className="active" onClick={(e) => setAnchorElDates(e.currentTarget)}>
+                <WatchLaterOutlinedIcon fontSize="small" />Dates
+              </SidebarItem>
+              <CardDatesPopover
+                anchorEl={anchorElDates}
+                handleClose={() => setAnchorElDates(null)}
+                activeCard={activeCard}
+                onUpdateCardDates={onUpdateCardDates}
+              />
               <SidebarItem><AutoFixHighOutlinedIcon fontSize="small" />Custom Fields</SidebarItem>
             </Stack>
 
