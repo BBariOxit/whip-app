@@ -24,7 +24,6 @@ import { fetchBoardsAPI } from '~/apis'
 import { API_ROOT, DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
 
 import { styled } from '@mui/material/styles'
-// Styles của mấy cái Sidebar item menu, anh gom lại ra đây cho gọn.
 const SidebarItem = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -34,6 +33,7 @@ const SidebarItem = styled(Box)(({ theme }) => ({
   padding: '12px 16px',
   borderRadius: '8px',
   color: theme.palette.text.primary,
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'transparent' : theme.palette.divider}`,
   transition: 'all 0.15s ease-in-out',
   '&:hover': {
     backgroundColor: theme.palette.mode === 'dark' ? '#334155' : '#f1f5f9'
@@ -41,7 +41,8 @@ const SidebarItem = styled(Box)(({ theme }) => ({
   '&.active': {
     color: theme.palette.primary.main,
     backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : '#e0f2fe',
-    fontWeight: 600
+    fontWeight: 600,
+    border: `1px solid ${theme.palette.mode === 'dark' ? 'transparent' : theme.palette.primary.light}`
   }
 }))
 
