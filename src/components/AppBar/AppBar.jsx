@@ -7,7 +7,7 @@ import SvgIcon from '@mui/material/SvgIcon'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { Link } from 'react-router-dom'
-import { ReactComponent as trelloLogo } from '~/assets/trello.svg'
+import DashboardIcon from '@mui/icons-material/Dashboard'
 import ModeSelect from '~/components/ModeSelect/ModeSelect'
 import Profiles from './Menu/Profiles'
 import Recent from './Menu/Recent'
@@ -47,14 +47,14 @@ function AppBar() {
 
         <Link to='/' style={{ color: 'inherit' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <SvgIcon component={trelloLogo} fontSize='small' inheritViewBox sx={{
+            <DashboardIcon fontSize='small' sx={{
               color: (theme) => theme.palette.mode === 'dark' ? 'text.secondary' : 'primary.main'
             }}/>
             <Typography variant='span' sx={{
               fontSize: '1.2rem',
               fontWeight: 'bold',
               color: (theme) => theme.palette.mode === 'dark' ? 'text.secondary' : 'primary.main'
-            }}>Trello</Typography>
+            }}>Whip</Typography>
           </Box>
         </Link>
 

@@ -9,7 +9,6 @@ import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined'
 import CancelIcon from '@mui/icons-material/Cancel'
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
 import CreditCardIcon from '@mui/icons-material/CreditCard'
-import DvrOutlinedIcon from '@mui/icons-material/DvrOutlined'
 import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined'
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined'
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined'
@@ -302,15 +301,11 @@ function ActiveCard() {
             </Box>
 
             <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <DvrOutlinedIcon />
-                <Typography variant="span" sx={{ fontWeight: '600', fontSize: '20px' }}>Activity</Typography>
-              </Box>
-
               {/* Feature 04: Xử lý các hành động, ví dụ comment vào Card */}
               <CardActivitySection
                 cardComments={activeCard?.comments}
                 onAddCardComment={onAddCardComment}
+                cardId={activeCard?._id}
               />
             </Box>
           </Grid>
