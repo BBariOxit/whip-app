@@ -311,6 +311,7 @@ function ActiveCard() {
               <CardActivitySection
                 cardComments={activeCard?.comments}
                 onAddCardComment={onAddCardComment}
+                cardId={activeCard?._id}
               />
             </Box>
           </Grid>
