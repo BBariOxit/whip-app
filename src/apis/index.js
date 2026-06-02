@@ -107,7 +107,7 @@ export const deleteCardLabelAPI = async (labelId) => {
 }
 
 /** Activities */
-export const getCardActivitiesAPI = async (cardId) => {
-  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/activities?cardId=${cardId}`)
+export const getCardActivitiesAPI = async (cardId, page = 1, limit = 10) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/activities?cardId=${cardId}&page=${page}&limit=${limit}`)
   return response.data
 }

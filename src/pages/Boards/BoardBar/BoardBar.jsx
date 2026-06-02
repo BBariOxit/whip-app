@@ -1,6 +1,6 @@
 import AddToDriveIcon from '@mui/icons-material/AddToDrive'
 import BoltIcon from '@mui/icons-material/Bolt'
-import DashboardIcon from '@mui/icons-material/Dashboard'
+import ViewColumnIcon from '@mui/icons-material/ViewColumn'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import VpnLockIcon from '@mui/icons-material/VpnLock'
 import Box from '@mui/material/Box'
@@ -44,7 +44,7 @@ function BoardBar({ board }) {
         <Tooltip title={board?.description}>
           <Chip
             sx={MENU_STYLE}
-            icon={<DashboardIcon />}
+            icon={<ViewColumnIcon />}
             label={board?.title}
             clickable
           />

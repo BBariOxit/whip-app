@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import dayjs from 'dayjs'
 import localizedFormat from 'dayjs/plugin/localizedFormat'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -11,6 +11,7 @@ import Avatar from '@mui/material/Avatar'
 import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
 
 // Icons cho system log
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
@@ -19,10 +20,13 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove'
 import ImageIcon from '@mui/icons-material/Image'
 import EventIcon from '@mui/icons-material/Event'
+import DvrOutlinedIcon from '@mui/icons-material/DvrOutlined'
 
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { getCardActivitiesAPI } from '~/apis'
+
+const ACTIVITIES_PER_PAGE = 10
 
 // Map actionType sang icon tương ứng
 const ACTION_TYPE_ICONS = {
@@ -39,31 +43,68 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
   const currentUser = useSelector(selectCurrentUser)
   const [activities, setActivities] = useState([])
   const [showDetails, setShowDetails] = useState(false)
+  const [page, setPage] = useState(1)
+  const [totalActivities, setTotalActivities] = useState(0)
+  const [loading, setLoading] = useState(false)
 
-  // Fetch activities từ API khi component mount hoặc cardId thay đổi
-  const fetchActivities = useCallback(async () => {
+  // Dùng ref để track cardComments length trước đó, tránh re-fetch loop
+  const prevCommentsLengthRef = useRef(cardComments.length)
+
+  // Fetch activities page 1 (reset) — dùng khi mở modal hoặc khi có action mới
+  const fetchFirstPage = useCallback(async () => {
     if (!cardId) return
     try {
-      const data = await getCardActivitiesAPI(cardId)
-      setActivities(data || [])
+      setLoading(true)
+      const result = await getCardActivitiesAPI(cardId, 1, ACTIVITIES_PER_PAGE)
+      setActivities(result.activities || [])
+      setTotalActivities(result.total || 0)
+      setPage(1)
     } catch (error) {
-      // Không throw lỗi, chỉ log ra console
       console.error('Failed to fetch activities:', error)
+    } finally {
+      setLoading(false)
     }
   }, [cardId])
 
-  // Re-fetch activities khi cardComments thay đổi (tức là có update card từ Redux)
+  // Fetch thêm activities (Load More) — NỐI MẢNG
+  const fetchMoreActivities = async () => {
+    if (!cardId || loading) return
+    try {
+      setLoading(true)
+      const nextPage = page + 1
+      const result = await getCardActivitiesAPI(cardId, nextPage, ACTIVITIES_PER_PAGE)
+      // Nối đít vào mảng hiện tại
+      setActivities(prev => [...prev, ...(result.activities || [])])
+      setTotalActivities(result.total || 0)
+      setPage(nextPage)
+    } catch (error) {
+      console.error('Failed to load more activities:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch page 1 khi mount
   useEffect(() => {
-    fetchActivities()
-  }, [fetchActivities, cardComments])
+    fetchFirstPage()
+  }, [fetchFirstPage])
+
+  // Re-fetch page 1 khi cardComments thay đổi (có action mới từ Redux)
+  useEffect(() => {
+    if (prevCommentsLengthRef.current !== cardComments.length) {
+      prevCommentsLengthRef.current = cardComments.length
+      fetchFirstPage()
+    }
+  }, [cardComments, fetchFirstPage])
+
+  // Còn data để load không?
+  const hasMore = activities.length < totalActivities
 
   const handleAddCardComment = (event) => {
-    // Bắt hành động người dùng nhấn phím Enter && không phải hành động Shift + Enter
     if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault() // Thêm dòng này để khi Enter không bị nhảy dòng
-      if (!event.target?.value) return // Nếu không có giá trị gì thì return không làm gì cả
+      event.preventDefault()
+      if (!event.target?.value) return
 
-      // Tạo một biến commend data để gửi api
       const commentToAdd = {
         userAvatar: currentUser?.avatar,
         userDisplayName: currentUser?.displayName,
@@ -72,19 +113,15 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
 
       onAddCardComment(commentToAdd).then(() => {
         event.target.value = ''
-        // Re-fetch activities sau khi thêm comment (vì có thể server ghi log liên quan)
-        fetchActivities()
+        fetchFirstPage()
       })
     }
   }
 
   /**
    * Merge comments + activities thành 1 mảng chung, sort theo thời gian (mới nhất trước).
-   * - Comment có trường `commentedAt` và type = 'COMMENT'
-   * - Activity có trường `createdAt` và type = actionType
    */
   const mergedFeed = (() => {
-    // Chuẩn hóa comments
     const normalizedComments = cardComments.map((comment, index) => ({
       ...comment,
       _type: 'COMMENT',
@@ -92,7 +129,6 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
       _key: `comment-${index}`
     }))
 
-    // Chuẩn hóa activities
     const normalizedActivities = activities.map((activity) => ({
       ...activity,
       _type: activity.actionType,
@@ -100,7 +136,6 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
       _key: `activity-${activity._id}`
     }))
 
-    // Merge và sort theo thời gian giảm dần (mới nhất trước)
     return [...normalizedComments, ...normalizedActivities].sort((a, b) => {
       return new Date(b._timestamp) - new Date(a._timestamp)
     })
@@ -137,7 +172,7 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
     )
   }
 
-  // Render một Comment (UI bubble to, giữ nguyên style cũ)
+  // Render một Comment (UI bubble to)
   const renderComment = (item) => {
     return (
       <Box sx={{ display: 'flex', gap: 1, width: '100%', mb: 1.5 }} key={item._key}>
@@ -176,9 +211,13 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
 
   return (
     <Box sx={{ mt: 2 }}>
-      {/* Nút Toggle Show/Hide Details */}
-      {activities.length > 0 && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+      {/* Header và Nút Toggle Show/Hide Details */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <DvrOutlinedIcon />
+          <Typography variant="span" sx={{ fontWeight: '600', fontSize: '20px' }}>Activity</Typography>
+        </Box>
+        {totalActivities > 0 && (
           <Button
             size="small"
             variant="text"
@@ -192,8 +231,8 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
           >
             {showDetails ? 'Hide Details' : 'Show Details'}
           </Button>
-        </Box>
-      )}
+        )}
+      </Box>
 
       {/* Xử lý thêm comment vào Card */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -212,20 +251,60 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
         />
       </Box>
 
-      {/* Hiển thị merged feed: comments + system logs */}
-      {mergedFeed.length === 0 &&
-        <Typography sx={{ pl: '45px', fontSize: '14px', fontWeight: '500', color: '#b1b1b1' }}>No activity found!</Typography>
-      }
-      {mergedFeed.map((item) => {
-        // Comment: luôn hiện
-        if (item._type === 'COMMENT') {
-          return renderComment(item)
+      {/* Khu vực Activity cuộn được - fix chiều cao tránh Card dài vô tận */}
+      <Box sx={{
+        maxHeight: '400px',
+        overflowY: 'auto',
+        pr: 0.5,
+        // Custom scrollbar cho đẹp
+        '&::-webkit-scrollbar': { width: '6px' },
+        '&::-webkit-scrollbar-thumb': {
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? '#555' : '#c1c1c1',
+          borderRadius: '3px'
         }
+      }}>
+        {/* Hiển thị merged feed */}
+        {mergedFeed.length === 0 && !loading &&
+          <Typography sx={{ pl: '45px', fontSize: '14px', fontWeight: '500', color: '#b1b1b1' }}>No activity found!</Typography>
+        }
+        {mergedFeed.map((item) => {
+          if (item._type === 'COMMENT') {
+            return renderComment(item)
+          }
+          if (!showDetails) return null
+          return renderSystemLog(item)
+        })}
 
-        // System log: chỉ hiện khi showDetails === true
-        if (!showDetails) return null
-        return renderSystemLog(item)
-      })}
+        {/* Nút Load More */}
+        {hasMore && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1, mb: 1 }}>
+            <Button
+              size="small"
+              variant="text"
+              onClick={fetchMoreActivities}
+              disabled={loading}
+              sx={{
+                textTransform: 'none',
+                fontSize: '13px',
+                color: 'text.secondary',
+                '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f' }
+              }}
+            >
+              {loading ? (
+                <CircularProgress size={16} sx={{ mr: 1 }} />
+              ) : null}
+              {loading ? 'Đang tải...' : 'Xem thêm hoạt động'}
+            </Button>
+          </Box>
+        )}
+
+        {/* Loading indicator khi fetch lần đầu */}
+        {loading && activities.length === 0 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+            <CircularProgress size={24} />
+          </Box>
+        )}
+      </Box>
     </Box>
   )
 }

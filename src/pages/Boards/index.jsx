@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Unstable_Grid2'
 import Stack from '@mui/material/Stack'
 import Divider from '@mui/material/Divider'
-import SpaceDashboardIcon from '@mui/icons-material/SpaceDashboard'
+import ViewColumnIcon from '@mui/icons-material/ViewColumn'
 import ListAltIcon from '@mui/icons-material/ListAlt'
 import HomeIcon from '@mui/icons-material/Home'
 import ArrowRightIcon from '@mui/icons-material/ArrowRight'
@@ -104,7 +104,7 @@ function Boards() {
           <Grid xs={12} sm={3}>
             <Stack direction="column" spacing={1}>
               <SidebarItem className="active">
-                <SpaceDashboardIcon fontSize="small" />
+                <ViewColumnIcon fontSize="small" />
                 Boards
               </SidebarItem>
               <SidebarItem>
