@@ -4,6 +4,8 @@
 ![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
+![React](https://img.shields.io/badge/React-18-00d8ff?logo=react&logoColor=white&labelColor=333333) ![Vite](https://img.shields.io/badge/Vite-4-646CFF?logo=vite&logoColor=white&labelColor=333333) ![MUI](https://img.shields.io/badge/MUI-5-007FFF?logo=mui&logoColor=white&labelColor=333333) ![Redux](https://img.shields.io/badge/State-Redux_Toolkit-764ABC?logo=redux&logoColor=white&labelColor=333333) ![React Router](https://img.shields.io/badge/Router-React_Router-CA4245?logo=reactrouter&logoColor=white&labelColor=333333) ![dnd-kit](https://img.shields.io/badge/Drag_&_Drop-dnd--kit-FF4154?logoColor=white&labelColor=333333)
+
 ## 🎯 Introduction
 Whip App is an intuitive, high-performance task management application featuring a seamless drag-and-drop interface. Designed to help developers organize tasks, boards, and cards efficiently, it offers a modern, lightweight, and superior alternative to traditional project management tools.
 
