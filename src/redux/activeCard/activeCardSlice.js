@@ -29,6 +29,12 @@ export const activeCardSlice = createSlice({
       // ...
       // Update lại dữ liệu currentActiveCard trong Redux
       state.currentActiveCard = fullCard
+    },
+    // Optimistic update cho checklists - mutate trực tiếp nhờ Immer
+    updateCurrentActiveCardChecklists: (state, action) => {
+      if (state.currentActiveCard) {
+        state.currentActiveCard.checklists = action.payload
+      }
     }
   },
   // ExtraReducers: Xử lý dữ liệu bất đồng bộ
@@ -42,7 +48,8 @@ export const activeCardSlice = createSlice({
 export const {
   showModalActiveCard,
   clearAndHideCurrentActiveCard,
-  updateCurrentActiveCard
+  updateCurrentActiveCard,
+  updateCurrentActiveCardChecklists
 } = activeCardSlice.actions
 
 // Selectors: Là nơi dành cho các components bên dưới gọi bằng hook useSelector() để lấy dữ liệu từ trong kho redux store ra sử dụng

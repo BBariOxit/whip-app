@@ -37,7 +37,8 @@ import {
   clearAndHideCurrentActiveCard,
   selectCurrentActiveCard,
   selectIsShowModalActiveCard,
-  updateCurrentActiveCard
+  updateCurrentActiveCard,
+  updateCurrentActiveCardChecklists
 } from '~/redux/activeCard/activeCardSlice'
 import { singleFileValidator } from '~/utils/validators'
 import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
@@ -46,6 +47,8 @@ import CardDescriptionMdEditor from './CardDescriptionMdEditor'
 import CardUserGroup from './CardUserGroup'
 import CardLabelsPopover from './CardLabelsPopover'
 import CardDatesPopover from './CardDatesPopover'
+import CardChecklistPopover from './CardChecklistPopover'
+import CardChecklistSection from './CardChecklistSection'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 
@@ -82,6 +85,7 @@ function ActiveCard() {
   const board = useSelector(selectCurrentActive)
   const [anchorElLabels, setAnchorElLabels] = useState(null)
   const [anchorElDates, setAnchorElDates] = useState(null)
+  const [anchorElChecklist, setAnchorElChecklist] = useState(null)
   
   const boardLabels = board?.labels || []
   const cardLabels = boardLabels.filter(label => activeCard?.labelIds?.includes(label._id))
@@ -154,6 +158,29 @@ function ActiveCard() {
 
   const onToggleDueComplete = () => {
     callApiUpdateCard({ dueComplete: !activeCard?.dueComplete })
+  }
+
+  // ===== CHECKLIST HANDLERS =====
+  const onAddChecklist = (title) => {
+    const newChecklist = {
+      _id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substring(2),
+      title,
+      items: []
+    }
+    const newChecklists = [...(activeCard?.checklists || []), newChecklist]
+    // Optimistic update
+    dispatch(updateCurrentActiveCardChecklists(newChecklists))
+    dispatch(updateCardInBoard({ ...activeCard, checklists: newChecklists }))
+    // Persist to DB
+    callApiUpdateCard({ checklists: newChecklists })
+  }
+
+  const onUpdateChecklists = (newChecklists) => {
+    // Optimistic update
+    dispatch(updateCurrentActiveCardChecklists(newChecklists))
+    dispatch(updateCardInBoard({ ...activeCard, checklists: newChecklists }))
+    // Persist to DB
+    callApiUpdateCard({ checklists: newChecklists })
   }
 
   return (
@@ -300,6 +327,16 @@ function ActiveCard() {
               />
             </Box>
 
+            {/* Feature Checklist: Render toàn bộ checklists của card */}
+            {!!activeCard?.checklists?.length && (
+              <Box sx={{ mb: 3 }}>
+                <CardChecklistSection
+                  checklists={activeCard?.checklists}
+                  onUpdateChecklists={onUpdateChecklists}
+                />
+              </Box>
+            )}
+
             <Box sx={{ mb: 3 }}>
               {/* Feature 04: Xử lý các hành động, ví dụ comment vào Card */}
               <CardActivitySection
@@ -347,7 +384,14 @@ function ActiveCard() {
                 activeCard={activeCard}
                 onUpdateCardLabels={onUpdateCardLabels}
               />
-              <SidebarItem><TaskAltOutlinedIcon fontSize="small" />Checklist</SidebarItem>
+              <SidebarItem className="active" onClick={(e) => setAnchorElChecklist(e.currentTarget)}>
+                <TaskAltOutlinedIcon fontSize="small" />Checklist
+              </SidebarItem>
+              <CardChecklistPopover
+                anchorEl={anchorElChecklist}
+                handleClose={() => setAnchorElChecklist(null)}
+                onAddChecklist={onAddChecklist}
+              />
               <SidebarItem className="active" onClick={(e) => setAnchorElDates(e.currentTarget)}>
                 <WatchLaterOutlinedIcon fontSize="small" />Dates
               </SidebarItem>
