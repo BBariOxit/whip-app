@@ -111,3 +111,14 @@ export const getCardActivitiesAPI = async (cardId, page = 1, limit = 10) => {
   const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/activities?cardId=${cardId}&page=${page}&limit=${limit}`)
   return response.data
 }
+
+/** Attachments */
+export const uploadCardAttachmentAPI = async (cardId, formData) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards/${cardId}/attachments`, formData)
+  return response.data
+}
+
+export const deleteCardAttachmentAPI = async (cardId, publicId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/cards/${cardId}/attachments`, { data: { publicId } })
+  return response.data
+}

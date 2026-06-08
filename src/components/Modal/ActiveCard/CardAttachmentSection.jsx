@@ -1,0 +1,178 @@
+import AttachFileOutlinedIcon from '@mui/icons-material/AttachFileOutlined'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
+import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined'
+import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
+import Typography from '@mui/material/Typography'
+import dayjs from 'dayjs'
+import { useConfirm } from 'material-ui-confirm'
+
+// Các format ảnh mà trình duyệt có thể hiển thị thumbnail
+const IMAGE_FORMATS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp']
+
+/**
+ * Kiểm tra xem format có phải là ảnh hay không
+ */
+const isImageFormat = (format) => {
+  return IMAGE_FORMATS.includes(format?.toLowerCase())
+}
+
+/**
+ * Tạo URL thumbnail từ Cloudinary bằng cách chèn transform params vào URL
+ * Ví dụ: .../upload/v123/file.jpg → .../upload/w_200,h_150,c_fill/v123/file.jpg
+ */
+const getCloudinaryThumbnailUrl = (url, width = 200, height = 150) => {
+  if (!url) return ''
+  const uploadIndex = url.indexOf('/upload/')
+  if (uploadIndex === -1) return url
+  const before = url.substring(0, uploadIndex + 8)
+  const after = url.substring(uploadIndex + 8)
+  return `${before}w_${width},h_${height},c_fill/${after}`
+}
+
+function CardAttachmentSection({ attachments = [], onDeleteAttachment }) {
+  const confirmDelete = useConfirm()
+
+  const handleDelete = (attachment) => {
+    confirmDelete({
+      title: 'Delete Attachment?',
+      description: `Are you sure you want to delete "${attachment.filename}"? This action cannot be undone.`,
+      confirmationText: 'Delete',
+      cancellationText: 'Cancel'
+    }).then(() => {
+      onDeleteAttachment(attachment.publicId)
+    }).catch(() => {})
+  }
+
+  const handleDownload = (url, filename) => {
+    window.open(url, '_blank')
+  }
+
+  if (!attachments?.length) return null
+
+  return (
+    <Box sx={{ mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+        <AttachFileOutlinedIcon />
+        <Typography variant="span" sx={{ fontWeight: '600', fontSize: '20px' }}>
+          Attachments
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pl: 4.5 }}>
+        {attachments.map((att, index) => (
+          <Box
+            key={att.publicId || index}
+            sx={(theme) => ({
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              p: 1,
+              borderRadius: '8px',
+              bgcolor: theme.palette.mode === 'dark' ? '#2f3542' : '#f1f2f4',
+              transition: 'background-color 0.15s ease',
+              '&:hover': {
+                bgcolor: theme.palette.mode === 'dark' ? '#3a4150' : '#e4e6ea'
+              }
+            })}
+          >
+            {/* Thumbnail / File icon */}
+            <Box
+              sx={{
+                width: 112,
+                height: 80,
+                borderRadius: '6px',
+                overflow: 'hidden',
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1c2230' : '#dfe1e6'
+              }}
+            >
+              {isImageFormat(att.format) ? (
+                <img
+                  src={getCloudinaryThumbnailUrl(att.url)}
+                  alt={att.filename}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  loading="lazy"
+                />
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.3 }}>
+                  <InsertDriveFileOutlinedIcon sx={{ fontSize: 32, color: 'text.secondary' }} />
+                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase' }}>
+                    {att.format}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+
+            {/* File info */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  fontSize: 14,
+                  color: 'text.primary',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {att.filename}
+              </Typography>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.3 }}>
+                Added {dayjs(att.createdAt).format('MMM D, YYYY [at] HH:mm')}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5 }}>
+                <Typography
+                  onClick={() => handleDownload(att.url, att.filename)}
+                  sx={{
+                    fontSize: 12,
+                    color: 'primary.main',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    '&:hover': { color: 'primary.dark' }
+                  }}
+                >
+                  Download
+                </Typography>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>•</Typography>
+                <Typography
+                  onClick={() => handleDelete(att)}
+                  sx={{
+                    fontSize: 12,
+                    color: 'error.main',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    '&:hover': { color: 'error.dark' }
+                  }}
+                >
+                  Delete
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Action buttons */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              <Tooltip title="Download">
+                <IconButton size="small" onClick={() => handleDownload(att.url, att.filename)}>
+                  <DownloadOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete">
+                <IconButton size="small" onClick={() => handleDelete(att)} color="error">
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  )
+}
+
+export default CardAttachmentSection

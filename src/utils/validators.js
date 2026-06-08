@@ -23,3 +23,27 @@ export const singleFileValidator = (file) => {
   }
   return null
 }
+
+// Attachment cho phép nhiều loại file hơn
+export const ALLOW_ATTACHMENT_FILE_TYPES = [
+  'image/jpg', 'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/zip', 'application/x-rar-compressed',
+  'text/plain'
+]
+export const attachmentFileValidator = (file) => {
+  if (!file || !file.name || !file.size || !file.type) {
+    return 'File cannot be blank.'
+  }
+  if (file.size > LIMIT_COMMON_FILE_SIZE) {
+    return 'Maximum file size exceeded. (10MB)'
+  }
+  if (!ALLOW_ATTACHMENT_FILE_TYPES.includes(file.type)) {
+    return 'File type is invalid. Accepted: images, pdf, doc, excel, zip, txt'
+  }
+  return null
+}
