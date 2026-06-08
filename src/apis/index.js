@@ -106,6 +106,22 @@ export const deleteCardLabelAPI = async (labelId) => {
   return response.data
 }
 
+/** Custom Fields */
+export const createCustomFieldAPI = async (boardId, data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/${boardId}/custom-fields`, data)
+  return response.data
+}
+
+export const updateCustomFieldAPI = async (boardId, fieldId, data) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/boards/${boardId}/custom-fields/${fieldId}`, data)
+  return response.data
+}
+
+export const deleteCustomFieldAPI = async (boardId, fieldId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/boards/${boardId}/custom-fields/${fieldId}`)
+  return response.data
+}
+
 /** Activities */
 export const getCardActivitiesAPI = async (cardId, page = 1, limit = 10) => {
   const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/activities?cardId=${cardId}&page=${page}&limit=${limit}`)

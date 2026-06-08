@@ -50,6 +50,8 @@ import CardLabelsPopover from './CardLabelsPopover'
 import CardDatesPopover from './CardDatesPopover'
 import CardChecklistPopover from './CardChecklistPopover'
 import CardChecklistSection from './CardChecklistSection'
+import CardCustomFieldsPopover from './CardCustomFieldsPopover'
+import CardCustomFieldsSection from './CardCustomFieldsSection'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 
@@ -87,6 +89,7 @@ function ActiveCard() {
   const [anchorElLabels, setAnchorElLabels] = useState(null)
   const [anchorElDates, setAnchorElDates] = useState(null)
   const [anchorElChecklist, setAnchorElChecklist] = useState(null)
+  const [anchorElCustomFields, setAnchorElCustomFields] = useState(null)
   
   const boardLabels = board?.labels || []
   const cardLabels = boardLabels.filter(label => activeCard?.labelIds?.includes(label._id))
@@ -159,6 +162,10 @@ function ActiveCard() {
 
   const onToggleDueComplete = () => {
     callApiUpdateCard({ dueComplete: !activeCard?.dueComplete })
+  }
+
+  const onUpdateCardCustomFields = (newCustomFieldValues) => {
+    callApiUpdateCard({ customFieldValues: newCustomFieldValues })
   }
 
   // ===== CHECKLIST HANDLERS =====
@@ -344,6 +351,11 @@ function ActiveCard() {
               )}
             </Box>
 
+            {/* Feature Custom Fields: Render dynamic fields */}
+            <CardCustomFieldsSection 
+              onUpdateCardCustomFields={onUpdateCardCustomFields} 
+            />
+
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <SubjectRoundedIcon />
@@ -442,7 +454,13 @@ function ActiveCard() {
                 activeCard={activeCard}
                 onUpdateCardDates={onUpdateCardDates}
               />
-              <SidebarItem><AutoFixHighOutlinedIcon fontSize="small" />Custom Fields</SidebarItem>
+              <SidebarItem className="active" onClick={(e) => setAnchorElCustomFields(e.currentTarget)}>
+                <AutoFixHighOutlinedIcon fontSize="small" />Custom Fields
+              </SidebarItem>
+              <CardCustomFieldsPopover 
+                anchorEl={anchorElCustomFields}
+                handleClose={() => setAnchorElCustomFields(null)}
+              />
             </Stack>
 
             <Divider sx={{ my: 2 }} />

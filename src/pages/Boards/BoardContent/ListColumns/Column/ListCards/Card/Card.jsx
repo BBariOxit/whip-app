@@ -1,4 +1,5 @@
 import AttachmentIcon from '@mui/icons-material/Attachment'
+import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined'
 import CommentIcon from '@mui/icons-material/Comment'
 import GroupIcon from '@mui/icons-material/Group'
 import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined'
@@ -41,8 +42,12 @@ function Card({ card }) {
 
   const dueDateState = getDueDateState(card?.dueDate, card?.dueComplete)
 
+  // Tính tổng checklist items
+  const totalChecklistItems = card?.checklists?.reduce((sum, cl) => sum + (cl.items?.length || 0), 0) || 0
+  const completedChecklistItems = card?.checklists?.reduce((sum, cl) => sum + (cl.items?.filter(i => i.isCompleted)?.length || 0), 0) || 0
+
   const showCardAction = () => {
-    return !!card?.memberIds?.length || !!card?.comments?.length || !!card?.attachments?.length || !!card?.dueDate
+    return !!card?.memberIds?.length || !!card?.comments?.length || !!card?.attachments?.length || !!card?.dueDate || !!totalChecklistItems || !!card?.customFieldValues?.length
   }
 
   const setActiveCard = () => {
@@ -111,9 +116,41 @@ function Card({ card }) {
           {!!card?.comments?.length &&
             <Button size="small" startIcon={<CommentIcon />}>{card?.comments?.length}</Button>
           }
+          {!!totalChecklistItems &&
+            <Button size="small" startIcon={<CheckBoxOutlinedIcon />}>{completedChecklistItems}/{totalChecklistItems}</Button>
+          }
           {!!card?.attachments?.length &&
             <Button size="small" startIcon={<AttachmentIcon />}>{card?.attachments?.length}</Button>
           }
+          {card?.customFieldValues?.map(cfv => {
+            if (!cfv.value && typeof cfv.value !== 'boolean') return null
+            const fieldDef = board?.customFields?.find(f => f._id === cfv.customFieldId)
+            if (!fieldDef || !fieldDef.showOnFront) return null
+
+            let displayValue = cfv.value
+            if (fieldDef.type === 'dropdown') {
+              const opt = fieldDef.options?.find(o => o._id === cfv.value)
+              displayValue = opt ? opt.text : cfv.value
+            } else if (fieldDef.type === 'checkbox') {
+              displayValue = cfv.value ? 'Yes' : 'No'
+            }
+
+            return (
+              <Box key={cfv.customFieldId} sx={{
+                display: 'inline-block',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2A2E33' : '#091e420f',
+                px: 1, py: 0.25, borderRadius: 1,
+                fontSize: '12px', fontWeight: 500, color: 'text.secondary',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '100%',
+                boxSizing: 'border-box'
+              }}>
+                {fieldDef.name}: {displayValue.toString()}
+              </Box>
+            )
+          })}
         </CardActions>
       }
     </MuiCard>
