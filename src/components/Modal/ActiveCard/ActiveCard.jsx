@@ -29,7 +29,7 @@ import React, { useState } from 'react'
 import { styled } from '@mui/material/styles'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
-import { updateCardDetailsAPI } from '~/apis'
+import { updateCardDetailsAPI, uploadCardAttachmentAPI, deleteCardAttachmentAPI } from '~/apis'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
 import { updateCardInBoard, selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
@@ -40,9 +40,10 @@ import {
   updateCurrentActiveCard,
   updateCurrentActiveCardChecklists
 } from '~/redux/activeCard/activeCardSlice'
-import { singleFileValidator } from '~/utils/validators'
+import { singleFileValidator, attachmentFileValidator } from '~/utils/validators'
 import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
 import CardActivitySection from './CardActivitySection'
+import CardAttachmentSection from './CardAttachmentSection'
 import CardDescriptionMdEditor from './CardDescriptionMdEditor'
 import CardUserGroup from './CardUserGroup'
 import CardLabelsPopover from './CardLabelsPopover'
@@ -181,6 +182,35 @@ function ActiveCard() {
     dispatch(updateCardInBoard({ ...activeCard, checklists: newChecklists }))
     // Persist to DB
     callApiUpdateCard({ checklists: newChecklists })
+  }
+
+  // ===== ATTACHMENT HANDLERS =====
+  const onUploadAttachment = (event) => {
+    const error = attachmentFileValidator(event.target?.files[0])
+    if (error) {
+      toast.error(error)
+      return
+    }
+    let reqData = new FormData()
+    reqData.append('attachmentFile', event.target?.files[0])
+
+    toast.promise(
+      uploadCardAttachmentAPI(activeCard._id, reqData).then((updatedCard) => {
+        dispatch(updateCurrentActiveCard(updatedCard))
+        dispatch(updateCardInBoard(updatedCard))
+      }).finally(() => event.target.value = ''),
+      { pending: 'Uploading attachment...' }
+    )
+  }
+
+  const onDeleteAttachment = (publicId) => {
+    toast.promise(
+      deleteCardAttachmentAPI(activeCard._id, publicId).then((updatedCard) => {
+        dispatch(updateCurrentActiveCard(updatedCard))
+        dispatch(updateCardInBoard(updatedCard))
+      }),
+      { pending: 'Deleting attachment...' }
+    )
   }
 
   return (
@@ -337,6 +367,14 @@ function ActiveCard() {
               </Box>
             )}
 
+            {/* Feature Attachment: Render danh sách file đính kèm */}
+            {!!activeCard?.attachments?.length && (
+              <CardAttachmentSection
+                attachments={activeCard?.attachments}
+                onDeleteAttachment={onDeleteAttachment}
+              />
+            )}
+
             <Box sx={{ mb: 3 }}>
               {/* Feature 04: Xử lý các hành động, ví dụ comment vào Card */}
               <CardActivitySection
@@ -374,7 +412,10 @@ function ActiveCard() {
                 <VisuallyHiddenInput type="file" onChange={onUploadCardCover} />
               </SidebarItem>
 
-              <SidebarItem><AttachFileOutlinedIcon fontSize="small" />Attachment</SidebarItem>
+              <SidebarItem className="active" component="label">
+                <AttachFileOutlinedIcon fontSize="small" />Attachment
+                <VisuallyHiddenInput type="file" onChange={onUploadAttachment} />
+              </SidebarItem>
               <SidebarItem className="active" onClick={(e) => setAnchorElLabels(e.currentTarget)}>
                 <LocalOfferOutlinedIcon fontSize="small" />Labels
               </SidebarItem>
