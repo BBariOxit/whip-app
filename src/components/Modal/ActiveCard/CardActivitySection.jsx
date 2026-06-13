@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import dayjs from 'dayjs'
 import localizedFormat from 'dayjs/plugin/localizedFormat'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -9,7 +9,6 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Avatar from '@mui/material/Avatar'
 import TextField from '@mui/material/TextField'
-import Tooltip from '@mui/material/Tooltip'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 
@@ -24,9 +23,10 @@ import DvrOutlinedIcon from '@mui/icons-material/DvrOutlined'
 
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
-import { getCardActivitiesAPI } from '~/apis'
+import { getCardActivitiesAPI, getCardCommentsAPI, createCommentAPI } from '~/apis'
+import CommentItem from './CommentItem'
 
-const ACTIVITIES_PER_PAGE = 10
+const ITEMS_PER_PAGE = 10
 
 // Map actionType sang icon tương ứng
 const ACTION_TYPE_ICONS = {
@@ -39,46 +39,69 @@ const ACTION_TYPE_ICONS = {
   'UPDATE_COVER': ImageIcon
 }
 
-function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
+function CardActivitySection({ cardId }) {
   const currentUser = useSelector(selectCurrentUser)
+  
   const [activities, setActivities] = useState([])
+  const [totalActivities, setTotalActivities] = useState(0)
+  
+  const [comments, setComments] = useState([])
+  const [totalComments, setTotalComments] = useState(0)
+  
   const [showDetails, setShowDetails] = useState(false)
   const [page, setPage] = useState(1)
-  const [totalActivities, setTotalActivities] = useState(0)
   const [loading, setLoading] = useState(false)
 
-  // Dùng ref để track cardComments length trước đó, tránh re-fetch loop
-  const prevCommentsLengthRef = useRef(cardComments.length)
-
-  // Fetch activities page 1 (reset) — dùng khi mở modal hoặc khi có action mới
+  // Fetch data page 1 (reset) — dùng khi mở modal hoặc khi có action mới
   const fetchFirstPage = useCallback(async () => {
     if (!cardId) return
     try {
       setLoading(true)
-      const result = await getCardActivitiesAPI(cardId, 1, ACTIVITIES_PER_PAGE)
-      setActivities(result.activities || [])
-      setTotalActivities(result.total || 0)
+      const [actResult, cmtResult] = await Promise.all([
+        getCardActivitiesAPI(cardId, 1, ITEMS_PER_PAGE),
+        getCardCommentsAPI(cardId, 1, ITEMS_PER_PAGE)
+      ])
+      setActivities(actResult.activities || [])
+      setTotalActivities(actResult.total || 0)
+      
+      setComments(cmtResult.comments || [])
+      setTotalComments(cmtResult.total || 0)
+      
       setPage(1)
     } catch (error) {
-      console.error('Failed to fetch activities:', error)
+      console.error('Failed to fetch activities/comments:', error)
     } finally {
       setLoading(false)
     }
   }, [cardId])
 
-  // Fetch thêm activities (Load More) — NỐI MẢNG
-  const fetchMoreActivities = async () => {
+  // Fetch thêm data (Load More) — NỐI MẢNG
+  const fetchMoreData = async () => {
     if (!cardId || loading) return
     try {
       setLoading(true)
       const nextPage = page + 1
-      const result = await getCardActivitiesAPI(cardId, nextPage, ACTIVITIES_PER_PAGE)
-      // Nối đít vào mảng hiện tại
-      setActivities(prev => [...prev, ...(result.activities || [])])
-      setTotalActivities(result.total || 0)
+      const hasMoreActivities = activities.length < totalActivities
+      const hasMoreComments = comments.length < totalComments
+      
+      const [actResult, cmtResult] = await Promise.all([
+        hasMoreActivities ? getCardActivitiesAPI(cardId, nextPage, ITEMS_PER_PAGE) : Promise.resolve({ activities: [], total: totalActivities }),
+        hasMoreComments ? getCardCommentsAPI(cardId, nextPage, ITEMS_PER_PAGE) : Promise.resolve({ comments: [], total: totalComments })
+      ])
+      
+      if (hasMoreActivities) {
+        setActivities(prev => [...prev, ...(actResult.activities || [])])
+        setTotalActivities(actResult.total || 0)
+      }
+      
+      if (hasMoreComments) {
+        setComments(prev => [...prev, ...(cmtResult.comments || [])])
+        setTotalComments(cmtResult.total || 0)
+      }
+      
       setPage(nextPage)
     } catch (error) {
-      console.error('Failed to load more activities:', error)
+      console.error('Failed to load more data:', error)
     } finally {
       setLoading(false)
     }
@@ -89,32 +112,22 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
     fetchFirstPage()
   }, [fetchFirstPage])
 
-  // Re-fetch page 1 khi cardComments thay đổi (có action mới từ Redux)
-  useEffect(() => {
-    if (prevCommentsLengthRef.current !== cardComments.length) {
-      prevCommentsLengthRef.current = cardComments.length
-      fetchFirstPage()
-    }
-  }, [cardComments, fetchFirstPage])
-
   // Còn data để load không?
-  const hasMore = activities.length < totalActivities
+  const hasMore = (activities.length < totalActivities) || (comments.length < totalComments)
 
-  const handleAddCardComment = (event) => {
+  const handleAddCardComment = async (event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
-      if (!event.target?.value) return
+      if (!event.target?.value.trim()) return
 
-      const commentToAdd = {
-        userAvatar: currentUser?.avatar,
-        userDisplayName: currentUser?.displayName,
-        content: event.target.value.trim()
-      }
-
-      onAddCardComment(commentToAdd).then(() => {
+      const content = event.target.value.trim()
+      try {
+        await createCommentAPI({ cardId, content, parentId: null })
         event.target.value = ''
         fetchFirstPage()
-      })
+      } catch (error) {
+        console.error('Lỗi khi đăng comment:', error)
+      }
     }
   }
 
@@ -122,11 +135,11 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
    * Merge comments + activities thành 1 mảng chung, sort theo thời gian (mới nhất trước).
    */
   const mergedFeed = (() => {
-    const normalizedComments = cardComments.map((comment, index) => ({
+    const normalizedComments = comments.map((comment) => ({
       ...comment,
       _type: 'COMMENT',
-      _timestamp: comment.commentedAt,
-      _key: `comment-${index}`
+      _timestamp: comment.createdAt,
+      _key: `comment-${comment._id}`
     }))
 
     const normalizedActivities = activities.map((activity) => ({
@@ -167,43 +180,6 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
           <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '11px', fontStyle: 'italic' }}>
             {' · '}{dayjs(item._timestamp).fromNow()}
           </Typography>
-        </Box>
-      </Box>
-    )
-  }
-
-  // Render một Comment (UI bubble to)
-  const renderComment = (item) => {
-    return (
-      <Box sx={{ display: 'flex', gap: 1, width: '100%', mb: 1.5 }} key={item._key}>
-        <Tooltip title={item.userDisplayName}>
-          <Avatar
-            sx={{ width: 36, height: 36, cursor: 'pointer' }}
-            alt={item.userDisplayName}
-            src={item.userAvatar}
-          />
-        </Tooltip>
-        <Box sx={{ width: 'inherit' }}>
-          <Typography variant="span" sx={{ fontWeight: 'bold', mr: 1 }}>
-            {item.userDisplayName}
-          </Typography>
-
-          <Typography variant="span" sx={{ fontSize: '12px' }}>
-            {dayjs(item._timestamp).format('llll')}
-          </Typography>
-
-          <Box sx={{
-            display: 'block',
-            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#33485D' : 'white',
-            p: '8px 12px',
-            mt: '4px',
-            border: '0.5px solid rgba(0, 0, 0, 0.2)',
-            borderRadius: '4px',
-            wordBreak: 'break-word',
-            boxShadow: '0 0 1px rgba(0, 0, 0, 0.2)'
-          }}>
-            {item.content}
-          </Box>
         </Box>
       </Box>
     )
@@ -267,9 +243,10 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
         {mergedFeed.length === 0 && !loading &&
           <Typography sx={{ pl: '45px', fontSize: '14px', fontWeight: '500', color: '#b1b1b1' }}>No activity found!</Typography>
         }
+        
         {mergedFeed.map((item) => {
           if (item._type === 'COMMENT') {
-            return renderComment(item)
+            return <CommentItem key={item._key} rootComment={item} cardId={cardId} currentUser={currentUser} onNewCommentRefetch={fetchFirstPage} />
           }
           if (!showDetails) return null
           return renderSystemLog(item)
@@ -281,7 +258,7 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
             <Button
               size="small"
               variant="text"
-              onClick={fetchMoreActivities}
+              onClick={fetchMoreData}
               disabled={loading}
               sx={{
                 textTransform: 'none',
@@ -299,7 +276,7 @@ function CardActivitySection({ cardComments = [], onAddCardComment, cardId }) {
         )}
 
         {/* Loading indicator khi fetch lần đầu */}
-        {loading && activities.length === 0 && (
+        {loading && activities.length === 0 && comments.length === 0 && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
             <CircularProgress size={24} />
           </Box>

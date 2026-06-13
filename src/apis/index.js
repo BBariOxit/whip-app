@@ -138,3 +138,29 @@ export const deleteCardAttachmentAPI = async (cardId, publicId) => {
   const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/cards/${cardId}/attachments`, { data: { publicId } })
   return response.data
 }
+
+/** Comments */
+export const createCommentAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/comments`, data)
+  return response.data
+}
+
+export const getCardCommentsAPI = async (cardId, page = 1, limit = 10) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/comments?cardId=${cardId}&page=${page}&limit=${limit}`)
+  return response.data
+}
+
+export const getCommentRepliesAPI = async (parentId, page = 1, limit = 10) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/comments/${parentId}/replies?page=${page}&limit=${limit}`)
+  return response.data
+}
+
+export const updateCommentAPI = async (commentId, data) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/comments/${commentId}`, data)
+  return response.data
+}
+
+export const deleteCommentAPI = async (commentId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/comments/${commentId}`)
+  return response.data
+}

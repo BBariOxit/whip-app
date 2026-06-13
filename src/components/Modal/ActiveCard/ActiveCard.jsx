@@ -142,11 +142,6 @@ function ActiveCard() {
     )
   }
 
-  // Dùng async await ở đây để component con CardActivitySection
-  // chờ và nếu thành công thì mới clear thẻ input comment
-  const onAddCardComment = async (commentToAdd) => {
-    await callApiUpdateCard({commentToAdd})
-  }
 
   const onUpdateCardMembers = (incomingMemberInfo) => {
     callApiUpdateCard({incomingMemberInfo})
@@ -390,8 +385,6 @@ function ActiveCard() {
             <Box sx={{ mb: 3 }}>
               {/* Feature 04: Xử lý các hành động, ví dụ comment vào Card */}
               <CardActivitySection
-                cardComments={activeCard?.comments}
-                onAddCardComment={onAddCardComment}
                 cardId={activeCard?._id}
               />
             </Box>

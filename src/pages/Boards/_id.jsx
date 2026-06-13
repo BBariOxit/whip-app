@@ -29,6 +29,8 @@ function Board() {
   const { boardId } = useParams()
 
   useEffect(() => {
+    // Reset board data before fetching new board to prevent flashing previous board UI
+    dispatch(updateCurrentActiveBoard(null))
     // call api
     dispatch(fetchBoardDetailAPI(boardId))
   }, [dispatch, boardId])
