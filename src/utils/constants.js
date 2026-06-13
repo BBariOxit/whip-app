@@ -4,7 +4,7 @@ if (process.env.BUILD_MODE === 'dev') {
   apiRoot = 'http://localhost:2008'
 }
 if (process.env.BUILD_MODE === 'production') {
-  apiRoot = 'https://whip-api.onrender.com'
+  apiRoot = 'https://api.whip.cobweb.id.vn'
 }
 console.log(apiRoot)
 export const API_ROOT = apiRoot
