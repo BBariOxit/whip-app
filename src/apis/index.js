@@ -153,4 +153,14 @@ export const getCardCommentsAPI = async (cardId, page = 1, limit = 10) => {
 export const getCommentRepliesAPI = async (parentId, page = 1, limit = 10) => {
   const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/comments/${parentId}/replies?page=${page}&limit=${limit}`)
   return response.data
-}
+}
+
+export const updateCommentAPI = async (commentId, data) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/comments/${commentId}`, data)
+  return response.data
+}
+
+export const deleteCommentAPI = async (commentId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/comments/${commentId}`)
+  return response.data
+}

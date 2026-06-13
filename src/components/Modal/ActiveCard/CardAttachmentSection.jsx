@@ -126,33 +126,7 @@ function CardAttachmentSection({ attachments = [], onDeleteAttachment }) {
               <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.3 }}>
                 Added {dayjs(att.createdAt).format('MMM D, YYYY [at] HH:mm')}
               </Typography>
-              <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5 }}>
-                <Typography
-                  onClick={() => handleDownload(att.url, att.filename)}
-                  sx={{
-                    fontSize: 12,
-                    color: 'primary.main',
-                    cursor: 'pointer',
-                    textDecoration: 'underline',
-                    '&:hover': { color: 'primary.dark' }
-                  }}
-                >
-                  Download
-                </Typography>
-                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>•</Typography>
-                <Typography
-                  onClick={() => handleDelete(att)}
-                  sx={{
-                    fontSize: 12,
-                    color: 'error.main',
-                    cursor: 'pointer',
-                    textDecoration: 'underline',
-                    '&:hover': { color: 'error.dark' }
-                  }}
-                >
-                  Delete
-                </Typography>
-              </Box>
+
             </Box>
 
             {/* Action buttons */}
