@@ -47,7 +47,7 @@ function Card({ card }) {
   const completedChecklistItems = card?.checklists?.reduce((sum, cl) => sum + (cl.items?.filter(i => i.isCompleted)?.length || 0), 0) || 0
 
   const showCardAction = () => {
-    return !!card?.memberIds?.length || !!card?.comments?.length || !!card?.attachments?.length || !!card?.dueDate || !!totalChecklistItems || !!card?.customFieldValues?.length
+    return !!card?.memberIds?.length || !!card?.totalComments || !!card?.attachments?.length || !!card?.dueDate || !!totalChecklistItems || !!card?.customFieldValues?.length
   }
 
   const setActiveCard = () => {
@@ -113,8 +113,8 @@ function Card({ card }) {
           {!!card?.memberIds?.length &&
             <Button size="small" startIcon={<GroupIcon />}>{card?.memberIds?.length}</Button>
           }
-          {!!card?.comments?.length &&
-            <Button size="small" startIcon={<CommentIcon />}>{card?.comments?.length}</Button>
+          {!!card?.totalComments &&
+            <Button size="small" startIcon={<CommentIcon />}>{card?.totalComments}</Button>
           }
           {!!totalChecklistItems &&
             <Button size="small" startIcon={<CheckBoxOutlinedIcon />}>{completedChecklistItems}/{totalChecklistItems}</Button>

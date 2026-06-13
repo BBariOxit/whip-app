@@ -8,6 +8,7 @@ import Button from '@mui/material/Button'
 import Collapse from '@mui/material/Collapse'
 import CircularProgress from '@mui/material/CircularProgress'
 import Tooltip from '@mui/material/Tooltip'
+import ReplyIcon from '@mui/icons-material/Reply'
 
 import { getCommentRepliesAPI, createCommentAPI } from '~/apis'
 
@@ -18,6 +19,7 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
   const [showReplies, setShowReplies] = useState(false)
   const [isReplying, setIsReplying] = useState(false)
   const [replyText, setReplyText] = useState('')
+  const [targetUser, setTargetUser] = useState(null)
   const [isSending, setIsSending] = useState(false)
 
   const fetchReplies = async () => {
@@ -49,11 +51,13 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
       await createCommentAPI({
         cardId: cardId,
         content: replyText.trim(),
-        parentId: rootComment._id
+        parentId: rootComment._id,
+        replyToUserDisplayName: targetUser
       })
       
       // Update UI
       setReplyText('')
+      setTargetUser(null)
       setIsReplying(false)
       setShowReplies(true)
       
@@ -72,20 +76,15 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
 
   const handleReplyToChild = (childUserName) => {
     setIsReplying(true)
-    setReplyText(`@${childUserName} `)
+    setTargetUser(childUserName)
+    setReplyText('')
     setShowReplies(true)
   }
 
-  // Hàm render text để highlight @username
-  const renderContentWithHighlight = (content) => {
-    // Tìm các từ bắt đầu bằng @ và in đậm
-    const parts = content.split(/(@\S+)/g)
-    return parts.map((part, index) => {
-      if (part.startsWith('@')) {
-        return <Typography component="span" key={index} sx={{ fontWeight: 'bold', color: 'primary.main' }}>{part}</Typography>
-      }
-      return part
-    })
+  const handleReplyToRoot = () => {
+    setIsReplying(!isReplying)
+    setTargetUser(null)
+    setReplyText('')
   }
 
   return (
@@ -123,7 +122,7 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
             <Typography 
               variant="caption" fontWeight="bold" 
               sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
-              onClick={() => { setIsReplying(!isReplying); setReplyText(''); }}
+              onClick={handleReplyToRoot}
             >
               Trả lời
             </Typography>
@@ -155,7 +154,17 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
                   <Typography variant="span" sx={{ fontWeight: 'bold', fontSize: '13px' }}>
                     {reply.userDisplayName}
                   </Typography>
-                  <Typography variant="span" sx={{ fontSize: '11px', color: 'text.secondary' }}>
+
+                  {reply.replyToUserDisplayName && (
+                    <>
+                      <ReplyIcon sx={{ fontSize: 16, color: 'text.secondary', transform: 'scaleX(-1)' }} />
+                      <Typography variant="caption" fontWeight="bold" color="text.secondary">
+                        {reply.replyToUserDisplayName}
+                      </Typography>
+                    </>
+                  )}
+
+                  <Typography variant="span" sx={{ fontSize: '11px', color: 'text.secondary', ml: 0.5 }}>
                     {dayjs(reply.createdAt).fromNow()}
                   </Typography>
                 </Box>
@@ -169,7 +178,7 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
                   fontSize: '13px',
                   wordBreak: 'break-word'
                 }}>
-                  {renderContentWithHighlight(reply.content)}
+                  {reply.content}
                 </Box>
                 
                 <Typography 
@@ -194,7 +203,7 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
                size="small" 
                fullWidth 
                autoFocus
-               placeholder={`Trả lời ${rootComment.userDisplayName}...`}
+               placeholder={targetUser ? `Trả lời ${targetUser}...` : `Trả lời ${rootComment.userDisplayName}...`}
                value={replyText} 
                onChange={e => setReplyText(e.target.value)}
                multiline
