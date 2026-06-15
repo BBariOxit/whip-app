@@ -24,6 +24,7 @@ import DvrOutlinedIcon from '@mui/icons-material/DvrOutlined'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { getCardActivitiesAPI, getCardCommentsAPI, createCommentAPI } from '~/apis'
+import { socketIoInstance } from '~/socketClient'
 import CommentItem from './CommentItem'
 
 const ITEMS_PER_PAGE = 10
@@ -111,6 +112,63 @@ function CardActivitySection({ cardId }) {
   useEffect(() => {
     fetchFirstPage()
   }, [fetchFirstPage])
+
+  // ===== SOCKET.IO REAL-TIME =====
+  // Join/Leave Room + Lắng nghe 3 events: new, update, delete comment
+  useEffect(() => {
+    if (!cardId) return
+
+    // 1. Mở modal → join phòng của Card này
+    socketIoInstance.emit('FE_JOIN_CARD', cardId)
+
+    // 2. Lắng nghe comment mới từ user khác
+    const onNewComment = (newComment) => {
+      // Check trùng _id để tránh user gửi bị double render (HTTP response + socket)
+      setComments(prev => {
+        const alreadyExists = prev.some(c => c._id === newComment._id)
+        if (alreadyExists) return prev
+        return [newComment, ...prev]
+      })
+      setTotalComments(prev => prev + 1)
+    }
+
+    // 3. Lắng nghe comment được chỉnh sửa
+    const onCommentUpdated = (updatedComment) => {
+      setComments(prev => prev.map(c =>
+        c._id === updatedComment._id
+          ? { ...c, content: updatedComment.content, updatedAt: updatedComment.updatedAt }
+          : c
+      ))
+    }
+
+    // 4. Lắng nghe comment bị xóa
+    const onCommentDeleted = ({ commentId, parentId }) => {
+      if (parentId) {
+        // Là reply bị xóa → giảm replyCount của comment gốc, không cần xóa khỏi comments list (replies quản lý riêng trong CommentItem)
+        setComments(prev => prev.map(c =>
+          c._id === parentId
+            ? { ...c, replyCount: Math.max(0, (c.replyCount || 0) - 1) }
+            : c
+        ))
+      } else {
+        // Là comment gốc bị xóa → filter bỏ khỏi mảng
+        setComments(prev => prev.filter(c => c._id !== commentId))
+      }
+      setTotalComments(prev => Math.max(0, prev - 1))
+    }
+
+    socketIoInstance.on('BE_NEW_COMMENT', onNewComment)
+    socketIoInstance.on('BE_COMMENT_UPDATED', onCommentUpdated)
+    socketIoInstance.on('BE_COMMENT_DELETED', onCommentDeleted)
+
+    // 5. Cleanup: đóng modal → rời phòng, hủy lắng nghe
+    return () => {
+      socketIoInstance.emit('FE_LEAVE_CARD', cardId)
+      socketIoInstance.off('BE_NEW_COMMENT', onNewComment)
+      socketIoInstance.off('BE_COMMENT_UPDATED', onCommentUpdated)
+      socketIoInstance.off('BE_COMMENT_DELETED', onCommentDeleted)
+    }
+  }, [cardId])
 
   // Còn data để load không?
   const hasMore = (activities.length < totalActivities) || (comments.length < totalComments)
