@@ -21,7 +21,7 @@ function SandboxCard({ card }) {
   })
   const dndKitCardStyles = {
     transform: CSS.Translate.toString(transform),
-    transition,
+    transition: transition || (isDragging ? undefined : 'transform 250ms ease'),
     opacity: isDragging ? 0.5 : undefined,
     border: isDragging ? '1px solid' : undefined
   }

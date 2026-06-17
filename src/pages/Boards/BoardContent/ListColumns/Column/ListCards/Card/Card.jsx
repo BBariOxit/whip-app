@@ -35,7 +35,7 @@ function Card({ card }) {
     // Nếu sử dụng CSS.Transform như docs sẽ lỗi kiểu stretch
     // https://github.com/clauderic/dnd-kit/issues/117
     transform: CSS.Translate.toString(transform),
-    transition,
+    transition: transition || (isDragging ? undefined : 'transform 250ms ease'),
     opacity: isDragging ? 0.5 : undefined,
     border: isDragging ? '1px solid' : undefined
   }

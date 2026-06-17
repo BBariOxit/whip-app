@@ -188,12 +188,20 @@ function SandboxBoard() {
     }
 
     const pointerIntersections = pointerWithin(args)
-    if (!pointerIntersections?.length) return
+    // Nếu con trỏ đang ở khoảng trống giữa 2 cột, pointerIntersections sẽ rỗng.
+    // Dùng rectIntersection sẽ làm overId nhảy qua nhảy lại giữa 2 cột gây ra hiện tượng "khựng" (stutter/flickering).
+    // Giải pháp: Nếu pointerIntersections rỗng, giữ nguyên lastOverId.current để card ở yên cột cũ cho đến khi con trỏ thực sự chạm vào cột mới!
+    if (!pointerIntersections?.length) {
+      return lastOverId.current ? [{ id: lastOverId.current }] : []
+    }
 
     let overId = getFirstCollision(pointerIntersections, 'id')
 
     if (overId) {
-      const checkColumn = orderedColumns.find(column => column._id === overId)
+      // Kiểm tra xem overId có phải là một Column hay không.
+      // Column sẽ có thuộc tính cardOrderIds, còn Card thì không.
+      const overContainer = args.droppableContainers.find(c => c.id === overId)
+      const checkColumn = overContainer?.data?.current?.cardOrderIds ? overContainer?.data?.current : undefined
       if (checkColumn) {
         overId = closestCorners({
           ...args,
@@ -201,6 +209,7 @@ function SandboxBoard() {
             return (container.id !== overId) && (checkColumn?.cardOrderIds?.includes(container.id))
           })
         })[0]?.id
+        if (!overId) overId = checkColumn._id
       }
 
       lastOverId.current = overId
