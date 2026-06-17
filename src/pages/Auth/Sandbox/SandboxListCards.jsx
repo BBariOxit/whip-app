@@ -13,7 +13,7 @@ function SandboxListCards({ cards }) {
         gap: 1,
         overflowX: 'hidden',
         overflowY: 'auto',
-        maxHeight: 'calc(100vh - 240px)',
+        maxHeight: 'calc(100vh - 166px)',
         '&::-webkit-scrollbar-thumb': {
           backgroundColor: (theme) => (theme.palette.mode === 'dark' ? '#475569' : '#cbd5e1'),
           borderRadius: '8px'

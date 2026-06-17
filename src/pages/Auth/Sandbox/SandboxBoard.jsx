@@ -10,7 +10,6 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MouseSensor, TouchSensor } from '~/customLibs/DndKitSensors'
 import { generatePlaceholderCard } from '~/utils/formatters'
@@ -219,43 +218,6 @@ function SandboxBoard() {
       display: 'flex',
       flexDirection: 'column'
     }}>
-      {/* Demo Banner */}
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        px: 2,
-        py: 1.5,
-        mb: 1
-      }}>
-        <Box sx={{
-          bgcolor: 'rgba(59,130,246,0.12)',
-          border: '1px solid rgba(59,130,246,0.2)',
-          px: 2,
-          py: 0.75,
-          borderRadius: '20px',
-          backdropFilter: 'blur(10px)'
-        }}>
-          <Typography sx={{
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            color: '#58a6ff',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.5
-          }}>
-            ⚡ Interactive Demo
-            <Typography component="span" sx={{
-              fontSize: '0.75rem',
-              fontWeight: 400,
-              color: 'text.secondary'
-            }}>
-              – Drag & drop to explore
-            </Typography>
-          </Typography>
-        </Box>
-      </Box>
-
       {/* DnD Board */}
       <DndContext
         sensors={mySensors}
@@ -270,7 +232,7 @@ function SandboxBoard() {
           display: 'flex',
           overflowX: 'auto',
           overflowY: 'hidden',
-          p: '0 0 10px 0',
+          p: '60px 0 20px 0',
           '&::-webkit-scrollbar-track': { m: 2 }
         }}>
           <SortableContext items={orderedColumns?.map(c => c._id)} strategy={horizontalListSortingStrategy}>

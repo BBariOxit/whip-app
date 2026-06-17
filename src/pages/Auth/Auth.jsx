@@ -5,6 +5,7 @@ import RegisterForm from './RegisterForm'
 import SandboxBoard from './Sandbox/SandboxBoard'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
+import ModeSelect from '~/components/ModeSelect/ModeSelect'
 
 function Auth() {
   const location = useLocation()
@@ -17,12 +18,17 @@ function Auth() {
   }
 
   return (
-    <Box sx={{
-      display: 'flex',
-      width: '100vw',
-      height: '100vh',
-      overflow: 'hidden'
-    }}>
+    <Box
+      sx={{
+        display: 'flex',
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden'
+      }}
+    >
+      <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
+        <ModeSelect />
+      </Box>
       {/* LEFT SIDE - Form Area */}
       <Box sx={{
         width: { xs: '100%', md: '42%' },
@@ -32,16 +38,11 @@ function Auth() {
         justifyContent: 'center',
         alignItems: 'center',
         bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0b0d10' : '#ffffff',
-        borderRight: (theme) => ({
-          xs: 'none',
-          md: theme.palette.mode === 'dark'
-            ? '1px solid rgba(255,255,255,0.06)'
-            : '1px solid rgba(0,0,0,0.08)'
-        }),
+        borderRight: 'none',
         position: 'relative',
-        overflowY: 'auto',
+        overflow: 'hidden',
         py: 4,
-        // Mesh gradient phía sau form ở dark mode
+        // Mesh gradient phía sau form
         '&::before': {
           content: '""',
           position: 'absolute',
