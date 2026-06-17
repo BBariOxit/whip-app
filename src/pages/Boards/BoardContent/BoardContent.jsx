@@ -2,13 +2,10 @@ import {
   DndContext,
   DragOverlay,
   closestCorners,
-  // MouseSensor,
-  // TouchSensor,
   defaultDropAnimationSideEffects,
-  // rectIntersection,
   getFirstCollision,
-  // closestCenter,
   pointerWithin,
+  rectIntersection,
   useSensor,
   useSensors
 } from '@dnd-kit/core'
@@ -329,40 +326,38 @@ function BoardContent({
     // tìm các điểm giao nhau , va chạm - intersections với con trỏ
     const pointerIntersections = pointerWithin(args)
 
-    // Fix triệt để cái bug flickering của thư viện Dnd-kit trong trường hợp sau:
-    // - Kéo một cái card có image cover lớn và kéo lên phía trên cùng ra khỏi khu vực kéo thả
-    if (!pointerIntersections?.length) return
+    // Nếu con trỏ đang ở khoảng trống giữa 2 cột, pointerIntersections sẽ rỗng.
+    // Dùng rectIntersection sẽ làm overId nhảy qua nhảy lại giữa 2 cột gây ra hiện tượng "khựng" (stutter/flickering).
+    // Giải pháp: Nếu pointerIntersections rỗng, giữ nguyên lastOverId.current để card ở yên cột cũ cho đến khi con trỏ thực sự chạm vào cột mới!
+    if (!pointerIntersections?.length) {
+      return lastOverId.current ? [{ id: lastOverId.current }] : []
+    }
 
-    // thuật toán phát hiện va chạm sẽ trả về một mảng các va chạm ở đây(do dã dùng
-    // if (!pointerIntersections?.length) return ở trên nên chỗ này ko cần nữa)
-    // const intersections = !!pointerIntersections?.length ? pointerIntersections : rectIntersection(args)
-
-    //tìm overId đầu tiên trong đám pointerIntersections ở trên
     let overId = getFirstCollision(pointerIntersections, 'id')
 
     if (overId) {
-      // Nếu cái over nó là column thì sẽ tìm tới cái cardId gần nhất bên trong khu vực va chạm đó dựa vào
-      // thuật toán phát hiện va chạm closestCenter hoặc closestCorners đều được. Tuy nhiên ở đây dùng
-      // closestCorners mình thấy mượt mà hơn.
-      const checkColumn = orderedColumns.find(column => column._id === overId)
+      // Kiểm tra xem overId có phải là một Column hay không.
+      // Column sẽ có thuộc tính cardOrderIds, còn Card thì không.
+      const overContainer = args.droppableContainers.find(c => c.id === overId)
+      const checkColumn = overContainer?.data?.current?.cardOrderIds ? overContainer?.data?.current : undefined
+
       if (checkColumn) {
-        // console.log('overId before: ', overId)
         overId = closestCorners({
           ...args,
           droppableContainers: args.droppableContainers.filter(container => {
             return (container.id !== overId) && (checkColumn?.cardOrderIds?.includes(container.id))
           })
         })[0]?.id
-        // console.log('overId after: ', overId)
+        // Nếu column rỗng, trả về column ID để cho phép kéo vào
+        if (!overId) overId = checkColumn._id
       }
 
       lastOverId.current = overId
       return [{ id: overId }]
     }
 
-    //nếu overId là null thì trả về mảng rỗng - tránh bug crash trang
     return lastOverId.current ? [{ id: lastOverId.current }] : []
-  }, [activeDragItemType, orderedColumns])
+  }, [activeDragItemType])
 
   return (
     <DndContext

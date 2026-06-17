@@ -1,16 +1,20 @@
 import { Link } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Avatar from '@mui/material/Avatar'
-import LockIcon from '@mui/icons-material/Lock'
 import Typography from '@mui/material/Typography'
-import MuiCard from '@mui/material/Card'
-import DashboardIcon from '@mui/icons-material/Dashboard'
-import CardActions from '@mui/material/CardActions'
 import TextField from '@mui/material/TextField'
-import Zoom from '@mui/material/Zoom'
+import Divider from '@mui/material/Divider'
 import Alert from '@mui/material/Alert'
-import { useForm } from "react-hook-form"
+import InputAdornment from '@mui/material/InputAdornment'
+import IconButton from '@mui/material/IconButton'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
+import GoogleIcon from '@mui/icons-material/Google'
+import GitHubIcon from '@mui/icons-material/GitHub'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import {
   FIELD_REQUIRED_MESSAGE,
   EMAIL_RULE,
@@ -27,6 +31,7 @@ import { toast } from 'react-toastify'
 function LoginForm() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const [showPassword, setShowPassword] = useState(false)
 
   const { register, handleSubmit, formState: { errors } } = useForm()
   let [searchParams] = useSearchParams()
@@ -35,112 +40,266 @@ function LoginForm() {
 
   const submitLogIn = (data) => {
     const { email, password } = data
-    
+
     toast.promise(
       dispatch(loginUserAPI({ email, password })).unwrap(),
-      { pending: 'Login in... '},
+      { pending: 'Logging in...' },
     ).then(res => {
-      // console.log(res)
-      // đoạn này phải kiểm tra có lỗi hay không (login thành công) mới redirect sang trang chủ
       if (!res.error) navigate('/')
-    }).catch(error => {
-      // đoạn này chỉ bắt các lỗi phát sinh từ phía api (do api trả về)
-    })
+    }).catch(() => {})
+  }
+
+  // Custom styles cho text field
+  const textFieldSx = {
+    '& .MuiOutlinedInput-root': {
+      bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
+      borderRadius: '12px',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.12)',
+        transition: 'all 0.2s ease'
+      },
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.25)'
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#58a6ff',
+        borderWidth: '2px',
+        boxShadow: '0 0 0 3px rgba(88,166,255,0.15)'
+      }
+    },
+    '& .MuiInputLabel-root': {
+      color: 'text.secondary',
+      '&.Mui-focused': {
+        color: '#58a6ff'
+      }
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit(submitLogIn)}>
-      <Zoom in={true} style={{ transitionDelay: '200ms' }}>
-        <MuiCard sx={{ minWidth: 380, maxWidth: 380, marginTop: '6em' }}>
-          <Box sx={{
-            margin: '1em',
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 1
+    <Box sx={{
+      width: '100%',
+      maxWidth: '400px',
+      mx: 'auto',
+      px: 3
+    }}>
+      {/* Logo & Title */}
+      <Box sx={{ mb: 5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+          <Box
+            component="img"
+            src="/whip.svg"
+            alt="Whip"
+            sx={{ width: 32, height: 32 }}
+          />
+          <Typography sx={{
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
           }}>
-            <Avatar sx={{ bgcolor: 'primary.main' }}><LockIcon /></Avatar>
-            <Avatar sx={{ bgcolor: 'primary.main' }}><DashboardIcon /></Avatar>
-          </Box>
-          {/* <Box sx={{ marginTop: '1em', display: 'flex', justifyContent: 'center', color: theme => theme.palette.grey[500] }}>
-            Author: TrungQuanDev
-          </Box> */}
-          <Box sx={{ marginTop: '1em', display: 'flex', justifyContent: 'center', flexDirection: 'column', padding: '0 1em' }}>
-            { verifiedEmail && 
-              <Alert severity="success" sx={{ '.MuiAlert-message': { overflow: 'hidden' } }}>
-                Your email&nbsp;
-                <Typography variant="span" sx={{ fontWeight: 'bold', '&:hover': { color: '#fdba26' } }}>{verifiedEmail}</Typography>
-                &nbsp;has been verified.<br />Now you can login to enjoy our services! Have a good day!
-              </Alert>
-            }
+            Whip
+          </Typography>
+        </Box>
+        <Typography variant="h4" sx={{
+          fontWeight: 700,
+          fontSize: '1.75rem',
+          color: 'text.primary',
+          mb: 0.5
+        }}>
+          Welcome back
+        </Typography>
+        <Typography sx={{
+          color: 'text.secondary',
+          fontSize: '0.95rem'
+        }}>
+          Sign in to your account to continue
+        </Typography>
+      </Box>
 
-            {registeredEmail &&
-              <Alert severity="info" sx={{ '.MuiAlert-message': { overflow: 'hidden' } }}>
-                An email has been sent to&nbsp;
-                <Typography variant="span" sx={{ fontWeight: 'bold', '&:hover': { color: '#fdba26' } }}>{registeredEmail}</Typography>
-                <br />Please check and verify your account before logging in!
-              </Alert>
-            }
+      {/* Alert Messages */}
+      {verifiedEmail &&
+        <Alert severity="success" sx={{ mb: 2, borderRadius: '12px', '.MuiAlert-message': { overflow: 'hidden' } }}>
+          Your email&nbsp;
+          <Typography variant="span" sx={{ fontWeight: 'bold' }}>{verifiedEmail}</Typography>
+          &nbsp;has been verified. Now you can login!
+        </Alert>
+      }
+      {registeredEmail &&
+        <Alert severity="info" sx={{ mb: 2, borderRadius: '12px', '.MuiAlert-message': { overflow: 'hidden' } }}>
+          An email has been sent to&nbsp;
+          <Typography variant="span" sx={{ fontWeight: 'bold' }}>{registeredEmail}</Typography>
+          <br />Please check and verify your account before logging in!
+        </Alert>
+      }
 
-          </Box>
-          <Box sx={{ padding: '0 1em 1em 1em' }}>
-            <Box sx={{ marginTop: '1em' }}>
-              <TextField
-                // autoComplete="nope"
-                autoFocus
-                fullWidth
-                label="Enter Email..."
-                type="text"
-                variant="outlined"
-                error={!!errors['email']}
-                {...register('email', {
-                  required: FIELD_REQUIRED_MESSAGE,
-                  pattern: {
-                    value: EMAIL_RULE,
-                    message: EMAIL_RULE_MESSAGE
-                  }
-                })}
-              />
-              <FieldErrorAlert errors={errors} fieldName="email" />
-            </Box>
-            <Box sx={{ marginTop: '1em' }}>
-              <TextField
-                fullWidth
-                label="Enter Password..."
-                type="password"
-                variant="outlined"
-                error={!!errors['password']}
-                {...register('password', {
-                  required: FIELD_REQUIRED_MESSAGE,
-                  pattern: {
-                    value: PASSWORD_RULE,
-                    message: PASSWORD_RULE_MESSAGE
-                  }
-                })}
-              />
-              <FieldErrorAlert errors={errors} fieldName="password" />
-            </Box>
-          </Box>
-          <CardActions sx={{ padding: '0 1em 1em 1em' }}>
-            <Button
-              className='interceptor-loading'
-              type="submit"
-              variant="contained"
-              color="primary"
-              size="large"
-              fullWidth
+      {/* Social Login Buttons */}
+      <Box sx={{ display: 'flex', gap: 1.5, mb: 3 }}>
+        <Button
+          fullWidth
+          variant="outlined"
+          startIcon={<GoogleIcon />}
+          sx={{
+            py: 1.2,
+            borderRadius: '12px',
+            textTransform: 'none',
+            fontWeight: 500,
+            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.15)',
+            color: 'text.primary',
+            '&:hover': {
+              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)',
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'
+            }
+          }}
+        >
+          Google
+        </Button>
+        <Button
+          fullWidth
+          variant="outlined"
+          startIcon={<GitHubIcon />}
+          sx={{
+            py: 1.2,
+            borderRadius: '12px',
+            textTransform: 'none',
+            fontWeight: 500,
+            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.15)',
+            color: 'text.primary',
+            '&:hover': {
+              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)',
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'
+            }
+          }}
+        >
+          GitHub
+        </Button>
+      </Box>
+
+      {/* Divider */}
+      <Divider sx={{
+        mb: 3,
+        '&::before, &::after': {
+          borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+        }
+      }}>
+        <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', px: 1 }}>
+          or continue with email
+        </Typography>
+      </Divider>
+
+      {/* Login Form */}
+      <form onSubmit={handleSubmit(submitLogIn)}>
+        <Box sx={{ mb: 2.5 }}>
+          <TextField
+            autoFocus
+            fullWidth
+            label="Email"
+            type="text"
+            variant="outlined"
+            error={!!errors['email']}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <EmailOutlinedIcon sx={{ color: 'text.secondary', fontSize: '20px' }} />
+                </InputAdornment>
+              )
+            }}
+            sx={textFieldSx}
+            {...register('email', {
+              required: FIELD_REQUIRED_MESSAGE,
+              pattern: {
+                value: EMAIL_RULE,
+                message: EMAIL_RULE_MESSAGE
+              }
+            })}
+          />
+          <FieldErrorAlert errors={errors} fieldName="email" />
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            fullWidth
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            variant="outlined"
+            error={!!errors['password']}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockOutlinedIcon sx={{ color: 'text.secondary', fontSize: '20px' }} />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                    size="small"
+                  >
+                    {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+            sx={textFieldSx}
+            {...register('password', {
+              required: FIELD_REQUIRED_MESSAGE,
+              pattern: {
+                value: PASSWORD_RULE,
+                message: PASSWORD_RULE_MESSAGE
+              }
+            })}
+          />
+          <FieldErrorAlert errors={errors} fieldName="password" />
+        </Box>
+
+        {/* Login Button */}
+        <Button
+          className='interceptor-loading'
+          type="submit"
+          variant="contained"
+          size="large"
+          fullWidth
+          sx={{
+            py: 1.5,
+            borderRadius: '12px',
+            fontWeight: 600,
+            fontSize: '0.95rem',
+            textTransform: 'none',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+            boxShadow: '0 4px 14px rgba(59,130,246,0.35)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
+              boxShadow: '0 6px 20px rgba(59,130,246,0.45)',
+              transform: 'translateY(-1px)'
+            },
+            transition: 'all 0.2s ease'
+          }}
+        >
+          Sign in
+        </Button>
+      </form>
+
+      {/* Register Link */}
+      <Box sx={{ mt: 3, textAlign: 'center' }}>
+        <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
+          New to Whip?{' '}
+          <Link to="/register" style={{ textDecoration: 'none' }}>
+            <Typography
+              component="span"
+              sx={{
+                color: '#58a6ff',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                '&:hover': { textDecoration: 'underline' }
+              }}
             >
-              Login
-            </Button>
-          </CardActions>
-          <Box sx={{ padding: '0 1em 1em 1em', textAlign: 'center' }}>
-            <Typography>New to Whip?</Typography>
-            <Link to="/register" style={{ textDecoration: 'none' }}>
-              <Typography sx={{ color: 'primary.main', '&:hover': { color: '#ffbb39' } }}>Create account!</Typography>
-            </Link>
-          </Box>
-        </MuiCard>
-      </Zoom>
-    </form>
+              Create an account
+            </Typography>
+          </Link>
+        </Typography>
+      </Box>
+    </Box>
   )
 }
 
