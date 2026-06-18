@@ -1,18 +1,51 @@
-import { useLocation, Navigate } from 'react-router-dom'
+import { useLocation, Navigate, useSearchParams, useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import LoginForm from './LoginForm'
 import RegisterForm from './RegisterForm'
 import SandboxBoard from './Sandbox/SandboxBoard'
-import { useSelector } from 'react-redux'
-import { selectCurrentUser } from '~/redux/user/userSlice'
+import { useSelector, useDispatch } from 'react-redux'
+import { selectCurrentUser, githubLoginUserAPI } from '~/redux/user/userSlice'
 import ModeSelect from '~/components/ModeSelect/ModeSelect'
+import { useEffect, useState } from 'react'
+import { toast } from 'react-toastify'
+import CircularProgress from '@mui/material/CircularProgress'
+import Typography from '@mui/material/Typography'
 
 function Auth() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
   const isLogin = location.pathname === '/login'
   const isRegister = location.pathname === '/register'
 
   const currentUser = useSelector(selectCurrentUser)
+  const [searchParams] = useSearchParams()
+  const [isProcessingGitHub, setIsProcessingGitHub] = useState(false)
+
+  // Xử lý GitHub OAuth callback - khi GitHub redirect về với ?code=xxx
+  useEffect(() => {
+    const code = searchParams.get('code')
+    if (code && !currentUser && !isProcessingGitHub) {
+      setIsProcessingGitHub(true)
+
+      toast.promise(
+        dispatch(githubLoginUserAPI(code)).unwrap(),
+        { pending: 'Logging in with GitHub...' }
+      ).then(res => {
+        if (!res.error) {
+          toast.success('Logged in with GitHub successfully!')
+          navigate('/', { replace: true })
+        }
+      }).catch((error) => {
+        toast.error(error?.message || 'GitHub login failed!')
+        // Xóa code khỏi URL để tránh retry
+        navigate('/login', { replace: true })
+      }).finally(() => {
+        setIsProcessingGitHub(false)
+      })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (currentUser) {
     return <Navigate to="/" replace={true} />
   }
@@ -75,8 +108,17 @@ function Auth() {
         }
       }}>
         <Box sx={{ position: 'relative', zIndex: 1, width: '100%' }}>
-          {isLogin && <LoginForm />}
-          {isRegister && <RegisterForm />}
+          {isProcessingGitHub ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 8 }}>
+              <CircularProgress size={48} />
+              <Typography sx={{ color: 'text.secondary' }}>Logging in with GitHub...</Typography>
+            </Box>
+          ) : (
+            <>
+              {isLogin && <LoginForm />}
+              {isRegister && <RegisterForm />}
+            </>
+          )}
         </Box>
       </Box>
 
