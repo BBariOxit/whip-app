@@ -24,9 +24,11 @@ import {
 } from '~/utils/validators'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import { useDispatch } from 'react-redux'
-import { loginUserAPI } from '~/redux/user/userSlice'
+import { loginUserAPI, googleLoginUserAPI } from '~/redux/user/userSlice'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import { useGoogleLogin } from '@react-oauth/google'
+import { API_ROOT } from '~/utils/constants'
 
 function LoginForm() {
   const dispatch = useDispatch()
@@ -47,6 +49,43 @@ function LoginForm() {
     ).then(res => {
       if (!res.error) navigate('/')
     }).catch(() => {})
+  }
+
+  // Google Login handler - dùng implicit flow lấy access_token
+  const handleGoogleLogin = useGoogleLogin({
+    flow: 'implicit',
+    onSuccess: async (tokenResponse) => {
+      try {
+        // Gửi access_token lên backend - backend sẽ dùng nó để lấy user info từ Google
+        const result = await dispatch(googleLoginUserAPI(tokenResponse.access_token)).unwrap()
+        if (!result.error) {
+          toast.success('Logged in with Google successfully!')
+          navigate('/')
+        }
+      } catch (error) {
+        toast.error(error?.message || 'Google login failed!')
+      }
+    },
+    onError: () => {
+      toast.error('Google login failed!')
+    }
+  })
+
+  // GitHub Login handler - redirect tới GitHub authorize URL
+  const handleGitHubLogin = () => {
+    // Lấy GitHub Client ID từ backend thông qua API_ROOT để xác định môi trường
+    const isDev = API_ROOT.includes('localhost')
+    // Client ID sẽ được hardcode ở đây hoặc lấy từ env
+    // Vì GitHub OAuth cần redirect, ta redirect trực tiếp về trang login hiện tại
+    const redirectUri = isDev
+      ? 'http://localhost:5173/login'
+      : 'https://whip.cobweb.id.vn/login'
+
+    // Sử dụng trực tiếp Client ID tương ứng với môi trường để tránh lỗi Vite không nhận biến môi trường
+    const githubClientId = isDev ? 'Ov23lifKQ43LuBu5QwoX' : 'Ov23liZb9ZubWYOkBgJz'
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
+    
+    window.location.href = githubAuthUrl
   }
 
   // Custom styles cho text field
@@ -145,6 +184,7 @@ function LoginForm() {
           fullWidth
           variant="outlined"
           startIcon={<GoogleIcon />}
+          onClick={handleGoogleLogin}
           sx={{
             py: 1.2,
             borderRadius: '12px',
@@ -164,6 +204,7 @@ function LoginForm() {
           fullWidth
           variant="outlined"
           startIcon={<GitHubIcon />}
+          onClick={handleGitHubLogin}
           sx={{
             py: 1.2,
             borderRadius: '12px',

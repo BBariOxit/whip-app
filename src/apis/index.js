@@ -58,6 +58,16 @@ export const registerUserAPI = async (data) => {
   return response.data
 }
 
+export const googleLoginAPI = async (credential) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/google-login`, { credential })
+  return response.data
+}
+
+export const githubLoginAPI = async (code) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/github-login`, { code })
+  return response.data
+}
+
 export const verifyUserAPI = async (data) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/users/verify`, data)
   toast.success('Account verified successfully! Now you can login to enjoy our services! Have a good day!', { theme: 'colored' })

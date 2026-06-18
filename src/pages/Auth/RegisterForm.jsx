@@ -25,10 +25,15 @@ import {
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import { registerUserAPI } from '~/apis'
 import { toast } from 'react-toastify'
+import { useDispatch } from 'react-redux'
+import { googleLoginUserAPI } from '~/redux/user/userSlice'
+import { useGoogleLogin } from '@react-oauth/google'
+import { API_ROOT } from '~/utils/constants'
 
 function RegisterForm() {
   const { register, handleSubmit, formState: { errors }, watch } = useForm()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -42,6 +47,39 @@ function RegisterForm() {
     }).catch(error => {
       console.log(error)
     })
+  }
+
+  // Google Login handler
+  const handleGoogleLogin = useGoogleLogin({
+    flow: 'implicit',
+    onSuccess: async (tokenResponse) => {
+      try {
+        const result = await dispatch(googleLoginUserAPI(tokenResponse.access_token)).unwrap()
+        if (!result.error) {
+          toast.success('Logged in with Google successfully!')
+          navigate('/')
+        }
+      } catch (error) {
+        toast.error(error?.message || 'Google login failed!')
+      }
+    },
+    onError: () => {
+      toast.error('Google login failed!')
+    }
+  })
+
+  // GitHub Login handler
+  const handleGitHubLogin = () => {
+    const isDev = API_ROOT.includes('localhost')
+    const redirectUri = isDev
+      ? 'http://localhost:5173/login'
+      : 'https://whip.cobweb.id.vn/login'
+
+    // Sử dụng trực tiếp Client ID tương ứng với môi trường để tránh lỗi Vite không nhận biến môi trường
+    const githubClientId = isDev ? 'Ov23lifKQ43LuBu5QwoX' : 'Ov23liZb9ZubWYOkBgJz'
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
+    
+    window.location.href = githubAuthUrl
   }
 
   // Custom styles cho text field
@@ -124,6 +162,7 @@ function RegisterForm() {
           fullWidth
           variant="outlined"
           startIcon={<GoogleIcon />}
+          onClick={handleGoogleLogin}
           sx={{
             py: 1.2,
             borderRadius: '12px',
@@ -143,6 +182,7 @@ function RegisterForm() {
           fullWidth
           variant="outlined"
           startIcon={<GitHubIcon />}
+          onClick={handleGitHubLogin}
           sx={{
             py: 1.2,
             borderRadius: '12px',
