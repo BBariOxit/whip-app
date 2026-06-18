@@ -49,6 +49,12 @@ function RegisterForm() {
     '& .MuiOutlinedInput-root': {
       bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
       borderRadius: '12px',
+      '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus, & input:-webkit-autofill:active': {
+        WebkitBackgroundClip: 'text !important',
+        WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? '#fff !important' : '#000 !important',
+        transition: 'background-color 5000s ease-in-out 0s !important',
+        boxShadow: 'inset 0 0 20px 20px transparent !important',
+      },
       '& .MuiOutlinedInput-notchedOutline': {
         borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.12)',
         transition: 'all 0.2s ease'
