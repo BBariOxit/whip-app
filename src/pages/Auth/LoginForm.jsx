@@ -28,7 +28,6 @@ import { loginUserAPI, googleLoginUserAPI } from '~/redux/user/userSlice'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { useGoogleLogin } from '@react-oauth/google'
-import { API_ROOT } from '~/utils/constants'
 
 function LoginForm() {
   const dispatch = useDispatch()
@@ -73,19 +72,25 @@ function LoginForm() {
 
   // GitHub Login handler - redirect tới GitHub authorize URL
   const handleGitHubLogin = () => {
-    // Lấy GitHub Client ID từ backend thông qua API_ROOT để xác định môi trường
-    const isDev = API_ROOT.includes('localhost')
-    // Client ID sẽ được hardcode ở đây hoặc lấy từ env
-    // Vì GitHub OAuth cần redirect, ta redirect trực tiếp về trang login hiện tại
-    const redirectUri = isDev
-      ? 'http://localhost:5173/login'
-      : 'https://whip.cobweb.id.vn/login'
+    try {
+      const redirectUri = `${window.location.origin}/login`
+      const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID
+      
+      console.log('GitHub Login Debug:', {
+        redirectUri,
+        githubClientId,
+        env: import.meta.env
+      })
 
-    // Sử dụng trực tiếp Client ID tương ứng với môi trường để tránh lỗi Vite không nhận biến môi trường
-    const githubClientId = isDev ? 'Ov23lifKQ43LuBu5QwoX' : 'Ov23liZb9ZubWYOkBgJz'
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
-    
-    window.location.href = githubAuthUrl
+      if (!githubClientId) {
+        console.error('Missing VITE_GITHUB_CLIENT_ID in .env file')
+      }
+
+      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
+      window.location.assign(githubAuthUrl)
+    } catch (error) {
+      console.error('GitHub Login Error:', error)
+    }
   }
 
   // Custom styles cho text field
