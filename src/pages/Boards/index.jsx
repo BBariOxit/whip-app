@@ -21,6 +21,7 @@ import { Link, useLocation } from 'react-router-dom'
 import CardActionArea from '@mui/material/CardActionArea'
 import SidebarCreateBoardModal from './create'
 import { fetchBoardsAPI } from '~/apis'
+import { BoardCard } from './BoardCard'
 import { API_ROOT, DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
 
 import { styled } from '@mui/material/styles'
@@ -112,6 +113,17 @@ function Boards() {
     return <PageLoadingSpinner caption="Loading Boards..." />
   }
 
+  const onBoardDeleted = (deletedBoardId) => {
+    // Update state to remove deleted board without refetching
+    setBoards(prev => prev.filter(b => b._id !== deletedBoardId))
+    setTotalBoards(prev => prev - 1)
+  }
+
+  const onBoardUpdated = (updatedBoard) => {
+    // Update state with edited title
+    setBoards(prev => prev.map(b => b._id === updatedBoard._id ? updatedBoard : b))
+  }
+
   return (
     <Container disableGutters maxWidth={false}>
       <AppBar />
@@ -177,85 +189,13 @@ function Boards() {
                 gap: 2.5 
               }}>
                 {boards.map((b, index) =>
-                  <Card key={b._id} sx={{ 
-                    width: '100%',
-                    height: '180px',
-                    borderRadius: '16px',
-                    boxShadow: (theme) => theme.palette.mode === 'dark' 
-                      ? '0 4px 20px rgba(0,0,0,0.5)' 
-                      : '0 4px 20px rgba(0,0,0,0.05)',
-                    border: '1px solid',
-                    borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    '&:hover': {
-                      transform: 'translateY(-6px)',
-                      boxShadow: (theme) => theme.palette.mode === 'dark'
-                        ? '0 12px 28px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1)'
-                        : '0 12px 28px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05)',
-                      '& .board-arrow-icon': {
-                        transform: 'translateX(4px)',
-                        opacity: 1
-                      }
-                    }
-                  }}>
-                    <CardActionArea 
-                      component={Link} 
-                      to={`/boards/${b._id}`}
-                      sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch', justifyContent: 'flex-start' }}
-                    >
-                      <Box sx={{ 
-                        height: '100px', 
-                        background: GRADIENTS[index % GRADIENTS.length],
-                        position: 'relative',
-                        flexShrink: 0,
-                        '&::after': {
-                          content: '""',
-                          position: 'absolute',
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          height: '40%',
-                          background: (theme) => theme.palette.mode === 'dark' 
-                            ? 'linear-gradient(to top, rgba(30,33,37,1), rgba(30,33,37,0))'
-                            : 'linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0))'
-                        }
-                      }}></Box>
-
-                      <CardContent sx={{ 
-                        p: 1.5, 
-                        flexGrow: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        '&:last-child': { pb: 1.5 },
-                        bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1e2125' : '#ffffff'
-                      }}>
-                        <Typography gutterBottom variant="h6" component="div" sx={{
-                          fontWeight: 700,
-                          fontSize: '1rem',
-                          mb: 0.5
-                        }}>
-                          {b?.title}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ 
-                            overflow: 'hidden', 
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            lineHeight: 1.5,
-                            minHeight: '3em'
-                          }}>
-                          {b?.description || 'No description provided'}
-                        </Typography>
-                      </CardContent>
-                    </CardActionArea>
-                  </Card>
+                  <BoardCard 
+                    key={b._id} 
+                    board={b} 
+                    index={index}
+                    onBoardDeleted={onBoardDeleted}
+                    onBoardUpdated={onBoardUpdated}
+                  />
                 )}
               </Box>
             }
