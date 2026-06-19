@@ -18,7 +18,7 @@ import CardMedia from '@mui/material/CardMedia'
 import Pagination from '@mui/material/Pagination'
 import PaginationItem from '@mui/material/PaginationItem'
 import { Link, useLocation } from 'react-router-dom'
-import randomColor from 'random-color'
+import CardActionArea from '@mui/material/CardActionArea'
 import SidebarCreateBoardModal from './create'
 import { fetchBoardsAPI } from '~/apis'
 import { API_ROOT, DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
@@ -29,22 +29,38 @@ const SidebarItem = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   gap: '8px',
   cursor: 'pointer',
-  backgroundColor: theme.palette.background.paper,
-  padding: '12px 16px',
-  borderRadius: '8px',
+  backgroundColor: theme.palette.mode === 'dark' ? 'transparent' : 'transparent',
+  padding: '10px 16px',
+  borderRadius: '12px',
   color: theme.palette.text.primary,
-  border: `1px solid ${theme.palette.mode === 'dark' ? 'transparent' : theme.palette.divider}`,
-  transition: 'all 0.15s ease-in-out',
+  fontWeight: 500,
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  border: '1px solid transparent',
   '&:hover': {
-    backgroundColor: theme.palette.mode === 'dark' ? '#334155' : '#f1f5f9'
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+    transform: 'translateX(4px)'
   },
   '&.active': {
-    color: theme.palette.primary.main,
-    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : '#e0f2fe',
+    color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main,
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : '#eff6ff',
     fontWeight: 600,
-    border: `1px solid ${theme.palette.mode === 'dark' ? 'transparent' : theme.palette.primary.light}`
+    border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.3)' : '#bfdbfe'}`,
+    boxShadow: theme.palette.mode === 'dark' ? 'inset 4px 0 0 #3b82f6' : 'inset 4px 0 0 #2563eb'
   }
 }))
+
+const GRADIENTS = [
+  'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)', // Pastel Pink
+  'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', // Purple to Pink
+  'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)', // Mint to Blue
+  'linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)', // Orange to Purple
+  'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)', // Lavender to Blue
+  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', // Bright Blue
+  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', // Green to Teal
+  'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', // Pink to Yellow
+  'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', // Deep Teal to Purple
+  'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'  // Very Light Mint to Pink
+]
 
 function Boards() {
   // Số lượng bản ghi boards hiển thị tối đa trên 1 page tùy dự án (thường sẽ là 12 cái)
@@ -101,7 +117,7 @@ function Boards() {
       <AppBar />
       <Box sx={{ paddingX: 2, my: 4 }}>
         <Grid container spacing={2}>
-          <Grid xs={12} sm={3}>
+          <Grid xs={12} sm={3} md={2}>
             <Stack direction="column" spacing={1}>
               <SidebarItem className="active">
                 <ViewColumnIcon fontSize="small" />
@@ -122,72 +138,156 @@ function Boards() {
             </Stack>
           </Grid>
 
-          <Grid xs={12} sm={9}>
-            <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>Your boards:</Typography>
+          <Grid xs={12} sm={9} md={10}>
+            <Typography variant="h4" sx={{ 
+              fontWeight: 700, 
+              mb: 3, 
+              color: 'text.primary',
+              display: 'inline-block'
+            }}>
+              Your boards
+            </Typography>
 
             {/* Trường hợp gọi API nhưng không tồn tại cái board nào trong Database trả về */}
             {boards?.length === 0 &&
-              <Typography variant="span" sx={{ fontWeight: 'bold', mb: 3 }}>No result found!</Typography>
+              <Box sx={{ 
+                textAlign: 'center', 
+                py: 10, 
+                px: 3,
+                borderRadius: '16px',
+                border: '1px dashed',
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'
+              }}>
+                <ViewColumnIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
+                  No boards found
+                </Typography>
+                <Typography sx={{ color: 'text.secondary', mb: 3 }}>
+                  Create a new board to get started with your projects.
+                </Typography>
+              </Box>
             }
 
             {/* Trường hợp gọi API và có boards trong Database trả về thì render danh sách boards */}
             {boards?.length > 0 &&
-              <Grid container spacing={2}>
-                {boards.map(b =>
-                  <Grid xs={2} sm={3} md={4} key={b._id}>
-                    <Card sx={{ width: '250px' }}>
-                      {/* Ý tưởng mở rộng về sau làm ảnh Cover cho board nhé */}
-                      {/* <CardMedia component="img" height="100" image="https://picsum.photos/100" /> */}
-                      <Box sx={{ height: '50px', backgroundColor: randomColor().hexString() }}></Box>
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(5, 1fr)', 
+                gap: 2.5 
+              }}>
+                {boards.map((b, index) =>
+                  <Card key={b._id} sx={{ 
+                    width: '100%',
+                    height: '180px',
+                    borderRadius: '16px',
+                    boxShadow: (theme) => theme.palette.mode === 'dark' 
+                      ? '0 4px 20px rgba(0,0,0,0.5)' 
+                      : '0 4px 20px rgba(0,0,0,0.05)',
+                    border: '1px solid',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    '&:hover': {
+                      transform: 'translateY(-6px)',
+                      boxShadow: (theme) => theme.palette.mode === 'dark'
+                        ? '0 12px 28px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1)'
+                        : '0 12px 28px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05)',
+                      '& .board-arrow-icon': {
+                        transform: 'translateX(4px)',
+                        opacity: 1
+                      }
+                    }
+                  }}>
+                    <CardActionArea 
+                      component={Link} 
+                      to={`/boards/${b._id}`}
+                      sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch', justifyContent: 'flex-start' }}
+                    >
+                      <Box sx={{ 
+                        height: '100px', 
+                        background: GRADIENTS[index % GRADIENTS.length],
+                        position: 'relative',
+                        flexShrink: 0,
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: '40%',
+                          background: (theme) => theme.palette.mode === 'dark' 
+                            ? 'linear-gradient(to top, rgba(30,33,37,1), rgba(30,33,37,0))'
+                            : 'linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0))'
+                        }
+                      }}></Box>
 
-                      <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
-                        <Typography gutterBottom variant="h6" component="div">
+                      <CardContent sx={{ 
+                        p: 1.5, 
+                        flexGrow: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        '&:last-child': { pb: 1.5 },
+                        bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1e2125' : '#ffffff'
+                      }}>
+                        <Typography gutterBottom variant="h6" component="div" sx={{
+                          fontWeight: 700,
+                          fontSize: '1rem',
+                          mb: 0.5
+                        }}>
                           {b?.title}
                         </Typography>
                         <Typography
                           variant="body2"
                           color="text.secondary"
-                          sx={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                          {b?.description}
-                        </Typography>
-                        <Box
-                          component={Link}
-                          to={`/boards/${b._id}`}
-                          sx={{
-                            mt: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'flex-end',
-                            color: 'primary.main',
-                            '&:hover': { color: 'primary.light' }
+                          sx={{ 
+                            overflow: 'hidden', 
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            lineHeight: 1.5,
+                            minHeight: '3em'
                           }}>
-                          Go to board <ArrowRightIcon fontSize="small" />
-                        </Box>
+                          {b?.description || 'No description provided'}
+                        </Typography>
                       </CardContent>
-                    </Card>
-                  </Grid>
+                    </CardActionArea>
+                  </Card>
                 )}
-              </Grid>
+              </Box>
             }
 
             {/* Trường hợp gọi API và có totalBoards trong Database trả về thì render khu vực phân trang  */}
             {(totalBoards > 0) &&
-              <Box sx={{ my: 3, pr: 5, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <Box sx={{ my: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Pagination
                   size="large"
-                  color="secondary"
+                  color="primary"
                   showFirstButton
                   showLastButton
-                  // Giá trị prop count của component Pagination là để hiển thị tổng số lượng page, công thức là lấy Tổng số lượng bản ghi chia cho số lượng bản ghi muốn hiển thị trên 1 page (ví dụ thường để 12, 24, 26, 48...vv). sau cùng là làm tròn số lên bằng hàm Math.ceil
                   count={Math.ceil(totalBoards / DEFAULT_ITEMS_PER_PAGE)}
-                  // Giá trị của page hiện tại đang đứng
                   page={page}
-                  // Render các page item và đồng thời cũng là những cái link để chúng ta click chuyển trang
                   renderItem={(item) => (
                     <PaginationItem
                       component={Link}
                       to={`/boards${item.page === DEFAULT_PAGE ? '' : `?page=${item.page}`}`}
                       {...item}
+                      sx={{
+                        borderRadius: '8px',
+                        '&.Mui-selected': {
+                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                          color: '#fff',
+                          fontWeight: 'bold',
+                          boxShadow: '0 4px 10px rgba(59,130,246,0.3)',
+                          border: 'none',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
+                          }
+                        }
+                      }}
                     />
                   )}
                 />
