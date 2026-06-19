@@ -68,6 +68,15 @@ function BoardUserGroup({ boardUsers = [], limit = 6 }) {
         anchorEl={anchorPopoverElement}
         onClose={handleTogglePopover}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        sx={{
+          '& .MuiPaper-root': {
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+            border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+            borderRadius: '10px',
+            mt: 1
+          }
+        }}
       >
         <Box sx={{ p: 2, maxWidth: '235px', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {boardUsers.map((user, index) =>

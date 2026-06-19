@@ -249,7 +249,7 @@ function CardActivitySection({ cardId }) {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <DvrOutlinedIcon />
-          <Typography variant="span" sx={{ fontWeight: '600', fontSize: '20px' }}>Activity</Typography>
+          <Typography sx={{ fontWeight: '600', fontSize: '20px', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a' }}>Activity</Typography>
         </Box>
         {totalActivities > 0 && (
           <Button

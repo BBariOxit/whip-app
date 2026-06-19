@@ -79,6 +79,23 @@ function AutoCompleteSearchBoard() {
       // getOptionLabel: để thằng Autocomplete nó lấy title của board và hiển thị ra
       getOptionLabel={(board) => board.title}
 
+      componentsProps={{
+        paper: {
+          sx: {
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+            border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+            borderRadius: '10px',
+            mt: 1,
+            '& .MuiAutocomplete-option': {
+              transition: 'background-color 0.2s',
+              '&:hover, &.Mui-focused': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' },
+              '&[aria-selected="true"]': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }
+            }
+          }
+        }
+      }}
+
       // Options của Autocomplete nó cần đầu vào là 1 Array, mà boards của chúng ta ban đầu cần cho null để làm cái noOptionsText ở trên nên đoạn này cần thêm cái || [] vào
       options={boards || []}
 

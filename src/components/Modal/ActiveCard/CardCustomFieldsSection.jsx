@@ -91,7 +91,7 @@ function CardCustomFieldsSection({ onUpdateCardCustomFields }) {
 
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Custom Fields</Typography>
+      <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Custom Fields</Typography>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         {boardFields.map(field => {
           const value = getFieldValue(field._id)
@@ -109,7 +109,7 @@ function CardCustomFieldsSection({ onUpdateCardCustomFields }) {
                   value={value} 
                   onChange={(e) => handleDebouncedChange(field._id, e.target.value)} 
                   placeholder={`Enter ${field.name}`}
-                  sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f' }}
+                  sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#091e420f' }}
                 />
               )}
               

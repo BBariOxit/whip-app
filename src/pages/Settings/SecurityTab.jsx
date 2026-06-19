@@ -3,6 +3,7 @@ import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 import Button from '@mui/material/Button'
+import Divider from '@mui/material/Divider'
 import PasswordIcon from '@mui/icons-material/Password'
 import LockResetIcon from '@mui/icons-material/LockReset'
 import LockIcon from '@mui/icons-material/Lock'
@@ -52,36 +53,30 @@ function SecurityTab() {
   }
 
   return (
-    <Box sx={{
-      width: '100%',
-      height: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
-      <Box sx={{
-        maxWidth: '1200px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 3
-      }}>
-        <Box>
-          <Typography variant="h5">Security Dashboard</Typography>
-        </Box>
-        <form onSubmit={handleSubmit(submitChangePassword)}>
-          <Box sx={{ width: '400px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      
+      {/* TIÊU ĐỀ TRANG KHU VỰC */}
+      <Box>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#24292f', mb: 0.5 }}>Change password</Typography>
+        <Typography sx={{ fontSize: '14px', color: '#768390' }}>Manage your password and security settings.</Typography>
+        <Divider sx={{ borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de', mt: 2 }} />
+      </Box>
+
+      {/* KHỐI FORM THAY ĐỔI MẬT KHẨU */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, maxWidth: '450px' }}>
+        <form onSubmit={handleSubmit(submitChangePassword)} style={{ width: '100%' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Box>
               <TextField
                 fullWidth
                 label="Current Password"
                 type="password"
                 variant="outlined"
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa' } }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <PasswordIcon fontSize="small" />
+                      <PasswordIcon fontSize="small" sx={{ color: '#768390' }} />
                     </InputAdornment>
                   )
                 }}
@@ -103,10 +98,11 @@ function SecurityTab() {
                 label="New Password"
                 type="password"
                 variant="outlined"
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa' } }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LockIcon fontSize="small" />
+                      <LockIcon fontSize="small" sx={{ color: '#768390' }} />
                     </InputAdornment>
                   )
                 }}
@@ -128,10 +124,11 @@ function SecurityTab() {
                 label="New Password Confirmation"
                 type="password"
                 variant="outlined"
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa' } }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LockResetIcon fontSize="small" />
+                      <LockResetIcon fontSize="small" sx={{ color: '#768390' }} />
                     </InputAdornment>
                   )
                 }}
@@ -146,14 +143,14 @@ function SecurityTab() {
               <FieldErrorAlert errors={errors} fieldName={'new_password_confirmation'} />
             </Box>
 
-            <Box>
+            <Box sx={{ mt: 1 }}>
               <Button
                 className="interceptor-loading"
                 type="submit"
                 variant="contained"
-                color="primary"
-                fullWidth>
-                Change
+                sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' }, px: 3, py: 1, fontWeight: 600, textTransform: 'none' }}
+              >
+                Change password
               </Button>
             </Box>
           </Box>

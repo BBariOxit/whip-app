@@ -104,8 +104,8 @@ function ListColumns({ columns }) {
         {/* Box add new column */}
         {!openNewColumnForm
           ? <Box onClick= {toogleOpenNewColumnForm} sx={{
-            minWidth: '250px',
-            maxWidth: '250px',
+            minWidth: '15.625rem',
+            maxWidth: '15.625rem',
             mx: 2,
             borderRadius: '20px',
             height: 'fit-content',
@@ -125,8 +125,8 @@ function ListColumns({ columns }) {
             >Add new column</Button>
           </Box>
           : <Box sx={{
-            minWidth: '250px',
-            maxWidth: '250px',
+            minWidth: '15.625rem',
+            maxWidth: '15.625rem',
             mx: 2,
             p: 1,
             borderRadius: '20px',

@@ -36,6 +36,17 @@ function ModeSelect() {
           value={mode}
           label="mode"
           onChange={handleChange}
+          MenuProps={{
+            sx: {
+              '& .MuiPaper-root': {
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+                border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                borderRadius: '10px',
+                mt: 1
+              }
+            }
+          }}
           sx={{
             color: 'text.primary',
             '.MuiOutlinedInput-notchedOutline': {
@@ -52,17 +63,17 @@ function ModeSelect() {
             }
           }}
         >
-          <MenuItem value="light">
+          <MenuItem value="light" sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <LightModeIcon fontSize='small'/> Light
             </Box>
           </MenuItem>
-          <MenuItem value="dark">
+          <MenuItem value="dark" sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <DarkModeOutlinedIcon fontSize='small'/> Dark
             </Box>
           </MenuItem>
-          <MenuItem value="system">
+          <MenuItem value="system" sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <SettingsBrightnessIcon fontSize='small'/> System
             </Box>

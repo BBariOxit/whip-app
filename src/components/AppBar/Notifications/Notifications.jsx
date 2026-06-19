@@ -127,16 +127,18 @@ function Notifications() {
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        MenuListProps={{ 'aria-labelledby': 'basic-button-open-notification' }}
+        MenuListProps={{ 
+          'aria-labelledby': 'basic-button-open-notification',
+          disablePadding: true,
+          sx: { p: 0 }
+        }}
         PaperProps={{
           sx: {
-            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1A202C' : '#FFFFFF',
-            backgroundImage: 'none',
-            border: (theme) => theme.palette.mode === 'dark' ? '1px solid #2D3748' : '1px solid #E2E8F0',
-            boxShadow: (theme) => theme.palette.mode === 'dark' 
-              ? '0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.5)' 
-              : '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+            border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
             borderRadius: '10px',
+            overflow: 'hidden',
             '& .MuiList-root': {
               p: 0
             }
@@ -156,44 +158,44 @@ function Notifications() {
           </MenuItem>
         )}
         {notifications?.map((notification, index) => (
-          <Box key={index}>
+          <div key={index} style={{ margin: 0, padding: 0 }}>
             <MenuItem sx={{
               minWidth: 320,
               maxWidth: 360,
-              p: 2,
+              p: 2.5,
               whiteSpace: 'normal',
               bgcolor: 'transparent',
               '&:hover': {
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)'
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)'
               }
             }}>
               <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {/* Nội dung của thông báo */}
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center', 
-                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(14, 165, 233, 0.15)', 
-                    color: (theme) => theme.palette.mode === 'dark' ? '#38bdf8' : '#0284c7',
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)', 
+                    color: '#3b82f6',
                     borderRadius: '50%',
-                    p: 0.8,
-                    mt: 0.2
+                    p: 1,
+                    mt: 0.5
                   }}>
                     <GroupAddIcon fontSize="small" />
                   </Box>
                   <Box sx={{ 
-                    fontSize: '13.5px', 
-                    lineHeight: 1.4,
-                    color: (theme) => theme.palette.mode === 'dark' ? '#E2E8F0' : '#2D3748'
+                    fontSize: '14px', 
+                    lineHeight: 1.5,
+                    color: (theme) => theme.palette.mode === 'dark' ? '#e6edf3' : '#1d2125'
                   }}>
-                    <strong>{notification?.inviter?.fullName}</strong> had invited you to join the board <strong>{notification?.board?.title}</strong>
+                    <strong>{notification?.inviter?.displayName || notification?.inviter?.username || notification?.inviter?.fullName}</strong> had invited you to join the board <strong>{notification?.board?.title}</strong>
                   </Box>
                 </Box>
 
                 {/* Khi Status của thông báo này là PENDING thì sẽ hiện 2 Button */}
                 { notification.boardInvitation?.status === BOARD_INVITATION_STATUS.PENDING && 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: 'flex-end' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end', mt: 1 }}>
                     <Button
                       className="interceptor-loading"
                       type="submit"
@@ -201,22 +203,18 @@ function Notifications() {
                       size="small"
                       sx={{
                         px: 2,
-                        py: 0.6,
-                        fontSize: '12px',
+                        py: 0.5,
+                        fontSize: '12.5px',
                         fontWeight: 600,
                         textTransform: 'none',
                         borderRadius: '6px',
                         color: '#ffffff',
-                        background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
-                        boxShadow: '0 2px 6px -1px rgba(16, 185, 129, 0.3)',
+                        bgcolor: '#3b82f6',
+                        boxShadow: 'none',
                         transition: 'all 0.2s ease-in-out',
                         '&:hover': {
-                          background: 'linear-gradient(135deg, #047857 0%, #059669 100%)',
-                          boxShadow: '0 4px 10px -1px rgba(16, 185, 129, 0.4)',
-                          transform: 'translateY(-1px)'
-                        },
-                        '&:active': {
-                          transform: 'translateY(0)'
+                          bgcolor: '#2563eb',
+                          boxShadow: 'none'
                         }
                       }}
                       onClick={() => updateBoardInvitation(BOARD_INVITATION_STATUS.ACCEPTED, notification._id)}
@@ -226,26 +224,20 @@ function Notifications() {
                     <Button
                       className="interceptor-loading"
                       type="submit"
-                      variant="outlined"
+                      variant="text"
                       size="small"
                       sx={{
                         px: 2,
-                        py: 0.6,
-                        fontSize: '12px',
+                        py: 0.5,
+                        fontSize: '12.5px',
                         fontWeight: 600,
                         textTransform: 'none',
                         borderRadius: '6px',
                         color: (theme) => theme.palette.mode === 'dark' ? '#f1f5f9' : '#334155',
-                        borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)',
-                        bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+                        bgcolor: 'transparent',
                         transition: 'all 0.2s ease-in-out',
                         '&:hover': {
-                          borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-                          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-                          transform: 'translateY(-1px)'
-                        },
-                        '&:active': {
-                          transform: 'translateY(0)'
+                          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'
                         }
                       }}
                       onClick={() => updateBoardInvitation(BOARD_INVITATION_STATUS.REJECTED, notification._id)}
@@ -304,11 +296,10 @@ function Notifications() {
                 </Box>
               </Box>
             </MenuItem>
-            {/* Cái đường kẻ Divider sẽ không cho hiện nếu là phần tử cuối */}
             {index !== (notifications?.length - 1) && (
-              <Divider sx={{ borderColor: (theme) => theme.palette.mode === 'dark' ? '#2D3748' : '#E2E8F0' }} />
+              <Divider sx={{ my: '0 !important', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }} />
             )}
-          </Box>
+          </div>
         ))}
       </Menu>
     </Box>

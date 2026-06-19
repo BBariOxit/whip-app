@@ -7,6 +7,9 @@ import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import CheckIcon from '@mui/icons-material/Check'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
+import IconButton from '@mui/material/IconButton'
+import CloseIcon from '@mui/icons-material/Close'
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectCurrentActive, addNewLabel, updateLabelOptimistic, deleteLabelOptimistic } from '~/redux/activeBoard/activeBoardSlice'
 import { createNewCardLabelAPI, updateCardLabelAPI, deleteCardLabelAPI } from '~/apis'
@@ -85,25 +88,55 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
       <Box sx={{ width: 300, p: 2 }}>
         {viewMode !== 'LIST' ? (
           <>
-            <Typography sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
-              {viewMode === 'CREATE' ? 'Create a label' : 'Edit label'}
-            </Typography>
+            <Box sx={{ position: 'relative', mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <IconButton 
+                onClick={() => setViewMode('LIST')}
+                sx={{ position: 'absolute', left: -8 }}
+                size="small"
+              >
+                <ArrowBackIosNewIcon fontSize="small" />
+              </IconButton>
+              <Typography sx={{ fontSize: '14px', fontWeight: 600, color: 'text.primary' }}>
+                {viewMode === 'CREATE' ? 'Create a label' : 'Edit label'}
+              </Typography>
+              <IconButton 
+                onClick={() => {
+                  handleClose()
+                  setViewMode('LIST')
+                }}
+                sx={{ position: 'absolute', right: -8 }}
+                size="small"
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+            <Typography sx={{ mb: 1, fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>Title</Typography>
             <TextField
               fullWidth
               size="small"
-              label="Title"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#8C9BAB' : '#DFE1E6'
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#579DFF' : '#0c66e4',
+                    borderWidth: '2px'
+                  }
+                }
+              }}
             />
-            <Typography sx={{ mb: 1, fontSize: 14, fontWeight: 600 }}>Select a color</Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+            <Typography sx={{ mb: 1, fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>Select a color</Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 1, mb: 2 }}>
               {COLORS.map(c => (
                 <Box
                   key={c}
                   onClick={() => setNewColor(c)}
                   sx={{
-                    width: 40, height: 32, bgcolor: c, borderRadius: 1, cursor: 'pointer',
+                    height: 32, bgcolor: c, borderRadius: 1, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     border: newColor === c ? '2px solid #000' : 'none'
                   }}
@@ -128,7 +161,21 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
           </>
         ) : (
           <>
-            <Typography sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>Labels</Typography>
+            <Box sx={{ position: 'relative', mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Typography sx={{ fontSize: '14px', fontWeight: 600, color: 'text.primary' }}>
+                Labels
+              </Typography>
+              <IconButton 
+                onClick={() => {
+                  handleClose()
+                  setViewMode('LIST')
+                }}
+                sx={{ position: 'absolute', right: -8 }}
+                size="small"
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
             <Stack spacing={1} sx={{ mb: 2 }}>
               {boardLabels.map(label => {
                 const isChecked = cardLabelIds.includes(label._id)
@@ -140,7 +187,7 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
                         bgcolor: label.color,
                         flex: 1,
                         minHeight: 32,
-                        borderRadius: 1,
+                        borderRadius: '3px',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -148,28 +195,46 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
                         px: 1.5,
                         py: 0.5,
                         color: 'white',
-                        fontWeight: 600,
-                        '&:hover': { opacity: 0.8 }
+                        transition: 'all 0.2s',
+                        '&:hover': { filter: 'brightness(0.8)' }
                       }}
                     >
-                      <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{label.title}</Typography>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, wordBreak: 'break-word' }}>{label.title}</Typography>
                       {isChecked && <CheckIcon fontSize="small" />}
                     </Box>
-                    <Box onClick={(e) => handleEditClick(e, label)} sx={{
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      p: 1, borderRadius: 1, '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#33485D' : theme.palette.grey[300] }
-                    }}>
+                    <IconButton 
+                      onClick={(e) => handleEditClick(e, label)} 
+                      sx={{ 
+                        borderRadius: 1, 
+                        p: 0.5, 
+                        '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#33485D' : theme.palette.grey[300] }
+                      }}
+                    >
                       <EditOutlinedIcon fontSize="small" />
-                    </Box>
+                    </IconButton>
                   </Box>
                 )
               })}
             </Stack>
-            <Button variant="contained" color="inherit" fullWidth onClick={() => {
-              setViewMode('CREATE')
-              setNewTitle('')
-              setNewColor(COLORS[0])
-            }} sx={{ boxShadow: 'none' }}>
+            <Button 
+              variant="contained" 
+              fullWidth 
+              onClick={() => {
+                setViewMode('CREATE')
+                setNewTitle('')
+                setNewColor(COLORS[0])
+              }} 
+              sx={{ 
+                boxShadow: 'none',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2b3f52' : '#091e420f', 
+                color: 'text.primary',
+                fontWeight: 500,
+                '&:hover': { 
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#33485D' : '#091e4224',
+                  boxShadow: 'none'
+                }
+              }}
+            >
               Create a new label
             </Button>
           </>
