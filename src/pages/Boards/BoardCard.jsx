@@ -196,7 +196,9 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated }) => {
       >
         <Box sx={{ 
           height: '100px', 
-          background: GRADIENTS[index % GRADIENTS.length],
+          background: board?.background ? 
+            (board.background.type === 'gradient' ? `linear-gradient(135deg, ${board.background.color1} 0%, ${board.background.color2} 100%)` : board.background.color1)
+            : GRADIENTS[index % GRADIENTS.length],
           position: 'relative',
           flexShrink: 0,
           '&::after': {
