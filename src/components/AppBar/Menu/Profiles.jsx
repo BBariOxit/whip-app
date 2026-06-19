@@ -66,38 +66,60 @@ function Profiles() {
         onClose={handleClose}
         onClick={handleClose}
         MenuListProps={{
-          'aria-labelledby': 'basic-button-profiles'
+          'aria-labelledby': 'basic-button-profiles',
+          sx: { py: 1 }
+        }}
+        sx={{
+          '& .MuiPaper-root': {
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+            border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+            borderRadius: '10px',
+            mt: 1.5,
+            minWidth: 200
+          }
         }}
       >
-        <Link to='/settings/account' style={{color: 'inherit'}}> 
-          <MenuItem sx={{
-            '&:hover': { color: 'primary.main' }
-          }}>
-            <Avatar src={currentUser?.avatar} sx={{ width: 28, height: 28, mr: 2 }} /> Profile
-          </MenuItem>
-        </Link>
+        <MenuItem 
+          component={Link} 
+          to='/settings/account' 
+          sx={{ color: 'inherit', mb: 1, '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
+        >
+          <Avatar src={currentUser?.avatar} sx={{ width: 32, height: 32, mr: 1.5 }} />
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ fontWeight: 600, fontSize: '14px' }}>{currentUser?.displayName || 'Profile'}</Box>
+            {currentUser?.username && <Box sx={{ fontSize: '12px', color: '#768390' }}>@{currentUser?.username}</Box>}
+          </Box>
+        </MenuItem>
 
-        {/* <MenuItem>
-          <Avatar src={currentUser?.avatar} sx={{ width: 28, height: 28, mr: 2 }}/> My account
-        </MenuItem> */}
-        <Divider />
-        <MenuItem>
+        <Divider sx={{ my: 1, borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }} />
+
+        <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
           <ListItemIcon>
-            <PersonAdd fontSize="small" />
+            <PersonAdd fontSize="small" sx={{ color: 'inherit' }} />
           </ListItemIcon>
           Add another account
         </MenuItem>
-        <MenuItem>
+        
+        <MenuItem 
+          component={Link} 
+          to='/settings/account' 
+          sx={{ color: 'inherit', '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
+        >
           <ListItemIcon>
-            <Settings fontSize="small" />
+            <Settings fontSize="small" sx={{ color: 'inherit' }} />
           </ListItemIcon>
           Settings
         </MenuItem>
+
+        <Divider sx={{ my: 1, borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }} />
+
         <MenuItem onClick={handleLogout} sx={{
-          '&:hover': { color: 'warning.dark', '& .logout-icon': { color: 'warning.dark' } }
+          color: 'error.main',
+          '&:hover': { bgcolor: 'rgba(255,0,0,0.1)' }
         }}>
           <ListItemIcon>
-            <Logout className='logout-icon' fontSize="small" />
+            <Logout fontSize="small" sx={{ color: 'error.main' }} />
           </ListItemIcon>
           Logout
         </MenuItem>

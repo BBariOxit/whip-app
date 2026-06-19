@@ -12,7 +12,6 @@ import { Link, useLocation } from 'react-router-dom'
 import AccountTab from './AccountTab'
 import SecurityTab from './SecurityTab'
 
-// Khai báo đống tabs ra biến const để dùng lại cho gọn
 const TABS = {
   ACCOUNT: 'account',
   SECURITY: 'security'
@@ -20,41 +19,94 @@ const TABS = {
 
 function Settings() {
   const location = useLocation()
-  // Function đơn giản có nhiệm vụ lấy ra cái tab mặc định dựa theo url.
   const getDefaultTab = () => {
     if (location.pathname.includes(TABS.SECURITY)) return TABS.SECURITY
     return TABS.ACCOUNT
   }
-  // State lưu trữ giá trị tab nào đang active
   const [activeTab, setActiveTab] = useState(getDefaultTab())
 
-  // https://mui.com/material-ui/react-tabs
   const handleChangeTab = (event, selectedTab) => { setActiveTab(selectedTab) }
 
   return (
     <Container disableGutters maxWidth={false}>
       <AppBar />
       <TabContext value={activeTab}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <TabList onChange={handleChangeTab}>
-            <Tab
-              label="Account"
-              value={TABS.ACCOUNT}
-              icon={<PersonIcon />}
-              iconPosition="start"
-              component={Link}
-              to="/settings/account" />
-            <Tab
-              label="Security"
-              value={TABS.SECURITY}
-              icon={<SecurityIcon />}
-              iconPosition="start"
-              component={Link}
-              to="/settings/security" />
-          </TabList>
+        <Box sx={{ 
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0d1117' : '#f6f8fa', 
+          minHeight: 'calc(100vh - 58px)', 
+          display: 'flex',
+          justifyContent: 'center',
+          pt: 6,
+          px: 4
+        }}>
+          <Box sx={{
+            display: 'flex', 
+            width: '100%', 
+            maxWidth: '1012px',
+            gap: 4 
+          }}>
+            {/* 1. SIDEBAR ĐIỀU HƯỚNG BÊN TRÁI */}
+            <Box sx={{ width: '296px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+              <TabList 
+                onChange={handleChangeTab} 
+                orientation="vertical"
+                sx={{
+                  '& .MuiTabs-indicator': { display: 'none' },
+                  '& .MuiTab-root': {
+                    justifyContent: 'flex-start',
+                    minHeight: '32px',
+                    py: 1,
+                    px: 2,
+                    mb: 0.5,
+                    borderRadius: '6px',
+                    color: (theme) => theme.palette.mode === 'dark' ? '#768390' : '#57606a',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    '&:hover': {
+                      color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#24292f',
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.04)'
+                    },
+                    '&.Mui-selected': {
+                      color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#24292f',
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#25282c' : '#eaf2ff',
+                      fontWeight: 600
+                    }
+                  }
+                }}
+              >
+                <Tab
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <PersonIcon fontSize="small" sx={{ mr: 1.5 }} />
+                      Public profile
+                    </Box>
+                  }
+                  value={TABS.ACCOUNT}
+                  component={Link}
+                  to="/settings/account" 
+                />
+                <Tab
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <SecurityIcon fontSize="small" sx={{ mr: 1.5 }} />
+                      Security & password
+                    </Box>
+                  }
+                  value={TABS.SECURITY}
+                  component={Link}
+                  to="/settings/security" 
+                />
+              </TabList>
+            </Box>
+
+            {/* 2. VÙNG NỘI DUNG CHÍNH BÊN PHẢI */}
+            <Box sx={{ flex: 1, maxWidth: '800px' }}>
+              <TabPanel value={TABS.ACCOUNT} sx={{ p: 0 }}><AccountTab /></TabPanel>
+              <TabPanel value={TABS.SECURITY} sx={{ p: 0 }}><SecurityTab /></TabPanel>
+            </Box>
+          </Box>
         </Box>
-        <TabPanel value={TABS.ACCOUNT}><AccountTab /></TabPanel>
-        <TabPanel value={TABS.SECURITY}><SecurityTab /></TabPanel>
       </TabContext>
     </Container>
   )

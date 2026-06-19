@@ -19,6 +19,21 @@ export const generatePlaceholderCard = (column) => {
   }
 }
 
+// Hàm tính toán styles cho lưới icon badges của Card
+// - Nếu có Ngày tháng (Date): Canh lề trái bình thường
+// - Nếu không có Ngày tháng: Thụt vào một khoảng cố định (21px) để thẳng hàng với các thẻ khác
+export const getCardActionGridStyles = (hasDueDate) => {
+  return {
+    display: 'grid', 
+    gridTemplateColumns: hasDueDate ? 'auto auto auto' : 'repeat(4, auto)',
+    justifyItems: 'center',
+    justifyContent: 'flex-start',
+    columnGap: hasDueDate ? '25px' : '15px', // Đảm bảo gap cố định để các icon tuân thủ khoảng cách
+    rowGap: '8px',
+    width: '100%'
+  }
+}
+
 // Kỹ thuật dùng css pointer-event để chặn user spam click tại bất kỳ chỗ nào có hành động click gọi api
 // Đây là một kỹ thuật rất hay tận dụng Axios Interceptors và CSS Pointer-events để chỉ phải viết code xử lý một lần cho toàn bộ dự án
 // Cách sử dụng: Với tất cả các link hoặc button mà có hành động gọi api thì thêm class "interceptor-loading" cho nó là xong.

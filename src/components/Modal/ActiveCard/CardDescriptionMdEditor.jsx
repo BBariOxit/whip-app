@@ -50,16 +50,26 @@ function CardDescriptionMdEditor({ cardDescriptionProp, handleUpdateCardDescript
               // hideToolbar={true}
             />
           </Box>
-          <Button
-            sx={{ alignSelf: 'flex-end' }}
-            onClick={updateCardDescription}
-            className="interceptor-loading"
-            type="button"
-            variant="contained"
-            size="small"
-            color="info">
-            Save
-          </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+            <Button
+              sx={{ alignSelf: 'flex-end' }}
+              onClick={updateCardDescription}
+              className="interceptor-loading"
+              type="button"
+              variant="contained"
+              color="primary"
+            >
+              Save
+            </Button>
+            <Button
+              sx={{ alignSelf: 'flex-end', color: 'text.secondary' }}
+              onClick={() => setMarkdownEditMode(false)}
+              type="button"
+              variant="text"
+            >
+              Cancel
+            </Button>
+          </Box>
         </Box>
         : <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Button

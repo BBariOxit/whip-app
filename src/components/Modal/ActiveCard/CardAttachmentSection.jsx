@@ -56,27 +56,27 @@ function CardAttachmentSection({ attachments = [], onDeleteAttachment }) {
     <Box sx={{ mb: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
         <AttachFileOutlinedIcon />
-        <Typography variant="span" sx={{ fontWeight: '600', fontSize: '20px' }}>
+        <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a' }}>
           Attachments
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pl: 4.5 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pl: 4 }}>
         {attachments.map((att, index) => (
           <Box
             key={att.publicId || index}
-            sx={(theme) => ({
+            sx={{
               display: 'flex',
-              alignItems: 'center',
               gap: 2,
               p: 1,
               borderRadius: '8px',
-              bgcolor: theme.palette.mode === 'dark' ? '#2f3542' : '#f1f2f4',
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f1f2f4',
+              border: (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid #d0d7de',
               transition: 'background-color 0.15s ease',
               '&:hover': {
-                bgcolor: theme.palette.mode === 'dark' ? '#3a4150' : '#e4e6ea'
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#e4e6ea'
               }
-            })}
+            }}
           >
             {/* Thumbnail / File icon */}
             <Box

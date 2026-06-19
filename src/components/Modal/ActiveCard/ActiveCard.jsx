@@ -58,20 +58,20 @@ import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 const SidebarItem = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: '6px',
+  gap: '8px',
   cursor: 'pointer',
   fontSize: '14px',
   fontWeight: '600',
-  color: theme.palette.mode === 'dark' ? '#90caf9' : '#172b4d',
-  backgroundColor: theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f',
-  padding: '10px',
-  borderRadius: '4px',
+  color: theme.palette.mode === 'dark' ? '#adbac7' : '#57606a',
+  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f6f8fa',
+  border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid #d0d7de',
+  padding: '8px 12px',
+  borderRadius: '8px',
+  transition: 'all 0.2s ease',
   '&:hover': {
-    backgroundColor: theme.palette.mode === 'dark' ? '#33485D' : theme.palette.grey[300],
-    '&.active': {
-      color: theme.palette.mode === 'dark' ? '#000000de' : '#0c66e4',
-      backgroundColor: theme.palette.mode === 'dark' ? '#90caf9' : '#e9f2ff'
-    }
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#f3f4f6',
+    color: theme.palette.mode === 'dark' ? '#fff' : '#24292f',
+    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : '#1f2328'
   }
 }))
 
@@ -269,7 +269,7 @@ function ActiveCard() {
           <Grid xs={12} sm={9}>
             <Box sx={{ mb: 3, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
               <Box>
-                <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Members</Typography>
+                <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Members</Typography>
 
                 {/* Feature 02: Xử lý các thành viên của Card */}
                 <CardUserGroup 
@@ -280,7 +280,7 @@ function ActiveCard() {
               
               {!!cardLabels.length && (
                 <Box>
-                  <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Labels</Typography>
+                  <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Labels</Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                     {cardLabels.map(label => (
                       <Box key={label._id} sx={{
@@ -303,7 +303,7 @@ function ActiveCard() {
 
               {activeCard?.dueDate && (
                 <Box>
-                  <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Dates</Typography>
+                  <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Dates</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <Checkbox
                       checked={!!activeCard?.dueComplete}
@@ -392,7 +392,7 @@ function ActiveCard() {
 
           {/* Right side */}
           <Grid xs={12} sm={3}>
-            <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Add To Card</Typography>
+            <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Add To Card</Typography>
             <Stack direction="column" spacing={1}>
               {/* Feature 05: Xử lý hành động bản thân user tự join vào card */}
               {/* Nếu user hiện tại đang đăng nhập chưa thuộc mảng memberIds của card thì mới cho hiện nút Join ra */}
@@ -458,7 +458,7 @@ function ActiveCard() {
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Power-Ups</Typography>
+            <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Power-Ups</Typography>
             <Stack direction="column" spacing={1}>
               <SidebarItem><AspectRatioOutlinedIcon fontSize="small" />Card Size</SidebarItem>
               <SidebarItem><AddToDriveOutlinedIcon fontSize="small" />Google Drive</SidebarItem>
@@ -467,7 +467,7 @@ function ActiveCard() {
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography sx={{ fontWeight: '600', color: 'primary.main', mb: 1 }}>Actions</Typography>
+            <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Actions</Typography>
             <Stack direction="column" spacing={1}>
               <SidebarItem><ArrowForwardOutlinedIcon fontSize="small" />Move</SidebarItem>
               <SidebarItem><ContentCopyOutlinedIcon fontSize="small" />Copy</SidebarItem>

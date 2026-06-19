@@ -26,7 +26,7 @@ export const getDueDateColor = (state, theme) => {
   const isDark = theme?.palette?.mode === 'dark'
   switch (state) {
   case 'completed': return '#4bce97'
-  case 'overdue': return '#f87462'
+  case 'overdue': return '#ef4444'
   case 'due-soon': return '#e2b203'
   case 'normal': return isDark ? '#2c3542' : '#eaedf0'
   default: return 'transparent'

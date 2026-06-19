@@ -1,4 +1,5 @@
 import AddCardIcon from '@mui/icons-material/AddCard'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
 import CloseIcon from '@mui/icons-material/Close'
 import Cloud from '@mui/icons-material/Cloud'
 import ContentCopy from '@mui/icons-material/ContentCopy'
@@ -182,8 +183,8 @@ function Column({ column }) {
       <Box
         {...listeners}
         sx={{
-          minWidth: '300px',
-          maxWidth: '300px',
+          minWidth: '18.75rem',
+          maxWidth: '18.75rem',
           bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(22,27,34,0.75)' : theme.palette.background.column),
           backdropFilter: 'blur(12px)',
           border: (theme) => (theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid #dbe3ee'),
@@ -232,49 +233,54 @@ function Column({ column }) {
               onClose={handleClose}
               onClick={handleClose}
               MenuListProps={{
-                'aria-labelledby': 'basic-column-dropdown'
+                'aria-labelledby': 'basic-column-dropdown',
+                sx: { py: 1 }
+              }}
+              sx={{
+                '& .MuiPaper-root': {
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+                  border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                  borderRadius: '10px',
+                  mt: 1,
+                  minWidth: 220
+                }
               }}
             >
               <MenuItem
                 onClick={toogleOpenNewCardForm}
-                sx={{
-                  '&:hover': {
-                    color: (theme) => theme.palette.primary.main,
-                    '& .add-Card-Icon': { color: (theme) => theme.palette.primary.main }
-                  }
-                }}
+                sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
               >
-                <ListItemIcon><AddCardIcon className='add-Card-Icon' fontSize="small" /></ListItemIcon>
+                <ListItemIcon><AddCardIcon fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Add new card</ListItemText>
               </MenuItem>
-              <MenuItem>
-                <ListItemIcon><ContentCut fontSize="small" /></ListItemIcon>
+              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
+                <ListItemIcon><ContentCut fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Cut</ListItemText>
               </MenuItem>
-              <MenuItem>
-                <ListItemIcon><ContentCopy fontSize="small" /></ListItemIcon>
+              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
+                <ListItemIcon><ContentCopy fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Copy</ListItemText>
               </MenuItem>
-              <MenuItem>
-                <ListItemIcon><ContentPaste fontSize="small" /></ListItemIcon>
+              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
+                <ListItemIcon><ContentPaste fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Paste</ListItemText>
               </MenuItem>
 
-              <Divider />
+              <Divider sx={{ my: 1, borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }} />
+              
               <MenuItem
                 onClick={handleDeleteColumn}
                 sx={{
-                  '&:hover': {
-                    color: (theme) => theme.palette.primary.main,
-                    '& .delete-Forever-Icon': { color: (theme) => theme.palette.primary.main }
-                  }
+                  color: 'error.main',
+                  '&:hover': { bgcolor: 'rgba(255,0,0,0.1)' }
                 }}
               >
-                <ListItemIcon><DeleteForeverIcon className='delete-Forever-Icon' fontSize="small" /></ListItemIcon>
+                <ListItemIcon><DeleteForeverIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
                 <ListItemText>Delete this column</ListItemText>
               </MenuItem>
-              <MenuItem>
-                <ListItemIcon><Cloud fontSize="small" /></ListItemIcon>
+              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
+                <ListItemIcon><Cloud fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Archive this column</ListItemText>
               </MenuItem>
             </Menu>
@@ -299,69 +305,71 @@ function Column({ column }) {
                 <DragHandleIcon sx={{ cursor: 'pointer' }}/>
               </Tooltip>
             </Box>
-            : <Box sx={{
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
-            }}>
-              <TextField
-                label="Enter Card title..."
-                type="text"
-                size='small'
-                variant='outlined'
-                autoFocus
-                data-no-dnd= 'true'
-                value={newCardtitle}
-                onChange = {(e) => setNewCardtitle(e.target.value)}
-                sx={{
-                  '& label': { color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#334155' },
-                  '& input': {
-                    color: (theme) => theme.palette.primary.main,
-                    bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#0f172a' : '#ffffff')
-                  },
-                  '& label.Mui-focused': { color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7' },
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#475569' : '#cbd5e1'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7'
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7'
-                    }
-                  },
-                  '& .MuiOutlinedInput-input': {
-                    borderRadius: 1
-                  }
-                }}
-              />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Button
-                  className='interceptor-loading'
-                  onClick={addNewCard}
-                  variant='contained' color='primary' size='small'
+            : <ClickAwayListener onClickAway={() => setOpenNewCardForm(false)}>
+              <Box sx={{
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                <TextField
+                  label="Enter Card title..."
+                  type="text"
+                  size='small'
+                  variant='outlined'
+                  autoFocus
+                  data-no-dnd= 'true'
+                  value={newCardtitle}
+                  onChange = {(e) => setNewCardtitle(e.target.value)}
                   sx={{
-                    boxShadow: 'none',
-                    border: '0.5px solid',
-                    borderColor: (theme) => theme.palette.primary.main,
-                    '&:hover': {
-                      bgcolor: (theme) => theme.palette.primary.main
+                    '& label': { color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#334155' },
+                    '& input': {
+                      color: (theme) => theme.palette.primary.main,
+                      bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#0f172a' : '#ffffff')
+                    },
+                    '& label.Mui-focused': { color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7' },
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: (theme) => theme.palette.mode === 'dark' ? '#475569' : '#cbd5e1'
+                      },
+                      '&:hover fieldset': {
+                        borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7'
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7'
+                      }
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      borderRadius: 1
                     }
                   }}
-                >Add</Button>
-                <CloseIcon
-                  onClick= {toogleOpenNewCardForm}
-                  sx={{
-                    color: 'text.secondary',
-                    cursor: 'pointer',
-                    '&:hover': { opacity: 0.7 }
-                  }}
-                  fontSize='small'
                 />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Button
+                    className='interceptor-loading'
+                    onClick={addNewCard}
+                    variant='contained' color='primary' size='small'
+                    sx={{
+                      boxShadow: 'none',
+                      border: '0.5px solid',
+                      borderColor: (theme) => theme.palette.primary.main,
+                      '&:hover': {
+                        bgcolor: (theme) => theme.palette.primary.main
+                      }
+                    }}
+                  >Add</Button>
+                  <CloseIcon
+                    onClick= {toogleOpenNewCardForm}
+                    sx={{
+                      color: 'text.secondary',
+                      cursor: 'pointer',
+                      '&:hover': { opacity: 0.7 }
+                    }}
+                    fontSize='small'
+                  />
+                </Box>
               </Box>
-            </Box>
+            </ClickAwayListener>
           }
         </Box>
       </Box>
