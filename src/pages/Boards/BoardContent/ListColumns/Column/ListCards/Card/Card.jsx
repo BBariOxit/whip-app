@@ -11,6 +11,7 @@ import CardContent from '@mui/material/CardContent'
 import CardMedia from '@mui/material/CardMedia'
 import Typography from '@mui/material/Typography'
 import dayjs from 'dayjs'
+import React, { useMemo, useCallback } from 'react'
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -22,20 +23,26 @@ import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/g
 
 function Card({ card }) {
   const dispatch = useDispatch()
+  const boardLabels = useSelector((state) => selectCurrentActive(state)?.labels || [])
+  const cardLabels = useMemo(
+    () => boardLabels.filter(label => card?.labelIds?.includes(label._id)),
+    [boardLabels, card?.labelIds]
+  )
   const board = useSelector(selectCurrentActive)
-  const boardLabels = board?.labels || []
-  const cardLabels = boardLabels.filter(label => card?.labelIds?.includes(label._id))
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card._id,
-    data: { ...card }
+    data: { ...card },
+    transition: {
+      duration: 250,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+    }
   })
   const dndKitCardStyles = {
     // touchAction: 'none', // dành cho sensor default dạng PointerSensor
     // Nếu sử dụng CSS.Transform như docs sẽ lỗi kiểu stretch
-    // https://github.com/clauderic/dnd-kit/issues/117
     transform: CSS.Translate.toString(transform),
-    transition: transition || (isDragging ? undefined : 'transform 250ms ease'),
+    transition,
     opacity: isDragging ? 0.5 : undefined,
     border: isDragging ? '1px solid' : undefined
   }
@@ -50,12 +57,12 @@ function Card({ card }) {
     return !!card?.memberIds?.length || !!card?.totalComments || !!card?.attachments?.length || !!card?.dueDate || !!totalChecklistItems || !!card?.customFieldValues?.length
   }
 
-  const setActiveCard = () => {
+  const setActiveCard = useCallback(() => {
     // cập nhập data cho cái activeCard trong redux
     dispatch(updateCurrentActiveCard(card))
     // hiện modal
     dispatch(showModalActiveCard())
-  }
+  }, [dispatch, card])
 
   return (
     <MuiCard
@@ -156,4 +163,4 @@ function Card({ card }) {
     </MuiCard>
   )
 }
-export default Card
+export default React.memo(Card)

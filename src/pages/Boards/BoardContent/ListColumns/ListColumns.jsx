@@ -4,7 +4,7 @@ import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Column from './Column/Column'
 import { toast } from 'react-toastify'
 import { cloneDeep } from 'lodash-es'
@@ -48,7 +48,7 @@ function ListColumns({ columns }) {
     // cập nhật state board
     // Phía Front-end chúng ta phải tự làm đúng lại state data board (thay vì phải gọi lại api fetchBoardDetailsAPI)
     // Lưu ý: cách làm này phụ thuộc vào tùy lựa chọn và đặc thù dự án,
-    // có nơi thì BE sẽ hỗ trợ trả về luôn toàn bộ Board dù đây có là api tạo Column hay Card đi chăng nữa.
+    // có nơi thì BE sẽ hỗ trợ trả về luôn toàn bộ Board dù đây có là api tạo Column đi chăng nữa.
     // => Lúc này FE sẽ nhàn hơn.
 
     // const newBoard = { ...board }
@@ -81,8 +81,10 @@ function ListColumns({ columns }) {
    * Nếu không đúng thì vẫn kéo thả được nhưng không có animation
    * https://github.com/clauderic/dnd-kit/issues/183#issuecomment-812569512
    */
+  const columnIds = useMemo(() => columns?.map(c => c._id), [columns])
+
   return (
-    <SortableContext items={columns?.map(c => c._id)} strategy={horizontalListSortingStrategy}>
+    <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
       <Box sx={{
         bgcolor: 'inherit',
         width: '100%',

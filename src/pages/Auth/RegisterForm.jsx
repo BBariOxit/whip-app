@@ -28,7 +28,6 @@ import { toast } from 'react-toastify'
 import { useDispatch } from 'react-redux'
 import { googleLoginUserAPI } from '~/redux/user/userSlice'
 import { useGoogleLogin } from '@react-oauth/google'
-import { API_ROOT } from '~/utils/constants'
 
 function RegisterForm() {
   const { register, handleSubmit, formState: { errors }, watch } = useForm()
@@ -70,16 +69,25 @@ function RegisterForm() {
 
   // GitHub Login handler
   const handleGitHubLogin = () => {
-    const isDev = API_ROOT.includes('localhost')
-    const redirectUri = isDev
-      ? 'http://localhost:5173/login'
-      : 'https://whip.cobweb.id.vn/login'
+    try {
+      const redirectUri = `${window.location.origin}/login`
+      const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID
+      
+      console.log('GitHub Login Debug:', {
+        redirectUri,
+        githubClientId,
+        env: import.meta.env
+      })
 
-    // Sử dụng trực tiếp Client ID tương ứng với môi trường để tránh lỗi Vite không nhận biến môi trường
-    const githubClientId = isDev ? 'Ov23lifKQ43LuBu5QwoX' : 'Ov23liZb9ZubWYOkBgJz'
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
-    
-    window.location.href = githubAuthUrl
+      if (!githubClientId) {
+        console.error('Missing VITE_GITHUB_CLIENT_ID in .env file')
+      }
+
+      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
+      window.location.assign(githubAuthUrl)
+    } catch (error) {
+      console.error('GitHub Login Error:', error)
+    }
   }
 
   // Custom styles cho text field

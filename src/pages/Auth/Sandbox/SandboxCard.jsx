@@ -17,11 +17,15 @@ import { CSS } from '@dnd-kit/utilities'
 function SandboxCard({ card }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card._id,
-    data: { ...card }
+    data: { ...card },
+    transition: {
+      duration: 250,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+    }
   })
   const dndKitCardStyles = {
     transform: CSS.Translate.toString(transform),
-    transition: transition || (isDragging ? undefined : 'transform 250ms ease'),
+    transition,
     opacity: isDragging ? 0.5 : undefined,
     border: isDragging ? '1px solid' : undefined
   }

@@ -1,10 +1,13 @@
 import Box from '@mui/material/Box'
 import Card from './Card/Card'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { useMemo } from 'react'
 
 function ListCard({ cards }) {
+  const cardIds = useMemo(() => cards?.map(c => c._id), [cards])
+
   return (
-    <SortableContext items={cards?.map(c => c._id)} strategy={verticalListSortingStrategy}>
+    <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
       <Box sx={{
         p: '6px 5px 5px 5px',
         m: '0 5px',
