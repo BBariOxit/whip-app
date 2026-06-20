@@ -57,9 +57,19 @@ export const deleteColumnDetailAPI = async (columnId) => {
   return response.data
 }
 
+export const clearAllCardsInColumnAPI = async (columnId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/columns/clear-cards/${columnId}`)
+  return response.data
+}
+
 // cards
 export const createNewCardAPI = async (newCardData) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards`, newCardData)
+  return response.data
+}
+
+export const deleteCardAPI = async (cardId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/cards/${cardId}`)
   return response.data
 }
 
