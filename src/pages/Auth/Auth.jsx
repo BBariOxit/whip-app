@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { selectCurrentUser, githubLoginUserAPI } from '~/redux/user/userSlice'
 import ModeSelect from '~/components/ModeSelect/ModeSelect'
 import { useEffect, useState } from 'react'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 

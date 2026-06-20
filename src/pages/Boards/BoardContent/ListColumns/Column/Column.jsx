@@ -25,7 +25,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
 import { useConfirm } from 'material-ui-confirm'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 
 import { cloneDeep } from 'lodash-es'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'

@@ -1,7 +1,7 @@
 import { Box, Card, CardActionArea, CardContent, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { cloneTemplateAPI } from '~/apis'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 import { useState } from 'react'
 
 const GRADIENTS = [
@@ -36,7 +36,7 @@ export const TemplateCard = ({ template, index }) => {
   return (
     <Card sx={{ 
       width: '100%',
-      height: '180px',
+      height: '220px',
       borderRadius: '16px',
       boxShadow: (theme) => theme.palette.mode === 'dark' 
         ? '0 4px 20px rgba(0,0,0,0.5)' 
@@ -104,7 +104,13 @@ export const TemplateCard = ({ template, index }) => {
           <Typography gutterBottom variant="h6" component="div" sx={{
             fontWeight: 700,
             fontSize: '1rem',
-            mb: 0.5
+            mb: 0.5,
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            lineHeight: 1.2,
+            minHeight: '2.4em'
           }}>
             {template?.title}
           </Typography>

@@ -1,5 +1,5 @@
 import axios from "axios"
-import { toast } from "react-toastify"
+import { toast } from 'sonner'
 import { interceptorLoadingElements } from "./formatters"
 import { logoutUserAPI } from "~/redux/user/userSlice"
 import { API_ROOT } from "~/utils/constants"

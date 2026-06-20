@@ -2,7 +2,7 @@ import { Box, Typography, TextField, Button, Avatar, Divider } from '@mui/materi
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
 import { selectCurrentUser, updateUserAPI } from '~/redux/user/userSlice'

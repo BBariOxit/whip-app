@@ -13,7 +13,7 @@ import { FIELD_REQUIRED_MESSAGE, PASSWORD_RULE, PASSWORD_RULE_MESSAGE } from '~/
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import { useForm } from 'react-hook-form'
 import { useConfirm } from 'material-ui-confirm'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 import { useDispatch } from 'react-redux'
 import { updateUserAPI, logoutUserAPI } from '~/redux/user/userSlice'
 

@@ -1,6 +1,6 @@
 import authorizedAxiosInstance from '~/utils/authorizeAxios'
 import { API_ROOT } from '~/utils/constants'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 
 /* * Lưu ý: Đối với việc sử dụng axios
 * Tất cả các function bên dưới các bạn sẽ thấy mình chỉ request và lấy data luôn, mà không có try catch hay then catch
@@ -26,6 +26,13 @@ export const updateBoardDetailAPI = async (boardId, updateData) => {
 
 export const deleteBoardAPI = async (boardId) => {
   const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/boards/${boardId}`)
+  return response.data
+}
+
+export const bulkDeleteBoardsAPI = async (boardIds) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/boards/bulk-delete`, {
+    data: { boardIds }
+  })
   return response.data
 }
 

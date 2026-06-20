@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import authorizedAxiosInstance from '~/utils/authorizeAxios'
 import { API_ROOT } from '~/utils/constants'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 
 // khởi tạo state của 1 slice trong redux
 const initialState = {

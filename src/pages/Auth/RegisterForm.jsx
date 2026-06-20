@@ -24,7 +24,7 @@ import {
 } from '~/utils/validators'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import { registerUserAPI } from '~/apis'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 import { useDispatch } from 'react-redux'
 import { googleLoginUserAPI } from '~/redux/user/userSlice'
 import { useGoogleLogin } from '@react-oauth/google'
