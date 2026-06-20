@@ -1,6 +1,6 @@
 import authorizedAxiosInstance from '~/utils/authorizeAxios'
 import { API_ROOT } from '~/utils/constants'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 
 /* * Lưu ý: Đối với việc sử dụng axios
 * Tất cả các function bên dưới các bạn sẽ thấy mình chỉ request và lấy data luôn, mà không có try catch hay then catch
@@ -29,6 +29,13 @@ export const deleteBoardAPI = async (boardId) => {
   return response.data
 }
 
+export const bulkDeleteBoardsAPI = async (boardIds) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/boards/bulk-delete`, {
+    data: { boardIds }
+  })
+  return response.data
+}
+
 export const moveCarDifferentColumnlAPI = async (updateData) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/boards/supports/moving_card`, updateData)
   return response.data
@@ -50,9 +57,19 @@ export const deleteColumnDetailAPI = async (columnId) => {
   return response.data
 }
 
+export const clearAllCardsInColumnAPI = async (columnId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/columns/clear-cards/${columnId}`)
+  return response.data
+}
+
 // cards
 export const createNewCardAPI = async (newCardData) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards`, newCardData)
+  return response.data
+}
+
+export const deleteCardAPI = async (cardId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/cards/${cardId}`)
   return response.data
 }
 
@@ -86,6 +103,16 @@ export const refreshTokenAPI = async () => {
 
 export const fetchBoardsAPI = async (searchPath) => {
   const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards${searchPath}`)
+  return response.data
+}
+
+export const fetchTemplatesAPI = async () => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/templates`)
+  return response.data
+}
+
+export const cloneTemplateAPI = async (templateBoardId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/templates/clone`, { templateBoardId })
   return response.data
 }
 

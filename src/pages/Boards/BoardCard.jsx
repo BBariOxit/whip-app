@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Box, Card, CardActionArea, CardContent, Typography, IconButton, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, Typography, IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Checkbox } from '@mui/material'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Link } from 'react-router-dom'
 import { useConfirm } from 'material-ui-confirm'
 import { deleteBoardAPI, updateBoardDetailAPI } from '~/apis'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 import { BoardModalForm } from './create'
 
 const GRADIENTS = [
@@ -20,7 +20,7 @@ const GRADIENTS = [
   'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)'
 ]
 
-export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated }) => {
+export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulkMode, isSelected, onSelect }) => {
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
   
@@ -80,7 +80,7 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated }) => {
     <>
       <Card sx={{ 
         width: '100%',
-        height: '180px',
+        height: '220px',
         borderRadius: '16px',
         boxShadow: (theme) => theme.palette.mode === 'dark' 
           ? '0 4px 20px rgba(0,0,0,0.5)' 
@@ -153,8 +153,14 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated }) => {
         </Menu>
 
         <CardActionArea 
-          component={Link} 
-          to={`/boards/${board._id}`}
+          component={isBulkMode ? "div" : Link} 
+          to={isBulkMode ? undefined : `/boards/${board._id}`}
+          onClick={(e) => {
+            if (isBulkMode) {
+              e.preventDefault()
+              if (onSelect) onSelect()
+            }
+          }}
           sx={{ 
             height: '100%', 
             display: 'flex', 
@@ -164,6 +170,27 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated }) => {
             cursor: 'pointer'
           }}
         >
+          {/* BULK MODE CHECKBOX */}
+          {isBulkMode && (
+            <Checkbox
+              checked={isSelected}
+              onChange={(e) => {
+                // handle onChange instead of onClick on checkbox
+              }}
+              sx={{ 
+                position: 'absolute', 
+                top: 8, 
+                left: 8, 
+                color: 'rgba(255, 255, 255, 0.7)',
+                zIndex: 2,
+                '&.Mui-checked': { color: '#58a6ff' },
+                bgcolor: 'rgba(0,0,0,0.2)',
+                borderRadius: '8px',
+                padding: '4px',
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.4)' }
+              }}
+            />
+          )}
           <Box sx={{ 
             height: '100px', 
             background: board?.background ? 
@@ -184,7 +211,13 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated }) => {
             <Typography gutterBottom variant="h6" component="div" sx={{
               fontWeight: 700,
               fontSize: '1rem',
-              mb: 0.5
+              mb: 0.5,
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              lineHeight: 1.2,
+              minHeight: '2.4em'
             }}>
               {board?.title}
             </Typography>

@@ -110,6 +110,22 @@ export const activeBoardSlice = createSlice({
           }
         })
       })
+    },
+    deleteCardOptimistic: (state, action) => {
+      const { cardId, columnId } = action.payload
+      const column = state.currentActiveBoard.columns.find(col => col._id === columnId)
+      if (column) {
+        column.cards = column.cards.filter(c => c._id !== cardId)
+        column.cardOrderIds = column.cardOrderIds.filter(id => id !== cardId)
+      }
+    },
+    clearCardsInColumnOptimistic: (state, action) => {
+      const columnId = action.payload
+      const column = state.currentActiveBoard.columns.find(col => col._id === columnId)
+      if (column) {
+        column.cards = []
+        column.cardOrderIds = []
+      }
     }
   },
   // extraReducers: nơi xử lý các hành động bất đồng bộ
@@ -151,7 +167,9 @@ export const {
   deleteLabelOptimistic,
   addNewCustomField,
   updateCustomFieldOptimistic,
-  deleteCustomFieldOptimistic
+  deleteCustomFieldOptimistic,
+  deleteCardOptimistic,
+  clearCardsInColumnOptimistic
 } = activeBoardSlice.actions
 
 // Selectors: Là nơi dành cho các components bên dưới gọi bằng hook useSelector() để lấy dữ liệu từ trong kho redux store ra sử dụng

@@ -7,8 +7,8 @@ import GlobalStyles from '@mui/material/GlobalStyles'
 import { Experimental_CssVarsProvider as CssVarsProvider, useColorScheme } from '@mui/material/styles'
 import theme from '~/theme'
 
-// cấu hình react toastify
-import { ToastContainer } from 'react-toastify'
+// cấu hình sonner
+import { Toaster } from 'sonner'
 
 // cấu hình MUI-dialog
 import { ConfirmProvider } from 'material-ui-confirm'
@@ -45,7 +45,7 @@ function Root() {
       <GlobalStyles styles={{ a: { textDecoration: 'none' } }} />
       <CssBaseline />
       <App />
-      <ToastContainer theme={toastTheme} position="bottom-right" closeOnClick={true}/>
+      <Toaster theme={toastTheme} position="bottom-right" richColors />
     </>
   )
 }

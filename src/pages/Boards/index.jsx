@@ -12,17 +12,23 @@ import ViewColumnIcon from '@mui/icons-material/ViewColumn'
 import ListAltIcon from '@mui/icons-material/ListAlt'
 import HomeIcon from '@mui/icons-material/Home'
 import ArrowRightIcon from '@mui/icons-material/ArrowRight'
+import ChecklistIcon from '@mui/icons-material/Checklist'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CardMedia from '@mui/material/CardMedia'
 import Pagination from '@mui/material/Pagination'
 import PaginationItem from '@mui/material/PaginationItem'
+import Button from '@mui/material/Button'
+import DeleteIcon from '@mui/icons-material/Delete'
 import { Link, useLocation } from 'react-router-dom'
 import CardActionArea from '@mui/material/CardActionArea'
 import SidebarCreateBoardModal from './create'
-import { fetchBoardsAPI } from '~/apis'
+import { fetchBoardsAPI, fetchTemplatesAPI, bulkDeleteBoardsAPI } from '~/apis'
 import { BoardCard } from './BoardCard'
+import { TemplateCard } from './TemplateCard'
 import { API_ROOT, DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
+import { toast } from 'sonner'
+import { useConfirm } from 'material-ui-confirm'
 
 import { styled } from '@mui/material/styles'
 const SidebarItem = styled(Box)(({ theme }) => ({
@@ -82,6 +88,15 @@ function Boards() {
    */
   const page = parseInt(query.get('page') || '1', 10)
 
+  // Tab State
+  const [activeTab, setActiveTab] = useState('boards') // 'boards' or 'templates'
+  const [templates, setTemplates] = useState(null)
+
+  // Bulk Edit State
+  const [isBulkMode, setIsBulkMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState([])
+  const confirmBulkDelete = useConfirm()
+
   const updateStateData = (res) => {
     setBoards(res.boards || [])
     setTotalBoards(res.totalBoards || 0)
@@ -100,8 +115,16 @@ function Boards() {
     // theo đúng page mới vì cái location.search đã nằm trong dependencies của useEffect
 
     // Gọi API lấy danh sách boards ở đây...
-    fetchBoardsAPI(location.search).then(updateStateData)
-  }, [location.search])
+    if (activeTab === 'boards') {
+      fetchBoardsAPI(location.search).then(updateStateData)
+    }
+  }, [location.search, activeTab])
+
+  useEffect(() => {
+    if (activeTab === 'templates' && !templates) {
+      fetchTemplatesAPI().then(res => setTemplates(res))
+    }
+  }, [activeTab])
 
   const afterCreateNewBoard = () => {
     // fetch lai danh sach board trong useEffect
@@ -124,6 +147,36 @@ function Boards() {
     setBoards(prev => prev.map(b => b._id === updatedBoard._id ? updatedBoard : b))
   }
 
+  const handleSelectCard = (boardId) => {
+    if (selectedIds.includes(boardId)) {
+      setSelectedIds(selectedIds.filter(id => id !== boardId))
+    } else {
+      setSelectedIds([...selectedIds, boardId])
+    }
+  }
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return
+
+    confirmBulkDelete({
+      title: 'Bulk Delete Boards?',
+      description: `You are about to permanently delete ${selectedIds.length} board(s) and all their associated data. This action cannot be undone. Are you sure?`,
+      confirmationText: 'Delete selected',
+      confirmationButtonProps: { color: 'error', variant: 'contained' },
+      cancellationText: 'Cancel'
+    }).then(async () => {
+      try {
+        await bulkDeleteBoardsAPI(selectedIds)
+        toast.success(`Successfully deleted ${selectedIds.length} boards!`)
+        setSelectedIds([])
+        setIsBulkMode(false)
+        fetchBoardsAPI(location.search).then(updateStateData)
+      } catch (error) {
+        toast.error('Failed to bulk delete boards!')
+      }
+    }).catch(() => {})
+  }
+
   return (
     <Container disableGutters maxWidth={false}>
       <AppBar />
@@ -131,11 +184,17 @@ function Boards() {
         <Grid container spacing={2}>
           <Grid xs={12} sm={3} md={2}>
             <Stack direction="column" spacing={1}>
-              <SidebarItem className="active">
+              <SidebarItem 
+                className={activeTab === 'boards' ? 'active' : ''}
+                onClick={() => setActiveTab('boards')}
+              >
                 <ViewColumnIcon fontSize="small" />
                 Boards
               </SidebarItem>
-              <SidebarItem>
+              <SidebarItem
+                className={activeTab === 'templates' ? 'active' : ''}
+                onClick={() => setActiveTab('templates')}
+              >
                 <ListAltIcon fontSize="small" />
                 Templates
               </SidebarItem>
@@ -151,88 +210,154 @@ function Boards() {
           </Grid>
 
           <Grid xs={12} sm={9} md={10}>
-            <Typography variant="h4" sx={{ 
-              fontWeight: 700, 
-              mb: 3, 
-              color: 'text.primary',
-              display: 'inline-block'
-            }}>
-              Your boards
-            </Typography>
-
-            {/* Trường hợp gọi API nhưng không tồn tại cái board nào trong Database trả về */}
-            {boards?.length === 0 &&
-              <Box sx={{ 
-                textAlign: 'center', 
-                py: 10, 
-                px: 3,
-                borderRadius: '16px',
-                border: '1px dashed',
-                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'
+            <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'center' }}>
+              <Typography variant="h4" sx={{ 
+                fontWeight: 700, 
+                color: 'text.primary',
+                display: 'inline-block',
+                m: 0
               }}>
-                <ViewColumnIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
-                <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
-                  No boards found
-                </Typography>
-                <Typography sx={{ color: 'text.secondary', mb: 3 }}>
-                  Create a new board to get started with your projects.
-                </Typography>
-              </Box>
-            }
+                {activeTab === 'boards' ? 'Your boards' : 'Templates'}
+              </Typography>
 
-            {/* Trường hợp gọi API và có boards trong Database trả về thì render danh sách boards */}
-            {boards?.length > 0 &&
-              <Box sx={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(5, 1fr)', 
-                gap: 2.5 
-              }}>
-                {boards.map((b, index) =>
-                  <BoardCard 
-                    key={b._id} 
-                    board={b} 
-                    index={index}
-                    onBoardDeleted={onBoardDeleted}
-                    onBoardUpdated={onBoardUpdated}
-                  />
-                )}
-              </Box>
-            }
+              {activeTab === 'boards' && boards?.length > 0 && (
+                <Button 
+                  variant="outlined"
+                  size="small"
+                  startIcon={isBulkMode ? undefined : <ChecklistIcon />}
+                  onClick={() => {
+                    setIsBulkMode(!isBulkMode)
+                    setSelectedIds([])
+                  }}
+                  sx={{ 
+                    borderRadius: '8px', 
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 2,
+                    color: 'primary.main',
+                    borderColor: 'primary.main',
+                    borderWidth: '2px',
+                    '&:hover': { 
+                      borderColor: 'primary.dark', 
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.1)' : 'rgba(25, 118, 210, 0.05)',
+                      borderWidth: '2px'
+                    }
+                  }}
+                >
+                  {isBulkMode ? "Cancel" : "Select"}
+                </Button>
+              )}
 
-            {/* Trường hợp gọi API và có totalBoards trong Database trả về thì render khu vực phân trang  */}
-            {(totalBoards > 0) &&
-              <Box sx={{ my: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Pagination
-                  size="large"
-                  color="primary"
-                  showFirstButton
-                  showLastButton
-                  count={Math.ceil(totalBoards / DEFAULT_ITEMS_PER_PAGE)}
-                  page={page}
-                  renderItem={(item) => (
-                    <PaginationItem
-                      component={Link}
-                      to={`/boards${item.page === DEFAULT_PAGE ? '' : `?page=${item.page}`}`}
-                      {...item}
-                      sx={{
-                        borderRadius: '8px',
-                        '&.Mui-selected': {
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                          color: '#fff',
-                          fontWeight: 'bold',
-                          boxShadow: '0 4px 10px rgba(59,130,246,0.3)',
-                          border: 'none',
-                          '&:hover': {
-                            background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
-                          }
-                        }
-                      }}
+              {isBulkMode && selectedIds.length > 0 && (
+                <Button 
+                  variant="contained" 
+                  color="error" 
+                  size="small"
+                  startIcon={<DeleteIcon />} 
+                  onClick={handleBulkDelete}
+                  sx={{ borderRadius: '8px', textTransform: 'none', ml: 'auto' }}
+                >
+                  Delete {selectedIds.length} item(s)
+                </Button>
+              )}
+            </Box>
+
+            {/* TAB BOARDS */}
+            {activeTab === 'boards' && (
+              <>
+                {boards?.length === 0 &&
+                  <Box sx={{ 
+                    textAlign: 'center', 
+                    py: 10, 
+                    px: 3,
+                    borderRadius: '16px',
+                    border: '1px dashed',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'
+                  }}>
+                    <ViewColumnIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
+                      No boards found
+                    </Typography>
+                    <Typography sx={{ color: 'text.secondary', mb: 3 }}>
+                      Create a new board to get started with your projects.
+                    </Typography>
+                  </Box>
+                }
+
+                {boards?.length > 0 &&
+                  <Box sx={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(5, 1fr)', 
+                    gap: 2.5 
+                  }}>
+                    {boards.map((b, index) =>
+                      <BoardCard 
+                        key={b._id} 
+                        board={b} 
+                        index={index}
+                        onBoardDeleted={onBoardDeleted}
+                        onBoardUpdated={onBoardUpdated}
+                        isBulkMode={isBulkMode}
+                        isSelected={selectedIds.includes(b._id)}
+                        onSelect={() => handleSelectCard(b._id)}
+                      />
+                    )}
+                  </Box>
+                }
+
+                {(totalBoards > 0) &&
+                  <Box sx={{ my: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Pagination
+                      size="large"
+                      color="primary"
+                      showFirstButton
+                      showLastButton
+                      count={Math.ceil(totalBoards / DEFAULT_ITEMS_PER_PAGE)}
+                      page={page}
+                      renderItem={(item) => (
+                        <PaginationItem
+                          component={Link}
+                          to={`/boards${item.page === DEFAULT_PAGE ? '' : `?page=${item.page}`}`}
+                          {...item}
+                          sx={{
+                            borderRadius: '8px'
+                          }}
+                        />
+                      )}
                     />
-                  )}
-                />
-              </Box>
-            }
+                  </Box>
+                }
+              </>
+            )}
+
+            {/* TAB TEMPLATES */}
+            {activeTab === 'templates' && (
+              <>
+                {!templates ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                     <PageLoadingSpinner caption="Loading Templates..." />
+                  </Box>
+                ) : templates.length === 0 ? (
+                  <Typography>No templates available.</Typography>
+                ) : (
+                  <Box sx={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(5, 1fr)', 
+                    gap: 2.5 
+                  }}>
+                    {templates.map((t, index) =>
+                      <TemplateCard 
+                        key={t._id} 
+                        template={t} 
+                        index={index}
+                      />
+                    )}
+                  </Box>
+                )}
+              </>
+            )}
+
           </Grid>
         </Grid>
       </Box>

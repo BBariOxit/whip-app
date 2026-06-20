@@ -10,8 +10,15 @@ import CardActions from '@mui/material/CardActions'
 import CardContent from '@mui/material/CardContent'
 import CardMedia from '@mui/material/CardMedia'
 import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemText from '@mui/material/ListItemText'
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
+import DeleteIcon from '@mui/icons-material/Delete'
 import dayjs from 'dayjs'
-import React, { useMemo, useCallback } from 'react'
+import React, { useMemo, useCallback, useState } from 'react'
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -21,9 +28,13 @@ import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
 import Box from '@mui/material/Box'
 import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
 import { getCardActionGridStyles } from '~/utils/formatters'
+import { deleteCardAPI } from '~/apis'
+import { deleteCardOptimistic } from '~/redux/activeBoard/activeBoardSlice'
+import { useConfirm } from 'material-ui-confirm'
 
 function Card({ card }) {
   const dispatch = useDispatch()
+  const confirm = useConfirm()
   const boardLabels = useSelector((state) => selectCurrentActive(state)?.labels || [])
   const cardLabels = useMemo(
     () => boardLabels.filter(label => card?.labelIds?.includes(label._id)),
@@ -65,11 +76,41 @@ function Card({ card }) {
     dispatch(showModalActiveCard())
   }, [dispatch, card])
 
+  const [anchorEl, setAnchorEl] = useState(null)
+  const open = Boolean(anchorEl)
+
+  const handleOpenMenu = (e) => {
+    e.stopPropagation()
+    setAnchorEl(e.currentTarget)
+  }
+
+  const handleCloseMenu = (e) => {
+    if (e) e.stopPropagation()
+    setAnchorEl(null)
+  }
+
+  const handleDeleteCard = (e) => {
+    e.stopPropagation()
+    handleCloseMenu()
+    confirm({
+      title: 'Delete Card?',
+      description: 'This action will permanently delete this Card! Are you sure?',
+      confirmationText: 'Confirm',
+      cancellationText: 'Cancel'
+    }).then(() => {
+      // Gọi API xóa card
+      deleteCardAPI(card._id)
+      // Cập nhật Redux state ngay lập tức
+      dispatch(deleteCardOptimistic({ cardId: card._id, columnId: card.columnId }))
+    }).catch(() => {})
+  }
+
   return (
     <MuiCard
       onClick={setActiveCard}
       ref={setNodeRef} style={dndKitCardStyles} {...attributes} {...listeners}
       sx={{
+        position: 'relative',
         cursor: 'pointer',
         overflow: 'hidden',
         display: card?.FE_PlaceholderCard ? 'none' : 'block',
@@ -77,10 +118,69 @@ function Card({ card }) {
         flexShrink: 0, // Không cho card bị shrink khi list có nhiều card
         '&:hover': {
           borderColor: (theme) => theme.palette.primary.main
-        }
-        // overflow: card?.FE_PlaceholderCard ? 'hidden' : 'unset',
-        // height: card?.FE_PlaceholderCard ? 'none' : 'unset'
+        },
+        '&:hover .card-more-btn': { opacity: 1 }
       }}>
+      
+      {/* Nút 3 chấm */}
+      <IconButton
+        className="card-more-btn"
+        onClick={handleOpenMenu}
+        sx={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          width: 28,
+          height: 28,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: 0, // Mặc định ẩn
+          transition: 'opacity 0.15s ease',
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 39, 50, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+          color: 'text.secondary',
+          zIndex: 10,
+          '&:hover': { 
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#22272e' : '#f4f5f7', 
+            color: 'text.primary' 
+          }
+        }}
+        size="small"
+      >
+        <MoreHorizIcon fontSize="small" />
+      </IconButton>
+
+      {/* Menu thả xuống của Card */}
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleCloseMenu}
+        onClick={(e) => e.stopPropagation()} // Chặn click vùng trống menu làm mở Modal Card
+        MenuListProps={{
+          sx: { py: 0 } // Xóa khoảng trắng dư thừa trên dưới
+        }}
+        sx={{
+          '& .MuiPaper-root': {
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+            border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+            borderRadius: '8px',
+            mt: 0.5
+          }
+        }}
+      >
+        <MenuItem 
+          onClick={handleDeleteCard} 
+          sx={{ 
+            color: 'error.main',
+            py: 1.5,
+            '&:hover': { bgcolor: 'rgba(255,0,0,0.1)' } 
+          }}
+        >
+          <ListItemIcon sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Delete this card</ListItemText>
+        </MenuItem>
+      </Menu>
       {card?.cover &&
         <CardMedia sx={{ height: 140 }}image={card?.cover}/>
       }

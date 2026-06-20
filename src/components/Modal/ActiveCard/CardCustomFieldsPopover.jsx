@@ -17,7 +17,7 @@ import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectCurrentActive, addNewCustomField, updateCustomFieldOptimistic, deleteCustomFieldOptimistic } from '~/redux/activeBoard/activeBoardSlice'
 import { createCustomFieldAPI, updateCustomFieldAPI, deleteCustomFieldAPI } from '~/apis'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 
 function CardCustomFieldsPopover({ anchorEl, handleClose }) {
   const dispatch = useDispatch()

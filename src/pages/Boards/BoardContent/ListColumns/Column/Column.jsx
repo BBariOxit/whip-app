@@ -25,13 +25,13 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
 import { useConfirm } from 'material-ui-confirm'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 
 import { cloneDeep } from 'lodash-es'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
-import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI } from '~/apis'
-import { selectCurrentActive, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
+import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI } from '~/apis'
+import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic } from '~/redux/activeBoard/activeBoardSlice'
 
 
 function Column({ column }) {
@@ -164,6 +164,26 @@ function Column({ column }) {
     }
   }
 
+  const handleClearAllCards = async () => {
+    try {
+      await confirmDeleteColumn({
+        title: 'Clear all cards?',
+        description: 'This action will permanently delete all cards in this column! Are you sure?',
+        confirmationText: 'Confirm'
+      })
+
+      // Update UI immediately
+      dispatch(clearCardsInColumnOptimistic(column._id))
+
+      // Call API
+      clearAllCardsInColumnAPI(column._id).then(res => {
+        toast.success(res?.deleteResult)
+      })
+    } catch (error) {
+      console.log('Action cancelled')
+    }
+  }
+
   const onUpdateColumnTitle = (newTitle) => {
     // gọi api update column và xử lý dữ liệu board ở redux
     updateColumnDetailAPI(column._id, { title: newTitle }).then(() => {
@@ -269,6 +289,18 @@ function Column({ column }) {
 
               <Divider sx={{ my: 1, borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }} />
               
+              <MenuItem
+                onClick={handleClearAllCards}
+                disabled={!column?.cards?.length || (column?.cards?.length === 1 && column?.cards[0]?.FE_PlaceholderCard)}
+                sx={{
+                  color: 'warning.main',
+                  '&:hover': { bgcolor: 'rgba(237,108,2,0.1)' }
+                }}
+              >
+                <ListItemIcon><DeleteForeverIcon fontSize="small" sx={{ color: 'warning.main' }} /></ListItemIcon>
+                <ListItemText>Clear all cards</ListItemText>
+              </MenuItem>
+
               <MenuItem
                 onClick={handleDeleteColumn}
                 sx={{
