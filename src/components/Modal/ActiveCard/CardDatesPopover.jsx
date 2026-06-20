@@ -41,49 +41,102 @@ function CardDatesPopover({ anchorEl, handleClose, activeCard, onUpdateCardDates
       onClose={handleClose}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            overflow: 'hidden',
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundImage: 'none'
+          }
+        }
+      }}
     >
-      <Box sx={{ width: 340, p: 2 }}>
-        <Typography sx={{ fontWeight: 600, textAlign: 'center', mb: 1 }}>
-          Dates
+      <Box sx={{ width: 'auto', minWidth: 340, p: 2, bgcolor: 'background.paper' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'center', mb: 1.5, fontSize: '1.05rem', letterSpacing: '0.3px' }}>
+          Date & Time
         </Typography>
 
-        <Divider sx={{ mb: 1 }} />
+        <Divider sx={{ mb: 2, opacity: 0.6 }} />
 
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <StaticDateTimePicker
-            value={selectedDate}
-            onChange={(newValue) => {
-              if (newValue) setSelectedDate(newValue)
-            }}
-            slotProps={{
-              actionBar: { sx: { display: 'none' } }, // Ẩn action bar mặc định
-              toolbar: { sx: { display: 'none' } } // Ẩn toolbar mặc định
-            }}
-            sx={{
-              '& .MuiPickersLayout-root': { minWidth: 'unset' },
-              '& .MuiDateCalendar-root': { width: '100%' },
-              width: '100%',
-              minWidth: 'unset'
-            }}
-          />
+          <Box sx={{ 
+            bgcolor: 'background.default', 
+            borderRadius: 2, 
+            p: 1, 
+            mb: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            display: 'flex',
+            justifyContent: 'center'
+          }}>
+            <StaticDateTimePicker
+              value={selectedDate}
+              onChange={(newValue) => {
+                if (newValue) setSelectedDate(newValue)
+              }}
+              slotProps={{
+                actionBar: { sx: { display: 'none' } }, // Ẩn action bar mặc định
+                toolbar: { sx: { display: 'none' } } // Ẩn toolbar mặc định
+              }}
+              sx={{
+                '& .MuiPickersLayout-root': { minWidth: 'unset', bgcolor: 'transparent' },
+                '& .MuiPickersLayout-contentWrapper': { bgcolor: 'transparent', width: 320 },
+                '& .MuiTabs-root': { mb: 1, minHeight: '36px' },
+                '& .MuiTab-root': { minHeight: '36px', textTransform: 'none', fontWeight: 600 },
+                '& .MuiPickersCalendarHeader-root': { pt: 0, mt: 0 },
+                '& .MuiPickersArrowSwitcher-root': { p: 0 },
+                '& .MuiDayCalendar-header': { justifyContent: 'space-between', px: 1 },
+                '& .MuiDayCalendar-weekContainer': { justifyContent: 'space-between', px: 1 },
+                '& .MuiPickersDay-root': { fontSize: '0.875rem' },
+                '& .MuiClock-root': { margin: '0 auto' }
+              }}
+            />
+          </Box>
         </LocalizationProvider>
 
-        <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+        <Stack direction="row" spacing={1.5}>
           <Button
             variant="contained"
             color="primary"
             fullWidth
             onClick={handleSave}
-            sx={{ textTransform: 'none', fontWeight: 600 }}
+            disableElevation
+            sx={{ 
+              textTransform: 'none', 
+              fontWeight: 600, 
+              borderRadius: 2,
+              py: 1,
+              transition: 'all 0.2s',
+              '&:hover': {
+                transform: 'translateY(-1px)',
+                boxShadow: '0 4px 12px rgba(25, 118, 210, 0.4)'
+              }
+            }}
           >
             Save
           </Button>
           <Button
-            variant="contained"
+            variant="outlined"
             color="error"
             fullWidth
             onClick={handleRemove}
-            sx={{ textTransform: 'none', fontWeight: 600 }}
+            sx={{ 
+              textTransform: 'none', 
+              fontWeight: 600, 
+              borderRadius: 2,
+              py: 1,
+              borderWidth: '2px',
+              transition: 'all 0.2s',
+              '&:hover': {
+                borderWidth: '2px',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 4px 12px rgba(211, 47, 47, 0.2)',
+                bgcolor: 'error.50'
+              }
+            }}
           >
             Remove
           </Button>
@@ -94,3 +147,4 @@ function CardDatesPopover({ anchorEl, handleClose, activeCard, onUpdateCardDates
 }
 
 export default CardDatesPopover
+

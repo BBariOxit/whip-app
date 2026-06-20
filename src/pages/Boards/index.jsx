@@ -20,8 +20,9 @@ import PaginationItem from '@mui/material/PaginationItem'
 import { Link, useLocation } from 'react-router-dom'
 import CardActionArea from '@mui/material/CardActionArea'
 import SidebarCreateBoardModal from './create'
-import { fetchBoardsAPI } from '~/apis'
+import { fetchBoardsAPI, fetchTemplatesAPI } from '~/apis'
 import { BoardCard } from './BoardCard'
+import { TemplateCard } from './TemplateCard'
 import { API_ROOT, DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
 
 import { styled } from '@mui/material/styles'
@@ -82,6 +83,10 @@ function Boards() {
    */
   const page = parseInt(query.get('page') || '1', 10)
 
+  // Tab State
+  const [activeTab, setActiveTab] = useState('boards') // 'boards' or 'templates'
+  const [templates, setTemplates] = useState(null)
+
   const updateStateData = (res) => {
     setBoards(res.boards || [])
     setTotalBoards(res.totalBoards || 0)
@@ -100,8 +105,16 @@ function Boards() {
     // theo đúng page mới vì cái location.search đã nằm trong dependencies của useEffect
 
     // Gọi API lấy danh sách boards ở đây...
-    fetchBoardsAPI(location.search).then(updateStateData)
-  }, [location.search])
+    if (activeTab === 'boards') {
+      fetchBoardsAPI(location.search).then(updateStateData)
+    }
+  }, [location.search, activeTab])
+
+  useEffect(() => {
+    if (activeTab === 'templates' && !templates) {
+      fetchTemplatesAPI().then(res => setTemplates(res))
+    }
+  }, [activeTab])
 
   const afterCreateNewBoard = () => {
     // fetch lai danh sach board trong useEffect
@@ -131,11 +144,17 @@ function Boards() {
         <Grid container spacing={2}>
           <Grid xs={12} sm={3} md={2}>
             <Stack direction="column" spacing={1}>
-              <SidebarItem className="active">
+              <SidebarItem 
+                className={activeTab === 'boards' ? 'active' : ''}
+                onClick={() => setActiveTab('boards')}
+              >
                 <ViewColumnIcon fontSize="small" />
                 Boards
               </SidebarItem>
-              <SidebarItem>
+              <SidebarItem
+                className={activeTab === 'templates' ? 'active' : ''}
+                onClick={() => setActiveTab('templates')}
+              >
                 <ListAltIcon fontSize="small" />
                 Templates
               </SidebarItem>
@@ -157,82 +176,112 @@ function Boards() {
               color: 'text.primary',
               display: 'inline-block'
             }}>
-              Your boards
+              {activeTab === 'boards' ? 'Your boards' : 'Templates'}
             </Typography>
 
-            {/* Trường hợp gọi API nhưng không tồn tại cái board nào trong Database trả về */}
-            {boards?.length === 0 &&
-              <Box sx={{ 
-                textAlign: 'center', 
-                py: 10, 
-                px: 3,
-                borderRadius: '16px',
-                border: '1px dashed',
-                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'
-              }}>
-                <ViewColumnIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
-                <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
-                  No boards found
-                </Typography>
-                <Typography sx={{ color: 'text.secondary', mb: 3 }}>
-                  Create a new board to get started with your projects.
-                </Typography>
-              </Box>
-            }
+            {/* TAB BOARDS */}
+            {activeTab === 'boards' && (
+              <>
+                {boards?.length === 0 &&
+                  <Box sx={{ 
+                    textAlign: 'center', 
+                    py: 10, 
+                    px: 3,
+                    borderRadius: '16px',
+                    border: '1px dashed',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'
+                  }}>
+                    <ViewColumnIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
+                      No boards found
+                    </Typography>
+                    <Typography sx={{ color: 'text.secondary', mb: 3 }}>
+                      Create a new board to get started with your projects.
+                    </Typography>
+                  </Box>
+                }
 
-            {/* Trường hợp gọi API và có boards trong Database trả về thì render danh sách boards */}
-            {boards?.length > 0 &&
-              <Box sx={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(5, 1fr)', 
-                gap: 2.5 
-              }}>
-                {boards.map((b, index) =>
-                  <BoardCard 
-                    key={b._id} 
-                    board={b} 
-                    index={index}
-                    onBoardDeleted={onBoardDeleted}
-                    onBoardUpdated={onBoardUpdated}
-                  />
-                )}
-              </Box>
-            }
+                {boards?.length > 0 &&
+                  <Box sx={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(5, 1fr)', 
+                    gap: 2.5 
+                  }}>
+                    {boards.map((b, index) =>
+                      <BoardCard 
+                        key={b._id} 
+                        board={b} 
+                        index={index}
+                        onBoardDeleted={onBoardDeleted}
+                        onBoardUpdated={onBoardUpdated}
+                      />
+                    )}
+                  </Box>
+                }
 
-            {/* Trường hợp gọi API và có totalBoards trong Database trả về thì render khu vực phân trang  */}
-            {(totalBoards > 0) &&
-              <Box sx={{ my: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Pagination
-                  size="large"
-                  color="primary"
-                  showFirstButton
-                  showLastButton
-                  count={Math.ceil(totalBoards / DEFAULT_ITEMS_PER_PAGE)}
-                  page={page}
-                  renderItem={(item) => (
-                    <PaginationItem
-                      component={Link}
-                      to={`/boards${item.page === DEFAULT_PAGE ? '' : `?page=${item.page}`}`}
-                      {...item}
-                      sx={{
-                        borderRadius: '8px',
-                        '&.Mui-selected': {
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                          color: '#fff',
-                          fontWeight: 'bold',
-                          boxShadow: '0 4px 10px rgba(59,130,246,0.3)',
-                          border: 'none',
-                          '&:hover': {
-                            background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
-                          }
-                        }
-                      }}
+                {(totalBoards > 0) &&
+                  <Box sx={{ my: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Pagination
+                      size="large"
+                      color="primary"
+                      showFirstButton
+                      showLastButton
+                      count={Math.ceil(totalBoards / DEFAULT_ITEMS_PER_PAGE)}
+                      page={page}
+                      renderItem={(item) => (
+                        <PaginationItem
+                          component={Link}
+                          to={`/boards${item.page === DEFAULT_PAGE ? '' : `?page=${item.page}`}`}
+                          {...item}
+                          sx={{
+                            borderRadius: '8px',
+                            '&.Mui-selected': {
+                              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                              color: '#fff',
+                              fontWeight: 'bold',
+                              boxShadow: '0 4px 10px rgba(59,130,246,0.3)',
+                              border: 'none',
+                              '&:hover': {
+                                background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
+                              }
+                            }
+                          }}
+                        />
+                      )}
                     />
-                  )}
-                />
-              </Box>
-            }
+                  </Box>
+                }
+              </>
+            )}
+
+            {/* TAB TEMPLATES */}
+            {activeTab === 'templates' && (
+              <>
+                {!templates ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                     <PageLoadingSpinner caption="Loading Templates..." />
+                  </Box>
+                ) : templates.length === 0 ? (
+                  <Typography>No templates available.</Typography>
+                ) : (
+                  <Box sx={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(5, 1fr)', 
+                    gap: 2.5 
+                  }}>
+                    {templates.map((t, index) =>
+                      <TemplateCard 
+                        key={t._id} 
+                        template={t} 
+                        index={index}
+                      />
+                    )}
+                  </Box>
+                )}
+              </>
+            )}
+
           </Grid>
         </Grid>
       </Box>
