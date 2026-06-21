@@ -105,6 +105,8 @@ function Card({ card }) {
     }).catch(() => {})
   }
 
+  const size = card?.size || 'detailed'
+
   return (
     <MuiCard
       onClick={setActiveCard}
@@ -181,11 +183,11 @@ function Card({ card }) {
           <ListItemText>Delete this card</ListItemText>
         </MenuItem>
       </Menu>
-      {card?.cover &&
+      {size === 'detailed' && card?.cover &&
         <CardMedia sx={{ height: 140 }}image={card?.cover}/>
       }
-      <CardContent sx={{ p: 1.5, '&:last-child': { p: 1.5 } }}>
-        {!!cardLabels.length &&
+      <CardContent sx={{ p: size === 'compact' ? 1 : 1.5, '&:last-child': { p: size === 'compact' ? 1 : 1.5 } }}>
+        {size !== 'compact' && !!cardLabels.length &&
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.5, mb: 1 }}>
             {cardLabels.map(label => (
               <Box key={label._id} sx={{
@@ -198,7 +200,7 @@ function Card({ card }) {
         }
         <Typography>{card?.title}</Typography>
       </CardContent>
-      {showCardAction() &&
+      {size !== 'compact' && showCardAction() &&
         <CardActions sx={{ 
           p: '0 8px 8px 8px', 
           display: 'flex',
@@ -241,7 +243,7 @@ function Card({ card }) {
             }
           </Box>
           {/* Container cho các custom fields */}
-          {!!card?.customFieldValues?.length && (
+          {size === 'detailed' && !!card?.customFieldValues?.length && (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, width: '100%' }}>
               {card.customFieldValues.map(cfv => {
                 if (!cfv.value && typeof cfv.value !== 'boolean') return null
