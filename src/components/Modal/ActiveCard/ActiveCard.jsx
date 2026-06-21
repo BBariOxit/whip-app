@@ -52,6 +52,7 @@ import CardChecklistPopover from './CardChecklistPopover'
 import CardChecklistSection from './CardChecklistSection'
 import CardCustomFieldsPopover from './CardCustomFieldsPopover'
 import CardCustomFieldsSection from './CardCustomFieldsSection'
+import CardLayoutPopover from './CardLayoutPopover'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 
@@ -90,6 +91,7 @@ function ActiveCard() {
   const [anchorElDates, setAnchorElDates] = useState(null)
   const [anchorElChecklist, setAnchorElChecklist] = useState(null)
   const [anchorElCustomFields, setAnchorElCustomFields] = useState(null)
+  const [anchorElCardLayout, setAnchorElCardLayout] = useState(null)
   
   const boardLabels = board?.labels || []
   const cardLabels = boardLabels.filter(label => activeCard?.labelIds?.includes(label._id))
@@ -161,6 +163,10 @@ function ActiveCard() {
 
   const onUpdateCardCustomFields = (newCustomFieldValues) => {
     callApiUpdateCard({ customFieldValues: newCustomFieldValues })
+  }
+
+  const onUpdateCardLayout = (newLayout) => {
+    callApiUpdateCard({ layout: newLayout })
   }
 
   // ===== CHECKLIST HANDLERS =====
@@ -460,7 +466,15 @@ function ActiveCard() {
 
             <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Power-Ups</Typography>
             <Stack direction="column" spacing={1}>
-              <SidebarItem><AspectRatioOutlinedIcon fontSize="small" />Card Size</SidebarItem>
+              <SidebarItem className="active" onClick={(e) => setAnchorElCardLayout(e.currentTarget)}>
+                <AspectRatioOutlinedIcon fontSize="small" />Card Layout
+              </SidebarItem>
+              <CardLayoutPopover
+                anchorEl={anchorElCardLayout}
+                handleClose={() => setAnchorElCardLayout(null)}
+                activeCard={activeCard}
+                onUpdateCardLayout={onUpdateCardLayout}
+              />
               <SidebarItem><AddToDriveOutlinedIcon fontSize="small" />Google Drive</SidebarItem>
               <SidebarItem><AddOutlinedIcon fontSize="small" />Add Power-Ups</SidebarItem>
             </Stack>

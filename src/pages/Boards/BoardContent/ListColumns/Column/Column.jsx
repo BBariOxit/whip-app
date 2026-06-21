@@ -8,6 +8,9 @@ import ContentPaste from '@mui/icons-material/ContentPaste'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import DragHandleIcon from '@mui/icons-material/DragHandle'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import AspectRatioIcon from '@mui/icons-material/AspectRatio'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import CheckIcon from '@mui/icons-material/Check'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
@@ -30,7 +33,7 @@ import { toast } from 'sonner'
 import { cloneDeep } from 'lodash-es'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
-import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI } from '~/apis'
+import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI } from '~/apis'
 import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic } from '~/redux/activeBoard/activeBoardSlice'
 
 
@@ -57,8 +60,19 @@ function Column({ column }) {
 
   const [anchorEl, setAnchorEl] = React.useState(null)
   const open = Boolean(anchorEl)
+  
+  const [subMenuAnchorEl, setSubMenuAnchorEl] = React.useState(null)
+  const subMenuOpen = Boolean(subMenuAnchorEl)
+
   const handleClick = (event) => { setAnchorEl(event.currentTarget)}
-  const handleClose = () => {setAnchorEl(null)}
+  
+  const handleOpenSubMenu = (e) => setSubMenuAnchorEl(e.currentTarget)
+  const handleCloseSubMenu = () => setSubMenuAnchorEl(null)
+  
+  const handleCloseAll = () => {
+    setSubMenuAnchorEl(null)
+    setAnchorEl(null)
+  }
 
   // cards đã được sắp xếp ở comp cha cao nhất
   const orderedCards = column.cards
@@ -197,6 +211,27 @@ function Column({ column }) {
     })
   }
 
+  const handleUpdateColumnCardsLayout = async (layout) => {
+    try {
+      await updateColumnCardsLayoutAPI(column._id, layout)
+      
+      const newBoard = cloneDeep(board)
+      const targetColumn = newBoard.columns.find(c => c._id === column._id)
+      if (targetColumn) {
+        targetColumn.cards = targetColumn.cards.map(card => ({
+          ...card,
+          layout: layout
+        }))
+      }
+      
+      dispatch(updateCurrentActiveBoard(newBoard))
+      toast.success('Successfully updated column cards layout!')
+      handleCloseAll()
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   return (
     //phải bọc div ở đây vì vấn đề chiều cao của column khi kéo thả sẽ có bug kiểu flickering
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
@@ -250,8 +285,13 @@ function Column({ column }) {
               id="basic-menu-column-dropdown"
               anchorEl={anchorEl}
               open={open}
-              onClose={handleClose}
-              onClick={handleClose}
+              onClose={handleCloseAll}
+              onClick={(e) => {
+                // Prevent closing menu when clicking the submenu trigger
+                if (!e.target.closest('#submenu-trigger')) {
+                  handleCloseAll()
+                }
+              }}
               MenuListProps={{
                 'aria-labelledby': 'basic-column-dropdown',
                 sx: { py: 1 }
@@ -290,6 +330,18 @@ function Column({ column }) {
               <Divider sx={{ my: 1, borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }} />
               
               <MenuItem
+                id="submenu-trigger"
+                onClick={handleOpenSubMenu}
+                sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
+              >
+                <ListItemIcon><AspectRatioIcon fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
+                <ListItemText>Card Layout</ListItemText>
+                <ChevronRightIcon fontSize="small" sx={{ color: 'text.secondary', ml: 2 }} />
+              </MenuItem>
+
+              <Divider sx={{ my: 1, borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }} />
+
+              <MenuItem
                 onClick={handleClearAllCards}
                 disabled={!column?.cards?.length || (column?.cards?.length === 1 && column?.cards[0]?.FE_PlaceholderCard)}
                 sx={{
@@ -316,6 +368,40 @@ function Column({ column }) {
                 <ListItemText>Archive this column</ListItemText>
               </MenuItem>
             </Menu>
+
+            {/* Submenu for Cards Layout */}
+            <Menu
+              anchorEl={subMenuAnchorEl}
+              open={subMenuOpen}
+              onClose={handleCloseSubMenu}
+              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+              MenuListProps={{
+                sx: { p: 0 }
+              }}
+              sx={{
+                '& .MuiPaper-root': {
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+                  border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                  borderRadius: '10px',
+                  mt: -1,
+                  ml: 1,
+                  minWidth: 200
+                }
+              }}
+            >
+              <MenuItem onClick={() => handleUpdateColumnCardsLayout('compact')} sx={{ py: 1, px: 2, display: 'flex', alignItems: 'center' }}>
+                <ListItemText primary="Compact" secondary="Title only" primaryTypographyProps={{ fontSize: 14 }} secondaryTypographyProps={{ fontSize: 12 }} />
+              </MenuItem>
+              <MenuItem onClick={() => handleUpdateColumnCardsLayout('standard')} sx={{ py: 1, px: 2, display: 'flex', alignItems: 'center' }}>
+                <ListItemText primary="Standard" secondary="Title, labels, badges" primaryTypographyProps={{ fontSize: 14 }} secondaryTypographyProps={{ fontSize: 12 }} />
+              </MenuItem>
+              <MenuItem onClick={() => handleUpdateColumnCardsLayout('detailed')} sx={{ py: 1, px: 2, display: 'flex', alignItems: 'center' }}>
+                <ListItemText primary="Detailed" secondary="Cover, custom fields, etc." primaryTypographyProps={{ fontSize: 14 }} secondaryTypographyProps={{ fontSize: 12 }} />
+              </MenuItem>
+            </Menu>
+
           </Box>
         </Box>
         {/* ListCard */}
