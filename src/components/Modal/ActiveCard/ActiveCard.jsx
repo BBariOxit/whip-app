@@ -52,7 +52,7 @@ import CardChecklistPopover from './CardChecklistPopover'
 import CardChecklistSection from './CardChecklistSection'
 import CardCustomFieldsPopover from './CardCustomFieldsPopover'
 import CardCustomFieldsSection from './CardCustomFieldsSection'
-import CardSizePopover from './CardSizePopover'
+import CardLayoutPopover from './CardLayoutPopover'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 
@@ -91,7 +91,7 @@ function ActiveCard() {
   const [anchorElDates, setAnchorElDates] = useState(null)
   const [anchorElChecklist, setAnchorElChecklist] = useState(null)
   const [anchorElCustomFields, setAnchorElCustomFields] = useState(null)
-  const [anchorElCardSize, setAnchorElCardSize] = useState(null)
+  const [anchorElCardLayout, setAnchorElCardLayout] = useState(null)
   
   const boardLabels = board?.labels || []
   const cardLabels = boardLabels.filter(label => activeCard?.labelIds?.includes(label._id))
@@ -165,8 +165,8 @@ function ActiveCard() {
     callApiUpdateCard({ customFieldValues: newCustomFieldValues })
   }
 
-  const onUpdateCardSize = (newSize) => {
-    callApiUpdateCard({ size: newSize })
+  const onUpdateCardLayout = (newLayout) => {
+    callApiUpdateCard({ layout: newLayout })
   }
 
   // ===== CHECKLIST HANDLERS =====
@@ -466,14 +466,14 @@ function ActiveCard() {
 
             <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Power-Ups</Typography>
             <Stack direction="column" spacing={1}>
-              <SidebarItem className="active" onClick={(e) => setAnchorElCardSize(e.currentTarget)}>
-                <AspectRatioOutlinedIcon fontSize="small" />Card Size
+              <SidebarItem className="active" onClick={(e) => setAnchorElCardLayout(e.currentTarget)}>
+                <AspectRatioOutlinedIcon fontSize="small" />Card Layout
               </SidebarItem>
-              <CardSizePopover
-                anchorEl={anchorElCardSize}
-                handleClose={() => setAnchorElCardSize(null)}
+              <CardLayoutPopover
+                anchorEl={anchorElCardLayout}
+                handleClose={() => setAnchorElCardLayout(null)}
                 activeCard={activeCard}
-                onUpdateCardSize={onUpdateCardSize}
+                onUpdateCardLayout={onUpdateCardLayout}
               />
               <SidebarItem><AddToDriveOutlinedIcon fontSize="small" />Google Drive</SidebarItem>
               <SidebarItem><AddOutlinedIcon fontSize="small" />Add Power-Ups</SidebarItem>

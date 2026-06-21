@@ -8,16 +8,16 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import CheckIcon from '@mui/icons-material/Check'
 
-function CardSizePopover({ anchorEl, handleClose, activeCard, onUpdateCardSize }) {
-  const currentSize = activeCard?.size || 'detailed'
+function CardLayoutPopover({ anchorEl, handleClose, activeCard, onUpdateCardLayout }) {
+  const currentLayout = activeCard?.layout || 'detailed'
 
-  const handleSelectSize = (size) => {
-    onUpdateCardSize(size)
+  const handleSelectLayout = (layout) => {
+    onUpdateCardLayout(layout)
     handleClose()
   }
 
   const open = Boolean(anchorEl)
-  const id = open ? 'card-size-popover' : undefined
+  const id = open ? 'card-layout-popover' : undefined
 
   return (
     <Popover
@@ -40,21 +40,21 @@ function CardSizePopover({ anchorEl, handleClose, activeCard, onUpdateCardSize }
     >
       <Box sx={{ width: 230 }}>
         <MenuList sx={{ p: 0 }}>
-          <MenuItem onClick={() => handleSelectSize('compact')} sx={{ py: 1, pl: 2, pr: 4, display: 'flex', alignItems: 'center', position: 'relative' }}>
+          <MenuItem onClick={() => handleSelectLayout('compact')} sx={{ py: 1, pl: 2, pr: 4, display: 'flex', alignItems: 'center', position: 'relative' }}>
             <ListItemText primary="Compact" secondary="Title only" primaryTypographyProps={{ fontSize: 14 }} secondaryTypographyProps={{ fontSize: 12 }} />
-            {currentSize === 'compact' && (
+            {currentLayout === 'compact' && (
               <CheckIcon fontSize="small" color="primary" sx={{ stroke: 'currentColor', strokeWidth: 1, position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }} />
             )}
           </MenuItem>
-          <MenuItem onClick={() => handleSelectSize('standard')} sx={{ py: 1, pl: 2, pr: 4, display: 'flex', alignItems: 'center', position: 'relative' }}>
+          <MenuItem onClick={() => handleSelectLayout('standard')} sx={{ py: 1, pl: 2, pr: 4, display: 'flex', alignItems: 'center', position: 'relative' }}>
             <ListItemText primary="Standard" secondary="Title, labels, badges" primaryTypographyProps={{ fontSize: 14 }} secondaryTypographyProps={{ fontSize: 12 }} />
-            {currentSize === 'standard' && (
+            {currentLayout === 'standard' && (
               <CheckIcon fontSize="small" color="primary" sx={{ stroke: 'currentColor', strokeWidth: 1, position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }} />
             )}
           </MenuItem>
-          <MenuItem onClick={() => handleSelectSize('detailed')} sx={{ py: 1, pl: 2, pr: 4, display: 'flex', alignItems: 'center', position: 'relative' }}>
+          <MenuItem onClick={() => handleSelectLayout('detailed')} sx={{ py: 1, pl: 2, pr: 4, display: 'flex', alignItems: 'center', position: 'relative' }}>
             <ListItemText primary="Detailed" secondary="Cover, custom fields, etc." primaryTypographyProps={{ fontSize: 14 }} secondaryTypographyProps={{ fontSize: 12 }} />
-            {currentSize === 'detailed' && (
+            {currentLayout === 'detailed' && (
               <CheckIcon fontSize="small" color="primary" sx={{ stroke: 'currentColor', strokeWidth: 1, position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }} />
             )}
           </MenuItem>
@@ -64,4 +64,4 @@ function CardSizePopover({ anchorEl, handleClose, activeCard, onUpdateCardSize }
   )
 }
 
-export default CardSizePopover
+export default CardLayoutPopover
