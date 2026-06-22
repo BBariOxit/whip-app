@@ -27,6 +27,7 @@ import dayjs from 'dayjs'
 
 import React, { useState } from 'react'
 import { styled } from '@mui/material/styles'
+import { useConfirm } from 'material-ui-confirm'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'sonner'
 import { updateCardDetailsAPI, uploadCardAttachmentAPI, deleteCardAttachmentAPI, archiveCardAPI } from '~/apis'
@@ -87,6 +88,7 @@ function ActiveCard() {
   const isShowModalActiveCard = useSelector(selectIsShowModalActiveCard) 
   const currentUser = useSelector(selectCurrentUser)
   const board = useSelector(selectCurrentActive)
+  const confirmArchiveCard = useConfirm()
   const [anchorElLabels, setAnchorElLabels] = useState(null)
   const [anchorElDates, setAnchorElDates] = useState(null)
   const [anchorElChecklist, setAnchorElChecklist] = useState(null)
@@ -222,27 +224,33 @@ function ActiveCard() {
   }
 
   // ===== ARCHIVE HANDLER =====
-  const onArchiveCard = async () => {
-    if (!window.confirm('Are you sure you want to archive this card?')) return
+  const onArchiveCard = () => {
+    confirmArchiveCard({
+      title: 'Archive this card?',
+      description: 'This card will be archived. You can restore it later.',
+      confirmationText: 'Archive',
+      confirmationButtonProps: { color: 'warning', variant: 'outlined' }
+    }).then(() => {
+      const cardId = activeCard._id
+      const columnId = activeCard.columnId
 
-    const cardId = activeCard._id
-    const columnId = activeCard.columnId
+      // Optimistic update: remove card from board UI instantly
+      dispatch(deleteCardOptimistic({ cardId, columnId }))
 
-    // Optimistic update: remove card from board UI instantly
-    dispatch(deleteCardOptimistic({ cardId, columnId }))
+      // Close modal
+      dispatch(clearAndHideCurrentActiveCard())
 
-    // Close modal
-    dispatch(clearAndHideCurrentActiveCard())
-
-    // Call API
-    try {
-      await archiveCardAPI(cardId)
-      toast.success('Card has been archived!')
-    } catch (error) {
-      toast.error('Failed to archive card!')
-      // Reload board to restore state if API fails
-      dispatch(fetchBoardDetailAPI(board._id))
-    }
+      // Call API
+      archiveCardAPI(cardId).then(() => {
+        toast.success('Card has been archived!')
+      }).catch(() => {
+        toast.error('Failed to archive card!')
+        // Reload board to restore state if API fails
+        dispatch(fetchBoardDetailAPI(board._id))
+      })
+    }).catch(() => {
+      // Do nothing on cancel
+    })
   }
 
   return (

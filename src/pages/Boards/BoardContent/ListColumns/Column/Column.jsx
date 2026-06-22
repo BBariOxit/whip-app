@@ -127,6 +127,7 @@ function Column({ column }) {
   // xử lý xóa 1 column và cards bên trong nó
   const confirmDeleteColumn = useConfirm()
   const handleDeleteColumn = async () => {
+    handleCloseAll()
     try {
       // Đợi người dùng nhấn xác nhận
       await confirmDeleteColumn({
@@ -179,6 +180,7 @@ function Column({ column }) {
   }
 
   const handleClearAllCards = async () => {
+    handleCloseAll()
     try {
       await confirmDeleteColumn({
         title: 'Clear all cards?',
@@ -232,14 +234,14 @@ function Column({ column }) {
     }
   }
 
-  const handleArchiveColumn = async () => {
-    try {
-      await confirmDeleteColumn({
-        title: 'Archive this column?',
-        description: 'This column and all its cards will be archived. You can restore them later.',
-        confirmationText: 'Archive'
-      })
-
+  const handleArchiveColumn = () => {
+    handleCloseAll()
+    confirmDeleteColumn({
+      title: 'Archive this column?',
+      description: 'This column and all its cards will be archived. You can restore them later.',
+      confirmationText: 'Archive',
+      confirmationButtonProps: { color: 'warning', variant: 'outlined' }
+    }).then(() => {
       // Optimistic update: remove column from board UI
       const newBoard = { ...board }
       newBoard.columns = newBoard.columns.filter(c => c._id !== column._id)
@@ -253,9 +255,9 @@ function Column({ column }) {
         toast.error('Failed to archive column!')
         dispatch(fetchBoardDetailAPI(board._id))
       })
-    } catch (error) {
+    }).catch(() => {
       console.log('Archive cancelled')
-    }
+    })
   }
 
   return (

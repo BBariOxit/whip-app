@@ -19,6 +19,11 @@ export const fetchBoardDetailAPI = async (boardId) => {
   return response.data
 }
 
+export const getArchivedItemsAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/${boardId}/archived-items`)
+  return response.data
+}
+
 export const updateBoardDetailAPI = async (boardId, updateData) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/boards/${boardId}`, updateData)
   return response.data
@@ -72,6 +77,11 @@ export const archiveColumnAPI = async (columnId) => {
   return response.data
 }
 
+export const restoreColumnAPI = async (columnId) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/columns/${columnId}/restore`)
+  return response.data
+}
+
 // cards
 export const createNewCardAPI = async (newCardData) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards`, newCardData)
@@ -85,6 +95,11 @@ export const deleteCardAPI = async (cardId) => {
 
 export const archiveCardAPI = async (cardId) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/cards/${cardId}/archive`)
+  return response.data
+}
+
+export const restoreCardAPI = async (cardId) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/cards/${cardId}/restore`)
   return response.data
 }
 
