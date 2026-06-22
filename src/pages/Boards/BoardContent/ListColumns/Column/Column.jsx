@@ -33,8 +33,8 @@ import { toast } from 'sonner'
 import { cloneDeep } from 'lodash-es'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
-import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI } from '~/apis'
-import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic } from '~/redux/activeBoard/activeBoardSlice'
+import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI } from '~/apis'
+import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
 
 
 function Column({ column }) {
@@ -232,6 +232,32 @@ function Column({ column }) {
     }
   }
 
+  const handleArchiveColumn = async () => {
+    try {
+      await confirmDeleteColumn({
+        title: 'Archive this column?',
+        description: 'This column and all its cards will be archived. You can restore them later.',
+        confirmationText: 'Archive'
+      })
+
+      // Optimistic update: remove column from board UI
+      const newBoard = { ...board }
+      newBoard.columns = newBoard.columns.filter(c => c._id !== column._id)
+      newBoard.columnOrderIds = newBoard.columnOrderIds.filter(_id => _id !== column._id)
+      dispatch(updateCurrentActiveBoard(newBoard))
+
+      // Call API
+      archiveColumnAPI(column._id).then(res => {
+        toast.success(res?.archiveResult)
+      }).catch(() => {
+        toast.error('Failed to archive column!')
+        dispatch(fetchBoardDetailAPI(board._id))
+      })
+    } catch (error) {
+      console.log('Archive cancelled')
+    }
+  }
+
   return (
     //phải bọc div ở đây vì vấn đề chiều cao của column khi kéo thả sẽ có bug kiểu flickering
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
@@ -363,7 +389,10 @@ function Column({ column }) {
                 <ListItemIcon><DeleteForeverIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
                 <ListItemText>Delete this column</ListItemText>
               </MenuItem>
-              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
+              <MenuItem
+                onClick={handleArchiveColumn}
+                sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
+              >
                 <ListItemIcon><Cloud fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Archive this column</ListItemText>
               </MenuItem>

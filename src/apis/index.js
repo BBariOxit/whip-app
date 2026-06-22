@@ -67,6 +67,11 @@ export const updateColumnCardsLayoutAPI = async (columnId, newLayout) => {
   return response.data
 }
 
+export const archiveColumnAPI = async (columnId) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/columns/${columnId}/archive`)
+  return response.data
+}
+
 // cards
 export const createNewCardAPI = async (newCardData) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards`, newCardData)
