@@ -181,6 +181,8 @@ function Card({ card }) {
         open={open}
         onClose={handleCloseMenu}
         onClick={(e) => e.stopPropagation()} // Chặn click vùng trống menu làm mở Modal Card
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         MenuListProps={{
           sx: { py: 0 } // Xóa khoảng trắng dư thừa trên dưới
         }}
@@ -189,15 +191,14 @@ function Card({ card }) {
             bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
             border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
             boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-            borderRadius: '8px',
-            mt: 0.5
+            borderRadius: '8px'
           }
         }}
       >
         <MenuItem 
           onClick={handleArchiveCard} 
           sx={{ 
-            py: 1.5,
+            py: 1,
             '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } 
           }}
         >
@@ -208,7 +209,7 @@ function Card({ card }) {
           onClick={handleDeleteCard} 
           sx={{ 
             color: 'error.main',
-            py: 1.5,
+            py: 1,
             '&:hover': { bgcolor: 'rgba(255,0,0,0.1)' } 
           }}
         >

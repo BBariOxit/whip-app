@@ -98,8 +98,8 @@ export const archiveCardAPI = async (cardId) => {
   return response.data
 }
 
-export const restoreCardAPI = async (cardId) => {
-  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/cards/${cardId}/restore`)
+export const restoreCardAPI = async (cardId, data = {}) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/cards/${cardId}/restore`, data)
   return response.data
 }
 

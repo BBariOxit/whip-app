@@ -68,6 +68,7 @@ function BoardUserGroup({ boardUsers = [], limit = 6 }) {
         anchorEl={anchorPopoverElement}
         onClose={handleTogglePopover}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         sx={{
           '& .MuiPaper-root': {
             bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',

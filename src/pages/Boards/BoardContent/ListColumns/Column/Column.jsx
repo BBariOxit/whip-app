@@ -320,6 +320,8 @@ function Column({ column }) {
                   handleCloseAll()
                 }
               }}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               MenuListProps={{
                 'aria-labelledby': 'basic-column-dropdown',
                 sx: { py: 1 }
@@ -330,7 +332,6 @@ function Column({ column }) {
                   border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                   borderRadius: '10px',
-                  mt: 1,
                   minWidth: 220
                 }
               }}
@@ -416,8 +417,6 @@ function Column({ column }) {
                   border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                   borderRadius: '10px',
-                  mt: -1,
-                  ml: 1,
                   minWidth: 200
                 }
               }}

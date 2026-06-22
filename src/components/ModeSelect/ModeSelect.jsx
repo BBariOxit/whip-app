@@ -37,6 +37,8 @@ function ModeSelect() {
           label="mode"
           onChange={handleChange}
           MenuProps={{
+            anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+            transformOrigin: { vertical: 'top', horizontal: 'left' },
             sx: {
               '& .MuiPaper-root': {
                 bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',

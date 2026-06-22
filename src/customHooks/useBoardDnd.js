@@ -1,5 +1,6 @@
 import {
   closestCorners,
+  closestCenter,
   defaultDropAnimationSideEffects,
   getFirstCollision,
   pointerWithin,
@@ -208,7 +209,7 @@ export const useBoardDnd = (initialColumns, {
       const overContainer = args.droppableContainers.find(c => c.id === overId)
       const checkColumn = overContainer?.data?.current?.cardOrderIds ? overContainer?.data?.current : undefined
       if (checkColumn) {
-        overId = closestCorners({
+        overId = closestCenter({
           ...args,
           droppableContainers: args.droppableContainers.filter(container => {
             return (container.id !== overId) && (checkColumn?.cardOrderIds?.includes(container.id))
