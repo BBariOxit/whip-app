@@ -78,9 +78,6 @@ function BoardBar({ board }) {
           label="Filters"
           clickable
         />
-      </Box>
-
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Chip
           sx={MENU_STYLE}
           icon={<ArchiveIcon />}
@@ -88,6 +85,9 @@ function BoardBar({ board }) {
           clickable
           onClick={() => setIsArchivedDrawerOpen(true)}
         />
+      </Box>
+
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         {/* xử lý cho phép chủ sở hữu board mời thành viên khác vào board */}
         <InviteBoardUser boardId={board._id} />
 

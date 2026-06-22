@@ -32,6 +32,14 @@ function ArchivedItemsDrawer({ isOpen, onClose, boardId }) {
   }, [isOpen, boardId])
 
   const handleRestoreCard = async (card) => {
+    // Check if the card's parent column is also archived
+    const isParentColumnArchived = archivedData.columns.some(col => col._id === card.columnId)
+
+    if (isParentColumnArchived) {
+      toast.error(`Cannot restore this card because its parent column is currently archived. Please restore the column first!`)
+      return
+    }
+
     try {
       await restoreCardAPI(card._id)
       setArchivedData(prev => ({
