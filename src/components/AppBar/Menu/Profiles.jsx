@@ -65,6 +65,8 @@ function Profiles() {
         open={open}
         onClose={handleClose}
         onClick={handleClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         MenuListProps={{
           'aria-labelledby': 'basic-button-profiles',
           sx: { py: 1 }
@@ -75,7 +77,7 @@ function Profiles() {
             border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
             boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
             borderRadius: '10px',
-            mt: 1.5,
+            mt: 1,
             minWidth: 200
           }
         }}

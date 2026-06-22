@@ -1,14 +1,17 @@
+import { useState } from 'react'
 import AddToDriveIcon from '@mui/icons-material/AddToDrive'
 import BoltIcon from '@mui/icons-material/Bolt'
 import ViewColumnIcon from '@mui/icons-material/ViewColumn'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import VpnLockIcon from '@mui/icons-material/VpnLock'
+import ArchiveIcon from '@mui/icons-material/Archive'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import Tooltip from '@mui/material/Tooltip'
 import { capitalizeFirstLetter } from '~/utils/formatters'
 import BoardUserGroup from './BoardUserGroup'
 import InviteBoardUser from './InviteBoardUser'
+import ArchivedItemsDrawer from './ArchivedItemsDrawer'
 
 const MENU_STYLE = {
   color: 'text.primary',
@@ -25,6 +28,8 @@ const MENU_STYLE = {
 }
 
 function BoardBar({ board }) {
+  const [isArchivedDrawerOpen, setIsArchivedDrawerOpen] = useState(false)
+
   return (
     <Box px={2} sx={{
       width: '100%',
@@ -73,6 +78,13 @@ function BoardBar({ board }) {
           label="Filters"
           clickable
         />
+        <Chip
+          sx={MENU_STYLE}
+          icon={<ArchiveIcon />}
+          label="Archive Manager"
+          clickable
+          onClick={() => setIsArchivedDrawerOpen(true)}
+        />
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -82,6 +94,12 @@ function BoardBar({ board }) {
         {/* xử lý hiển thị danh sách thành viên của board */}
         <BoardUserGroup boardUsers={board?.FE_allUser} />
       </Box>
+
+      <ArchivedItemsDrawer
+        isOpen={isArchivedDrawerOpen}
+        onClose={() => setIsArchivedDrawerOpen(false)}
+        boardId={board?._id}
+      />
     </Box>
   )
 }

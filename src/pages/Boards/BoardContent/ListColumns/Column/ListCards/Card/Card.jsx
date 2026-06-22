@@ -17,6 +17,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import DeleteIcon from '@mui/icons-material/Delete'
+import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined'
 import dayjs from 'dayjs'
 import React, { useMemo, useCallback, useState } from 'react'
 
@@ -28,9 +29,10 @@ import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
 import Box from '@mui/material/Box'
 import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
 import { getCardActionGridStyles } from '~/utils/formatters'
-import { deleteCardAPI } from '~/apis'
+import { deleteCardAPI, archiveCardAPI } from '~/apis'
 import { deleteCardOptimistic } from '~/redux/activeBoard/activeBoardSlice'
 import { useConfirm } from 'material-ui-confirm'
+import { toast } from 'sonner'
 
 function Card({ card }) {
   const dispatch = useDispatch()
@@ -105,6 +107,27 @@ function Card({ card }) {
     }).catch(() => {})
   }
 
+  const handleArchiveCard = (e) => {
+    e.stopPropagation()
+    handleCloseMenu()
+    confirm({
+      title: 'Archive this card?',
+      description: 'This card will be archived. You can restore it later.',
+      confirmationText: 'Archive',
+      confirmationButtonProps: { color: 'warning', variant: 'outlined' }
+    }).then(() => {
+      // Optimistic update
+      dispatch(deleteCardOptimistic({ cardId: card._id, columnId: card.columnId }))
+      
+      // API Call
+      archiveCardAPI(card._id).then(() => {
+        toast.success('Card has been archived!')
+      }).catch(() => {
+        toast.error('Failed to archive card!')
+      })
+    }).catch(() => {})
+  }
+
   const layout = card?.layout || 'detailed'
 
   return (
@@ -158,6 +181,8 @@ function Card({ card }) {
         open={open}
         onClose={handleCloseMenu}
         onClick={(e) => e.stopPropagation()} // Chặn click vùng trống menu làm mở Modal Card
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         MenuListProps={{
           sx: { py: 0 } // Xóa khoảng trắng dư thừa trên dưới
         }}
@@ -166,16 +191,25 @@ function Card({ card }) {
             bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
             border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
             boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-            borderRadius: '8px',
-            mt: 0.5
+            borderRadius: '8px'
           }
         }}
       >
         <MenuItem 
+          onClick={handleArchiveCard} 
+          sx={{ 
+            py: 1,
+            '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } 
+          }}
+        >
+          <ListItemIcon><ArchiveOutlinedIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Archive this card</ListItemText>
+        </MenuItem>
+        <MenuItem 
           onClick={handleDeleteCard} 
           sx={{ 
             color: 'error.main',
-            py: 1.5,
+            py: 1,
             '&:hover': { bgcolor: 'rgba(255,0,0,0.1)' } 
           }}
         >

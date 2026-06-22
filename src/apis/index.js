@@ -19,6 +19,11 @@ export const fetchBoardDetailAPI = async (boardId) => {
   return response.data
 }
 
+export const getArchivedItemsAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/${boardId}/archived-items`)
+  return response.data
+}
+
 export const updateBoardDetailAPI = async (boardId, updateData) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/boards/${boardId}`, updateData)
   return response.data
@@ -67,6 +72,16 @@ export const updateColumnCardsLayoutAPI = async (columnId, newLayout) => {
   return response.data
 }
 
+export const archiveColumnAPI = async (columnId) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/columns/${columnId}/archive`)
+  return response.data
+}
+
+export const restoreColumnAPI = async (columnId) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/columns/${columnId}/restore`)
+  return response.data
+}
+
 // cards
 export const createNewCardAPI = async (newCardData) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards`, newCardData)
@@ -75,6 +90,16 @@ export const createNewCardAPI = async (newCardData) => {
 
 export const deleteCardAPI = async (cardId) => {
   const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/cards/${cardId}`)
+  return response.data
+}
+
+export const archiveCardAPI = async (cardId) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/cards/${cardId}/archive`)
+  return response.data
+}
+
+export const restoreCardAPI = async (cardId, data = {}) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/cards/${cardId}/restore`, data)
   return response.data
 }
 

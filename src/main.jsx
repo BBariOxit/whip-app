@@ -57,6 +57,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <BrowserRouter>
         <CssVarsProvider theme={theme}>
           <ConfirmProvider 
+            useLegacyReturn={true}
             defaultOptions={{
               dialogProps: {
                 sx: {

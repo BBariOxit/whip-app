@@ -184,6 +184,13 @@ const theme = extendTheme({
           backgroundImage: 'none'
         }
       }
+    },
+    MuiList: {
+      styleOverrides: {
+        root: {
+          padding: 0
+        }
+      }
     }
   }
 })

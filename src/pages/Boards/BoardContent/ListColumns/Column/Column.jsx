@@ -33,8 +33,8 @@ import { toast } from 'sonner'
 import { cloneDeep } from 'lodash-es'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
-import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI } from '~/apis'
-import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic } from '~/redux/activeBoard/activeBoardSlice'
+import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI } from '~/apis'
+import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
 
 
 function Column({ column }) {
@@ -127,6 +127,7 @@ function Column({ column }) {
   // xử lý xóa 1 column và cards bên trong nó
   const confirmDeleteColumn = useConfirm()
   const handleDeleteColumn = async () => {
+    handleCloseAll()
     try {
       // Đợi người dùng nhấn xác nhận
       await confirmDeleteColumn({
@@ -179,6 +180,7 @@ function Column({ column }) {
   }
 
   const handleClearAllCards = async () => {
+    handleCloseAll()
     try {
       await confirmDeleteColumn({
         title: 'Clear all cards?',
@@ -230,6 +232,32 @@ function Column({ column }) {
     } catch (error) {
       console.error(error)
     }
+  }
+
+  const handleArchiveColumn = () => {
+    handleCloseAll()
+    confirmDeleteColumn({
+      title: 'Archive this column?',
+      description: 'This column and all its cards will be archived. You can restore them later.',
+      confirmationText: 'Archive',
+      confirmationButtonProps: { color: 'warning', variant: 'outlined' }
+    }).then(() => {
+      // Optimistic update: remove column from board UI
+      const newBoard = { ...board }
+      newBoard.columns = newBoard.columns.filter(c => c._id !== column._id)
+      newBoard.columnOrderIds = newBoard.columnOrderIds.filter(_id => _id !== column._id)
+      dispatch(updateCurrentActiveBoard(newBoard))
+
+      // Call API
+      archiveColumnAPI(column._id).then(res => {
+        toast.success(res?.archiveResult)
+      }).catch(() => {
+        toast.error('Failed to archive column!')
+        dispatch(fetchBoardDetailAPI(board._id))
+      })
+    }).catch(() => {
+      console.log('Archive cancelled')
+    })
   }
 
   return (
@@ -292,6 +320,8 @@ function Column({ column }) {
                   handleCloseAll()
                 }
               }}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               MenuListProps={{
                 'aria-labelledby': 'basic-column-dropdown',
                 sx: { py: 1 }
@@ -302,7 +332,6 @@ function Column({ column }) {
                   border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                   borderRadius: '10px',
-                  mt: 1,
                   minWidth: 220
                 }
               }}
@@ -363,7 +392,10 @@ function Column({ column }) {
                 <ListItemIcon><DeleteForeverIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
                 <ListItemText>Delete this column</ListItemText>
               </MenuItem>
-              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
+              <MenuItem
+                onClick={handleArchiveColumn}
+                sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
+              >
                 <ListItemIcon><Cloud fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Archive this column</ListItemText>
               </MenuItem>
@@ -385,8 +417,6 @@ function Column({ column }) {
                   border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                   borderRadius: '10px',
-                  mt: -1,
-                  ml: 1,
                   minWidth: 200
                 }
               }}

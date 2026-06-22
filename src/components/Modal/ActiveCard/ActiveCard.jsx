@@ -27,12 +27,13 @@ import dayjs from 'dayjs'
 
 import React, { useState } from 'react'
 import { styled } from '@mui/material/styles'
+import { useConfirm } from 'material-ui-confirm'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'sonner'
-import { updateCardDetailsAPI, uploadCardAttachmentAPI, deleteCardAttachmentAPI } from '~/apis'
+import { updateCardDetailsAPI, uploadCardAttachmentAPI, deleteCardAttachmentAPI, archiveCardAPI } from '~/apis'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
-import { updateCardInBoard, selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
+import { updateCardInBoard, selectCurrentActive, deleteCardOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
 import {
   clearAndHideCurrentActiveCard,
   selectCurrentActiveCard,
@@ -87,6 +88,7 @@ function ActiveCard() {
   const isShowModalActiveCard = useSelector(selectIsShowModalActiveCard) 
   const currentUser = useSelector(selectCurrentUser)
   const board = useSelector(selectCurrentActive)
+  const confirmArchiveCard = useConfirm()
   const [anchorElLabels, setAnchorElLabels] = useState(null)
   const [anchorElDates, setAnchorElDates] = useState(null)
   const [anchorElChecklist, setAnchorElChecklist] = useState(null)
@@ -219,6 +221,36 @@ function ActiveCard() {
       }),
       { pending: 'Deleting attachment...' }
     )
+  }
+
+  // ===== ARCHIVE HANDLER =====
+  const onArchiveCard = () => {
+    confirmArchiveCard({
+      title: 'Archive this card?',
+      description: 'This card will be archived. You can restore it later.',
+      confirmationText: 'Archive',
+      confirmationButtonProps: { color: 'warning', variant: 'outlined' }
+    }).then(() => {
+      const cardId = activeCard._id
+      const columnId = activeCard.columnId
+
+      // Optimistic update: remove card from board UI instantly
+      dispatch(deleteCardOptimistic({ cardId, columnId }))
+
+      // Close modal
+      dispatch(clearAndHideCurrentActiveCard())
+
+      // Call API
+      archiveCardAPI(cardId).then(() => {
+        toast.success('Card has been archived!')
+      }).catch(() => {
+        toast.error('Failed to archive card!')
+        // Reload board to restore state if API fails
+        dispatch(fetchBoardDetailAPI(board._id))
+      })
+    }).catch(() => {
+      // Do nothing on cancel
+    })
   }
 
   return (
@@ -486,7 +518,7 @@ function ActiveCard() {
               <SidebarItem><ArrowForwardOutlinedIcon fontSize="small" />Move</SidebarItem>
               <SidebarItem><ContentCopyOutlinedIcon fontSize="small" />Copy</SidebarItem>
               <SidebarItem><AutoAwesomeOutlinedIcon fontSize="small" />Make Template</SidebarItem>
-              <SidebarItem><ArchiveOutlinedIcon fontSize="small" />Archive</SidebarItem>
+              <SidebarItem onClick={onArchiveCard}><ArchiveOutlinedIcon fontSize="small" />Archive</SidebarItem>
               <SidebarItem><ShareOutlinedIcon fontSize="small" />Share</SidebarItem>
             </Stack>
           </Grid>
