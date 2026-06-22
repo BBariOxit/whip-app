@@ -29,10 +29,10 @@ import React, { useState } from 'react'
 import { styled } from '@mui/material/styles'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'sonner'
-import { updateCardDetailsAPI, uploadCardAttachmentAPI, deleteCardAttachmentAPI } from '~/apis'
+import { updateCardDetailsAPI, uploadCardAttachmentAPI, deleteCardAttachmentAPI, archiveCardAPI } from '~/apis'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
-import { updateCardInBoard, selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
+import { updateCardInBoard, selectCurrentActive, deleteCardOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
 import {
   clearAndHideCurrentActiveCard,
   selectCurrentActiveCard,
@@ -219,6 +219,30 @@ function ActiveCard() {
       }),
       { pending: 'Deleting attachment...' }
     )
+  }
+
+  // ===== ARCHIVE HANDLER =====
+  const onArchiveCard = async () => {
+    if (!window.confirm('Are you sure you want to archive this card?')) return
+
+    const cardId = activeCard._id
+    const columnId = activeCard.columnId
+
+    // Optimistic update: remove card from board UI instantly
+    dispatch(deleteCardOptimistic({ cardId, columnId }))
+
+    // Close modal
+    dispatch(clearAndHideCurrentActiveCard())
+
+    // Call API
+    try {
+      await archiveCardAPI(cardId)
+      toast.success('Card has been archived!')
+    } catch (error) {
+      toast.error('Failed to archive card!')
+      // Reload board to restore state if API fails
+      dispatch(fetchBoardDetailAPI(board._id))
+    }
   }
 
   return (
@@ -486,7 +510,7 @@ function ActiveCard() {
               <SidebarItem><ArrowForwardOutlinedIcon fontSize="small" />Move</SidebarItem>
               <SidebarItem><ContentCopyOutlinedIcon fontSize="small" />Copy</SidebarItem>
               <SidebarItem><AutoAwesomeOutlinedIcon fontSize="small" />Make Template</SidebarItem>
-              <SidebarItem><ArchiveOutlinedIcon fontSize="small" />Archive</SidebarItem>
+              <SidebarItem onClick={onArchiveCard}><ArchiveOutlinedIcon fontSize="small" />Archive</SidebarItem>
               <SidebarItem><ShareOutlinedIcon fontSize="small" />Share</SidebarItem>
             </Stack>
           </Grid>
