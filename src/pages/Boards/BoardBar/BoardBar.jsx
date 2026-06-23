@@ -63,7 +63,7 @@ function BoardBar({ board }) {
         <Chip
           sx={MENU_STYLE}
           icon={<AddToDriveIcon />}
-          label="Add to google drive"
+          label="Drive"
           clickable
         />
         <Chip
@@ -81,7 +81,7 @@ function BoardBar({ board }) {
         <Chip
           sx={MENU_STYLE}
           icon={<ArchiveIcon />}
-          label="Archive Manager"
+          label="Archive"
           clickable
           onClick={() => setIsArchivedDrawerOpen(true)}
         />

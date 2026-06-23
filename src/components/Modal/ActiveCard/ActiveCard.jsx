@@ -4,7 +4,7 @@ import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined'
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined'
 import AspectRatioOutlinedIcon from '@mui/icons-material/AspectRatioOutlined'
 import AttachFileOutlinedIcon from '@mui/icons-material/AttachFileOutlined'
-import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined'
+import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
 import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined'
 import CancelIcon from '@mui/icons-material/Cancel'
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
@@ -30,7 +30,7 @@ import { styled } from '@mui/material/styles'
 import { useConfirm } from 'material-ui-confirm'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'sonner'
-import { updateCardDetailsAPI, uploadCardAttachmentAPI, deleteCardAttachmentAPI, archiveCardAPI } from '~/apis'
+import { updateCardDetailsAPI, uploadCardAttachmentAPI, deleteCardAttachmentAPI, archiveCardAPI, saveCardAsTemplateAPI } from '~/apis'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
 import { updateCardInBoard, selectCurrentActive, deleteCardOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
@@ -251,6 +251,16 @@ function ActiveCard() {
     }).catch(() => {
       // Do nothing on cancel
     })
+  }
+
+  // ===== SAVE AS TEMPLATE HANDLER =====
+  const onSaveAsTemplate = async () => {
+    try {
+      await saveCardAsTemplateAPI(activeCard._id)
+      toast.success('Saved as template successfully!')
+    } catch (error) {
+      toast.error('Failed to save as template!')
+    }
   }
 
   return (
@@ -517,7 +527,7 @@ function ActiveCard() {
             <Stack direction="column" spacing={1}>
               <SidebarItem><ArrowForwardOutlinedIcon fontSize="small" />Move</SidebarItem>
               <SidebarItem><ContentCopyOutlinedIcon fontSize="small" />Copy</SidebarItem>
-              <SidebarItem><AutoAwesomeOutlinedIcon fontSize="small" />Make Template</SidebarItem>
+              <SidebarItem onClick={onSaveAsTemplate}><DashboardCustomizeOutlinedIcon fontSize="small" />Make Template</SidebarItem>
               <SidebarItem onClick={onArchiveCard}><ArchiveOutlinedIcon fontSize="small" />Archive</SidebarItem>
               <SidebarItem><ShareOutlinedIcon fontSize="small" />Share</SidebarItem>
             </Stack>

@@ -141,7 +141,7 @@ function ArchivedItemsDrawer({ isOpen, onClose, boardId }) {
     <Drawer anchor="right" open={isOpen} onClose={onClose}>
       <Box sx={{ width: '380px', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#22272e' : '#fff', height: '100%', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#333', p: 3, borderLeft: '1px solid #30363d' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>Archive Manager</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>Archive</Typography>
           <IconButton onClick={onClose}><CloseIcon /></IconButton>
         </Box>
 

@@ -103,6 +103,27 @@ export const restoreCardAPI = async (cardId, data = {}) => {
   return response.data
 }
 
+/** Card Templates */
+export const saveCardAsTemplateAPI = async (cardId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards/${cardId}/save-as-template`)
+  return response.data
+}
+
+export const getCardTemplatesAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/${boardId}/card-templates`)
+  return response.data
+}
+
+export const useCardTemplateAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards/use-template`, data)
+  return response.data
+}
+
+export const deleteCardTemplateAPI = async (templateId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/cards/templates/${templateId}`)
+  return response.data
+}
+
 /** Users */
 export const registerUserAPI = async (data) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/register`, data)
