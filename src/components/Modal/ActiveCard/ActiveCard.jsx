@@ -54,6 +54,7 @@ import CardChecklistSection from './CardChecklistSection'
 import CardCustomFieldsPopover from './CardCustomFieldsPopover'
 import CardCustomFieldsSection from './CardCustomFieldsSection'
 import CardLayoutPopover from './CardLayoutPopover'
+import CardMoveDialog from './CardMoveDialog'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 
@@ -94,6 +95,7 @@ function ActiveCard() {
   const [anchorElChecklist, setAnchorElChecklist] = useState(null)
   const [anchorElCustomFields, setAnchorElCustomFields] = useState(null)
   const [anchorElCardLayout, setAnchorElCardLayout] = useState(null)
+  const [moveModalOpen, setMoveModalOpen] = useState(false)
   
   const boardLabels = board?.labels || []
   const cardLabels = boardLabels.filter(label => activeCard?.labelIds?.includes(label._id))
@@ -264,8 +266,9 @@ function ActiveCard() {
   }
 
   return (
-    <Modal
-      disableScrollLock
+    <>
+      <Modal
+        disableScrollLock
       open={isShowModalActiveCard}
       onClose={handleCloseModal} // Sử dụng onClose trong trường hợp muốn đóng Modal bằng nút ESC hoặc click ra ngoài Modal
       sx={{ overflowY: 'auto' }}>
@@ -514,7 +517,6 @@ function ActiveCard() {
               <CardLayoutPopover
                 anchorEl={anchorElCardLayout}
                 handleClose={() => setAnchorElCardLayout(null)}
-                activeCard={activeCard}
                 onUpdateCardLayout={onUpdateCardLayout}
               />
               <SidebarItem><AddToDriveOutlinedIcon fontSize="small" />Google Drive</SidebarItem>
@@ -525,7 +527,7 @@ function ActiveCard() {
 
             <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Actions</Typography>
             <Stack direction="column" spacing={1}>
-              <SidebarItem><ArrowForwardOutlinedIcon fontSize="small" />Move</SidebarItem>
+              <SidebarItem onClick={() => setMoveModalOpen(true)}><ArrowForwardOutlinedIcon fontSize="small" />Move</SidebarItem>
               <SidebarItem><ContentCopyOutlinedIcon fontSize="small" />Copy</SidebarItem>
               <SidebarItem onClick={onSaveAsTemplate}><DashboardCustomizeOutlinedIcon fontSize="small" />Make Template</SidebarItem>
               <SidebarItem onClick={onArchiveCard}><ArchiveOutlinedIcon fontSize="small" />Archive</SidebarItem>
@@ -534,7 +536,16 @@ function ActiveCard() {
           </Grid>
         </Grid>
       </Box>
-    </Modal>
+      </Modal>
+
+      <CardMoveDialog
+        isOpen={moveModalOpen}
+        onClose={() => setMoveModalOpen(false)}
+        card={activeCard}
+        board={board}
+        isActiveCardModal={true}
+      />
+    </>
   )
 }
 

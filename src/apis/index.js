@@ -46,6 +46,18 @@ export const moveCarDifferentColumnlAPI = async (updateData) => {
   return response.data
 }
 
+// Move Card bằng nút bấm (không kéo thả) - dùng lại endpoint moving_card
+export const moveCardAPI = async ({ cardId, prevColumnId, prevCardOrderIds, nextColumnId, nextCardOrderIds }) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/boards/supports/moving_card`, {
+    currCardId: cardId,
+    prevColumnId,
+    prevCardOrderIds,
+    nextColumnId,
+    nexCardOrderIds: nextCardOrderIds
+  })
+  return response.data
+}
+
 // columns
 export const createNewColumnAPI = async (newColumnData) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/columns`, newColumnData)

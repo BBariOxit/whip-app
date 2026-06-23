@@ -4,6 +4,8 @@ import CommentIcon from '@mui/icons-material/Comment'
 import GroupIcon from '@mui/icons-material/Group'
 import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined'
 import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined'
+import DriveFileMoveOutlinedIcon from '@mui/icons-material/DriveFileMoveOutlined'
+import MyLocationIcon from '@mui/icons-material/MyLocation'
 import Button from '@mui/material/Button'
 import MuiCard from '@mui/material/Card'
 import CardActions from '@mui/material/CardActions'
@@ -19,8 +21,15 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined'
 import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import Select from '@mui/material/Select'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
 import dayjs from 'dayjs'
-import React, { useMemo, useCallback, useState } from 'react'
+import React, { useMemo, useCallback, useState, useEffect } from 'react'
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -30,8 +39,12 @@ import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
 import Box from '@mui/material/Box'
 import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
 import { getCardActionGridStyles } from '~/utils/formatters'
-import { deleteCardAPI, archiveCardAPI, saveCardAsTemplateAPI } from '~/apis'
-import { deleteCardOptimistic } from '~/redux/activeBoard/activeBoardSlice'
+import { deleteCardAPI, archiveCardAPI, saveCardAsTemplateAPI, moveCardAPI, updateCardDetailsAPI } from '~/apis'
+import { deleteCardOptimistic, moveCardOptimistic, updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
+import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
+import CardMoveDialog from '~/components/Modal/ActiveCard/CardMoveDialog'
+import ViewComfyOutlinedIcon from '@mui/icons-material/ViewComfyOutlined'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { useConfirm } from 'material-ui-confirm'
 import { toast } from 'sonner'
 
@@ -82,6 +95,9 @@ function Card({ card }) {
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
 
+  // State cho Move Card Dialog
+  const [moveModalOpen, setMoveModalOpen] = useState(false)
+
   const handleOpenMenu = (e) => {
     e.stopPropagation()
     setAnchorEl(e.currentTarget)
@@ -89,6 +105,22 @@ function Card({ card }) {
 
   const handleCloseMenu = (e) => {
     if (e) e.stopPropagation()
+    setAnchorEl(null)
+  }
+
+  const [layoutAnchorEl, setLayoutAnchorEl] = useState(null)
+  const handleOpenLayoutMenu = (e) => {
+    e.stopPropagation()
+    setLayoutAnchorEl(e.currentTarget)
+  }
+  const handleCloseLayoutMenu = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation()
+    setLayoutAnchorEl(null)
+  }
+
+  const handleUpdateCardLayout = async (newLayout) => {
+    dispatch(updateCardInBoard({ ...card, layout: newLayout }))
+    await updateCardDetailsAPI(card._id, { layout: newLayout })
     setAnchorEl(null)
   }
 
@@ -138,6 +170,13 @@ function Card({ card }) {
     } catch (error) {
       toast.error('Failed to save as template!')
     }
+  }
+
+  // Mở dialog move card
+  const handleOpenMoveModal = (e) => {
+    e.stopPropagation()
+    handleCloseMenu()
+    setMoveModalOpen(true)
   }
 
   const layout = card?.layout || 'detailed'
@@ -200,13 +239,23 @@ function Card({ card }) {
         }}
         sx={{
           '& .MuiPaper-root': {
-            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
-            border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1c2128' : '#fff',
+            border: (theme) => theme.palette.mode === 'dark' ? '1px solid #373e47' : 'none',
             boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
             borderRadius: '8px'
           }
         }}
       >
+        <MenuItem
+          onClick={handleOpenMoveModal}
+          sx={{
+            py: 1,
+            '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+          }}
+        >
+          <ListItemIcon><DriveFileMoveOutlinedIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Move</ListItemText>
+        </MenuItem>
         <MenuItem 
           onClick={handleArchiveCard} 
           sx={{ 
@@ -215,7 +264,23 @@ function Card({ card }) {
           }}
         >
           <ListItemIcon><ArchiveOutlinedIcon fontSize="small" /></ListItemIcon>
-          <ListItemText>Archive this card</ListItemText>
+          <ListItemText>Archive</ListItemText>
+        </MenuItem>
+        <MenuItem 
+          onClick={handleOpenLayoutMenu} 
+          sx={{ 
+            py: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } 
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <ListItemIcon><ViewComfyOutlinedIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>Layout</ListItemText>
+          </Box>
+          <ChevronRightIcon fontSize="small" sx={{ ml: 2, color: 'text.secondary' }} />
         </MenuItem>
         <MenuItem 
           onClick={handleSaveAsTemplate} 
@@ -225,7 +290,7 @@ function Card({ card }) {
           }}
         >
           <ListItemIcon><DashboardCustomizeOutlinedIcon fontSize="small" /></ListItemIcon>
-          <ListItemText>Save as Template</ListItemText>
+          <ListItemText>Template</ListItemText>
         </MenuItem>
         <MenuItem 
           onClick={handleDeleteCard} 
@@ -236,9 +301,30 @@ function Card({ card }) {
           }}
         >
           <ListItemIcon sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" /></ListItemIcon>
-          <ListItemText>Delete this card</ListItemText>
+          <ListItemText>Delete</ListItemText>
         </MenuItem>
       </Menu>
+
+      <Box onClick={(e) => e.stopPropagation()}>
+        <CardLayoutPopover
+          anchorEl={layoutAnchorEl}
+          handleClose={handleCloseLayoutMenu}
+          onUpdateCardLayout={handleUpdateCardLayout}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+          sxProps={{ mt: -1, ml: 1 }}
+        />
+      </Box>
+
+      {/* Move Card Dialog */}
+      <CardMoveDialog
+        isOpen={moveModalOpen}
+        onClose={() => setMoveModalOpen(false)}
+        card={card}
+        board={board}
+      />
+
+
       {layout === 'detailed' && card?.cover &&
         <CardMedia sx={{ height: 140 }}image={card?.cover}/>
       }
