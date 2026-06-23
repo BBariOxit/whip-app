@@ -643,14 +643,7 @@ function Column({ column }) {
                         '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
                       }}
                     >
-                      <Typography fontSize="14px" noWrap sx={{ flex: 1, mr: 1 }}>{tmp.title}</Typography>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleDeleteTemplate(e, tmp._id)}
-                        sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}
-                      >
-                        <DeleteOutlineIcon fontSize="small" />
-                      </IconButton>
+                      <Typography fontSize="14px" noWrap sx={{ flex: 1 }}>{tmp.title}</Typography>
                     </MenuItem>
                   ))
                 )}

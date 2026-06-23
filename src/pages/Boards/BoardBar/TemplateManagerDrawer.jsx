@@ -127,7 +127,12 @@ function TemplateManagerDrawer({ isOpen, onClose, boardId, currentUser }) {
                 <ListItem key={column._id} sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f5f5f5', mb: 1, borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, overflow: 'hidden' }}>
                     <ListItemText primary={column.title} primaryTypographyProps={{ fontSize: '14px', fontWeight: 600, noWrap: true }} />
-                    <Badge badgeContent={column.cards?.length} color="primary" sx={{ '& .MuiBadge-badge': { fontSize: '10px', height: '16px', minWidth: '16px' } }} title={`${column.cards?.length} cards in template`} />
+                    <Box sx={{
+                      bgcolor: 'primary.main', color: 'primary.contrastText', fontSize: '11px', fontWeight: 'bold',
+                      height: '18px', minWidth: '18px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', px: 0.5
+                    }} title={`${column.cards?.length} cards in template`}>
+                      {column.cards?.length}
+                    </Box>
                   </Box>
                   {isAdmin ? (
                     <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>

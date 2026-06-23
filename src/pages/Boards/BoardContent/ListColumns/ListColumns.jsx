@@ -301,10 +301,7 @@ function ListColumns({ columns }) {
                       '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <DashboardCustomizeOutlinedIcon fontSize="small" sx={{ color: '#e3b341' }} />
-                      <ListItemText primaryTypographyProps={{ fontSize: 14, noWrap: true }}>{tmp.title}</ListItemText>
-                    </Box>
+                    <ListItemText primaryTypographyProps={{ fontSize: 14, noWrap: true }}>{tmp.title}</ListItemText>
                   </MenuItem>
                 ))
               )}
