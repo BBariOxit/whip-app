@@ -665,6 +665,11 @@ function Column({ column }) {
                   data-no-dnd= 'true'
                   value={newCardtitle}
                   onChange = {(e) => setNewCardtitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      addNewCard()
+                    }
+                  }}
                   sx={{
                     '& label': { color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#334155' },
                     '& input': {

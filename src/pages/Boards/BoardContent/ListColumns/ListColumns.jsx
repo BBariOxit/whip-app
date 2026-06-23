@@ -200,6 +200,11 @@ function ListColumns({ columns }) {
               autoFocus
               value={newColumntitle}
               onChange = {(e) => setNewColumntitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  addNewColumn()
+                }
+              }}
               sx={{
                 '& label': {
                   color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#334155'
