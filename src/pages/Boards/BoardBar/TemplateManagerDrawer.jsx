@@ -115,9 +115,6 @@ function TemplateManagerDrawer({ isOpen, onClose, boardId, currentUser }) {
                 </ListItem>
               ))
             )}
-            <Typography fontSize="12px" color="text.secondary" sx={{ mt: 2, textAlign: 'center', fontStyle: 'italic' }}>
-              * To use a card template, open the template menu ⚡ at the bottom of a column.
-            </Typography>
           </List>
         )}
 
@@ -144,9 +141,6 @@ function TemplateManagerDrawer({ isOpen, onClose, boardId, currentUser }) {
                 </ListItem>
               ))
             )}
-            <Typography fontSize="12px" color="text.secondary" sx={{ mt: 2, textAlign: 'center', fontStyle: 'italic' }}>
-              * To use a column template, click the ⚡ icon in the "Add new column" area.
-            </Typography>
           </List>
         )}
       </Box>

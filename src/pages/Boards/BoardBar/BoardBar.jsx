@@ -92,13 +92,7 @@ function BoardBar({ board }) {
           onClick={() => setIsArchivedDrawerOpen(true)}
         />
         <Chip
-          sx={{
-            ...MENU_STYLE,
-            color: '#fff',
-            bgcolor: '#238636',
-            '& .MuiSvgIcon-root': { color: '#fff' },
-            '&:hover': { bgcolor: '#2ea043' }
-          }}
+          sx={MENU_STYLE}
           icon={<DashboardCustomizeOutlinedIcon />}
           label="Templates"
           clickable

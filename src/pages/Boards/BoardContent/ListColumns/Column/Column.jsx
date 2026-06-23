@@ -294,6 +294,16 @@ function Column({ column }) {
     }
   }
 
+  const handleSaveAsTemplate = async () => {
+    try {
+      await saveColumnAsTemplateAPI(column._id)
+      toast.success('Column saved as template!')
+      handleCloseAll()
+    } catch (err) {
+      toast.error('Failed to save column as template')
+    }
+  }
+
   const handleArchiveColumn = () => {
     handleCloseAll()
     confirmDeleteColumn({

@@ -110,6 +110,12 @@ function ListColumns({ columns }) {
     try {
       const newColumn = await useColumnTemplateAPI({ templateId, boardId: board._id })
       
+      // Inject placeholder card if the template had no cards
+      if (!newColumn.cards || newColumn.cards.length === 0) {
+        newColumn.cards = [generatePlaceholderCard(newColumn)]
+        newColumn.cardOrderIds = [generatePlaceholderCard(newColumn)._id]
+      }
+
       const newBoard = cloneDeep(board)
       newBoard.columns.push(newColumn)
       newBoard.columnOrderIds.push(newColumn._id)
@@ -243,17 +249,16 @@ function ListColumns({ columns }) {
                 }}
                 fontSize='small'
               />
-            </Box>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, justifyContent: 'space-between' }}>
               <Tooltip title='Create from template'>
                 <IconButton
                   size="small"
                   onClick={handleOpenTemplateMenu}
                   sx={{
                     color: '#e3b341',
-                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2d333b' : 'rgba(0,0,0,0.04)',
-                    '&:hover': { opacity: 0.8 }
+                    bgcolor: 'transparent',
+                    '&:hover': { 
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2d333b' : 'rgba(0,0,0,0.04)'
+                    }
                   }}
                 >
                   <DashboardCustomizeOutlinedIcon fontSize="small" />
