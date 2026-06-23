@@ -8,7 +8,15 @@ import { useMemo, useState } from 'react'
 import Column from './Column/Column'
 import { toast } from 'sonner'
 import { cloneDeep } from 'lodash-es'
-import { createNewColumnAPI } from '~/apis'
+import { createNewColumnAPI, getColumnTemplatesAPI, useColumnTemplateAPI } from '~/apis'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemText from '@mui/material/ListItemText'
+import Typography from '@mui/material/Typography'
+import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
 import { generatePlaceholderCard } from '~/utils/formatters'
 
 import { useSelector, useDispatch } from 'react-redux'
@@ -76,6 +84,52 @@ function ListColumns({ columns }) {
     toogleOpenNewColumnForm()
     setNewColumntitle('')
   }
+
+  // Template handling
+  const [templateAnchorEl, setTemplateAnchorEl] = useState(null)
+  const templateMenuOpen = Boolean(templateAnchorEl)
+  const [templates, setTemplates] = useState([])
+  const [templateLoading, setTemplateLoading] = useState(false)
+
+  const handleOpenTemplateMenu = async (e) => {
+    setTemplateAnchorEl(e.currentTarget)
+    setTemplateLoading(true)
+    try {
+      const res = await getColumnTemplatesAPI(board._id)
+      setTemplates(res)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setTemplateLoading(false)
+    }
+  }
+
+  const handleCloseTemplateMenu = () => setTemplateAnchorEl(null)
+
+  const handleUseTemplate = async (templateId) => {
+    try {
+      const newColumn = await useColumnTemplateAPI({ templateId, boardId: board._id })
+      
+      // Inject placeholder card if the template had no cards
+      if (!newColumn.cards || newColumn.cards.length === 0) {
+        newColumn.cards = [generatePlaceholderCard(newColumn)]
+        newColumn.cardOrderIds = [generatePlaceholderCard(newColumn)._id]
+      }
+
+      const newBoard = cloneDeep(board)
+      newBoard.columns.push(newColumn)
+      newBoard.columnOrderIds.push(newColumn._id)
+      dispatch(updateCurrentActiveBoard(newBoard))
+
+      toast.success('Column created from template!')
+      handleCloseTemplateMenu()
+      setOpenNewColumnForm(false) // Đóng form luôn
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to use column template!')
+    }
+  }
+
   /**
    * Thằng SortableContext yêu cầu items là một mảng dạng ['id-1', 'id-2'] chứ không phải [{id: 'id-1'}, {id: 'id-2'}]
    * Nếu không đúng thì vẫn kéo thả được nhưng không có animation
@@ -146,6 +200,11 @@ function ListColumns({ columns }) {
               autoFocus
               value={newColumntitle}
               onChange = {(e) => setNewColumntitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  addNewColumn()
+                }
+              }}
               sx={{
                 '& label': {
                   color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#334155'
@@ -195,7 +254,63 @@ function ListColumns({ columns }) {
                 }}
                 fontSize='small'
               />
+              <Tooltip title='Create from template'>
+                <IconButton
+                  size="small"
+                  onClick={handleOpenTemplateMenu}
+                  sx={{
+                    color: '#e3b341',
+                    bgcolor: 'transparent',
+                    '&:hover': { 
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2d333b' : 'rgba(0,0,0,0.04)'
+                    }
+                  }}
+                >
+                  <DashboardCustomizeOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Box>
+
+            {/* Column Template Menu */}
+            <Menu
+              anchorEl={templateAnchorEl}
+              open={templateMenuOpen}
+              onClose={handleCloseTemplateMenu}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+              sx={{
+                '& .MuiPaper-root': {
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+                  border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : '1px solid #d0d7de',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                  borderRadius: '10px',
+                  minWidth: 200,
+                  maxHeight: 320
+                }
+              }}
+            >
+              <Typography sx={{ px: 2, py: 1, fontSize: '12px', color: 'text.secondary', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                Column Templates
+              </Typography>
+              {templateLoading ? (
+                <MenuItem disabled><Typography fontSize="13px">Loading...</Typography></MenuItem>
+              ) : templates.length === 0 ? (
+                <MenuItem disabled><Typography fontSize="13px">No templates yet.</Typography></MenuItem>
+              ) : (
+                templates.map(tmp => (
+                  <MenuItem
+                    key={tmp._id}
+                    onClick={() => handleUseTemplate(tmp._id)}
+                    sx={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1,
+                      '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+                    }}
+                  >
+                    <ListItemText primaryTypographyProps={{ fontSize: 14, noWrap: true }}>{tmp.title}</ListItemText>
+                  </MenuItem>
+                ))
+              )}
+            </Menu>
           </Box>
         }
       </Box>

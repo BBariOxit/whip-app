@@ -18,6 +18,7 @@ import ListItemText from '@mui/material/ListItemText'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined'
+import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
 import dayjs from 'dayjs'
 import React, { useMemo, useCallback, useState } from 'react'
 
@@ -29,7 +30,7 @@ import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
 import Box from '@mui/material/Box'
 import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
 import { getCardActionGridStyles } from '~/utils/formatters'
-import { deleteCardAPI, archiveCardAPI } from '~/apis'
+import { deleteCardAPI, archiveCardAPI, saveCardAsTemplateAPI } from '~/apis'
 import { deleteCardOptimistic } from '~/redux/activeBoard/activeBoardSlice'
 import { useConfirm } from 'material-ui-confirm'
 import { toast } from 'sonner'
@@ -128,6 +129,17 @@ function Card({ card }) {
     }).catch(() => {})
   }
 
+  const handleSaveAsTemplate = async (e) => {
+    e.stopPropagation()
+    handleCloseMenu()
+    try {
+      await saveCardAsTemplateAPI(card._id)
+      toast.success('Saved as template successfully!')
+    } catch (error) {
+      toast.error('Failed to save as template!')
+    }
+  }
+
   const layout = card?.layout || 'detailed'
 
   return (
@@ -204,6 +216,16 @@ function Card({ card }) {
         >
           <ListItemIcon><ArchiveOutlinedIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Archive this card</ListItemText>
+        </MenuItem>
+        <MenuItem 
+          onClick={handleSaveAsTemplate} 
+          sx={{ 
+            py: 1,
+            '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } 
+          }}
+        >
+          <ListItemIcon><DashboardCustomizeOutlinedIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Save as Template</ListItemText>
         </MenuItem>
         <MenuItem 
           onClick={handleDeleteCard} 

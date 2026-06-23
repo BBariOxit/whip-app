@@ -103,6 +103,27 @@ export const restoreCardAPI = async (cardId, data = {}) => {
   return response.data
 }
 
+/** Card Templates */
+export const saveCardAsTemplateAPI = async (cardId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards/${cardId}/save-as-template`)
+  return response.data
+}
+
+export const getCardTemplatesAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/${boardId}/card-templates`)
+  return response.data
+}
+
+export const useCardTemplateAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards/use-template`, data)
+  return response.data
+}
+
+export const deleteCardTemplateAPI = async (templateId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/cards/templates/${templateId}`)
+  return response.data
+}
+
 /** Users */
 export const registerUserAPI = async (data) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/register`, data)
@@ -234,5 +255,26 @@ export const updateCommentAPI = async (commentId, data) => {
 
 export const deleteCommentAPI = async (commentId) => {
   const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/comments/${commentId}`)
+  return response.data
+}
+
+/** Column Templates */
+export const saveColumnAsTemplateAPI = async (columnId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/columns/${columnId}/save-as-template`)
+  return response.data
+}
+
+export const getColumnTemplatesAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/${boardId}/column-templates`)
+  return response.data
+}
+
+export const useColumnTemplateAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/columns/use-template`, data)
+  return response.data
+}
+
+export const deleteColumnTemplateAPI = async (templateId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/columns/templates/${templateId}`)
   return response.data
 }

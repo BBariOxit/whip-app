@@ -12,6 +12,10 @@ import { capitalizeFirstLetter } from '~/utils/formatters'
 import BoardUserGroup from './BoardUserGroup'
 import InviteBoardUser from './InviteBoardUser'
 import ArchivedItemsDrawer from './ArchivedItemsDrawer'
+import TemplateManagerDrawer from './TemplateManagerDrawer'
+import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
+import { useSelector } from 'react-redux'
+import { selectCurrentUser } from '~/redux/user/userSlice'
 
 const MENU_STYLE = {
   color: 'text.primary',
@@ -29,6 +33,8 @@ const MENU_STYLE = {
 
 function BoardBar({ board }) {
   const [isArchivedDrawerOpen, setIsArchivedDrawerOpen] = useState(false)
+  const [isTemplateDrawerOpen, setIsTemplateDrawerOpen] = useState(false)
+  const currentUser = useSelector(selectCurrentUser)
 
   return (
     <Box px={2} sx={{
@@ -63,7 +69,7 @@ function BoardBar({ board }) {
         <Chip
           sx={MENU_STYLE}
           icon={<AddToDriveIcon />}
-          label="Add to google drive"
+          label="Drive"
           clickable
         />
         <Chip
@@ -81,9 +87,16 @@ function BoardBar({ board }) {
         <Chip
           sx={MENU_STYLE}
           icon={<ArchiveIcon />}
-          label="Archive Manager"
+          label="Archive"
           clickable
           onClick={() => setIsArchivedDrawerOpen(true)}
+        />
+        <Chip
+          sx={MENU_STYLE}
+          icon={<DashboardCustomizeOutlinedIcon />}
+          label="Templates"
+          clickable
+          onClick={() => setIsTemplateDrawerOpen(true)}
         />
       </Box>
 
@@ -99,6 +112,13 @@ function BoardBar({ board }) {
         isOpen={isArchivedDrawerOpen}
         onClose={() => setIsArchivedDrawerOpen(false)}
         boardId={board?._id}
+      />
+
+      <TemplateManagerDrawer
+        isOpen={isTemplateDrawerOpen}
+        onClose={() => setIsTemplateDrawerOpen(false)}
+        boardId={board?._id}
+        currentUser={currentUser}
       />
     </Box>
   )

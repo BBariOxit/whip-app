@@ -11,6 +11,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AspectRatioIcon from '@mui/icons-material/AspectRatio'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import CheckIcon from '@mui/icons-material/Check'
+import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
@@ -21,6 +23,7 @@ import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
 import React, { useState } from 'react'
 import ListCard from './ListCards/ListCard'
 
@@ -33,7 +36,7 @@ import { toast } from 'sonner'
 import { cloneDeep } from 'lodash-es'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
-import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI } from '~/apis'
+import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI, getCardTemplatesAPI, useCardTemplateAPI, deleteCardTemplateAPI, saveColumnAsTemplateAPI } from '~/apis'
 import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
 
 
@@ -66,13 +69,31 @@ function Column({ column }) {
 
   const handleClick = (event) => { setAnchorEl(event.currentTarget)}
   
-  const handleOpenSubMenu = (e) => setSubMenuAnchorEl(e.currentTarget)
+  const handleOpenSubMenu = (e) => setSubMenuAnchorEl(event.currentTarget)
   const handleCloseSubMenu = () => setSubMenuAnchorEl(null)
   
   const handleCloseAll = () => {
     setSubMenuAnchorEl(null)
+    setTemplateSubMenuAnchorEl(null)
     setAnchorEl(null)
   }
+
+  const [templateSubMenuAnchorEl, setTemplateSubMenuAnchorEl] = React.useState(null)
+  const templateSubMenuOpen = Boolean(templateSubMenuAnchorEl)
+
+  const handleOpenTemplateSubMenu = async (e) => {
+    setTemplateSubMenuAnchorEl(e.currentTarget)
+    setTemplateLoading(true)
+    try {
+      const res = await getCardTemplatesAPI(board._id)
+      setTemplates(res)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setTemplateLoading(false)
+    }
+  }
+  const handleCloseTemplateSubMenu = () => setTemplateSubMenuAnchorEl(null)
 
   // cards đã được sắp xếp ở comp cha cao nhất
   const orderedCards = column.cards
@@ -82,6 +103,67 @@ function Column({ column }) {
   const toogleOpenNewCardForm = () => setOpenNewCardForm(!openNewCardForm)
 
   const [newCardtitle, setNewCardtitle] = useState('')
+
+  // ===== TEMPLATE MENU STATE =====
+  const [templateAnchorEl, setTemplateAnchorEl] = useState(null)
+  const [templates, setTemplates] = useState([])
+  const [templateLoading, setTemplateLoading] = useState(false)
+  const templateMenuOpen = Boolean(templateAnchorEl)
+
+  const handleOpenTemplateMenu = async (e) => {
+    setTemplateAnchorEl(e.currentTarget)
+    setTemplateLoading(true)
+    try {
+      const res = await getCardTemplatesAPI(board._id)
+      setTemplates(res)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setTemplateLoading(false)
+    }
+  }
+
+  const handleCloseTemplateMenu = () => setTemplateAnchorEl(null)
+
+  const handleUseTemplate = async (templateId) => {
+    try {
+      const newCard = await useCardTemplateAPI({
+        templateId,
+        targetColumnId: column._id,
+        boardId: board._id
+      })
+
+      // Update state board
+      const newBoard = cloneDeep(board)
+      const targetColumn = newBoard.columns.find(c => c._id === column._id)
+      if (targetColumn) {
+        if (targetColumn.cards.some(c => c.FE_PlaceholderCard)) {
+          targetColumn.cards = [newCard]
+          targetColumn.cardOrderIds = [newCard._id]
+        } else {
+          targetColumn.cards.push(newCard)
+          targetColumn.cardOrderIds.push(newCard._id)
+        }
+      }
+      dispatch(updateCurrentActiveBoard(newBoard))
+      toast.success('Card created from template!')
+      handleCloseTemplateMenu()
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to use template!')
+    }
+  }
+
+  const handleDeleteTemplate = async (e, templateId) => {
+    e.stopPropagation()
+    try {
+      await deleteCardTemplateAPI(templateId)
+      setTemplates(prev => prev.filter(t => t._id !== templateId))
+      toast.success('Template deleted!')
+    } catch (err) {
+      toast.error('Failed to delete template!')
+    }
+  }
 
   const addNewCard = async () => {
     if (!newCardtitle) {
@@ -134,28 +216,6 @@ function Column({ column }) {
         title: 'Delete column?',
         description: 'This action will permanently delete your Column and its Cards! Are you sure?',
         confirmationText: 'confirm'
-        // cancellationText: 'Ko,
-        // dialogProps: {
-        //   sx: {
-        //     '& .MuiDialogActions-root': {
-        //       mt: 0,
-        //       pt: 0,
-        //       mb: 1
-        //     }
-        //   },
-        //   PaperProps: {
-        //     sx: (theme) => ({
-        //       backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.background.paper,
-        //       color: theme.palette.text.primary,
-        //       backgroundImage: 'none'
-        //     })
-        //   }
-        // },
-        // buttonOrder: ['confirm', 'cancel'],
-        // allowClose: false,
-        // confirmationButtonProps: { color: 'primary', variant: 'outlined', border: '10px' },
-        // cancellationButtonProps: { color: 'inherit' }
-        // confirmationKeyword: 'phanBao'
       })
 
       // xử lý xóa 1 column và card bên trong nó
@@ -231,6 +291,16 @@ function Column({ column }) {
       handleCloseAll()
     } catch (error) {
       console.error(error)
+    }
+  }
+
+  const handleSaveAsTemplate = async () => {
+    try {
+      await saveColumnAsTemplateAPI(column._id)
+      toast.success('Column saved as template!')
+      handleCloseAll()
+    } catch (err) {
+      toast.error('Failed to save column as template')
     }
   }
 
@@ -315,8 +385,8 @@ function Column({ column }) {
               open={open}
               onClose={handleCloseAll}
               onClick={(e) => {
-                // Prevent closing menu when clicking the submenu trigger
-                if (!e.target.closest('#submenu-trigger')) {
+                // Prevent closing menu when clicking submenu triggers
+                if (!e.target.closest('#submenu-trigger') && !e.target.closest('#template-submenu-trigger')) {
                   handleCloseAll()
                 }
               }}
@@ -342,6 +412,15 @@ function Column({ column }) {
               >
                 <ListItemIcon><AddCardIcon fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Add new card</ListItemText>
+              </MenuItem>
+              <MenuItem
+                id="template-submenu-trigger"
+                onClick={handleOpenTemplateSubMenu}
+                sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
+              >
+                <ListItemIcon><DashboardCustomizeOutlinedIcon fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
+                <ListItemText>Add template</ListItemText>
+                <ChevronRightIcon fontSize="small" sx={{ color: 'text.secondary', ml: 2 }} />
               </MenuItem>
               <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
                 <ListItemIcon><ContentCut fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
@@ -399,6 +478,13 @@ function Column({ column }) {
                 <ListItemIcon><Cloud fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Archive this column</ListItemText>
               </MenuItem>
+              <MenuItem
+                onClick={handleSaveAsTemplate}
+                sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
+              >
+                <ListItemIcon><DashboardCustomizeOutlinedIcon fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
+                <ListItemText>Save as Template</ListItemText>
+              </MenuItem>
             </Menu>
 
             {/* Submenu for Cards Layout */}
@@ -432,6 +518,54 @@ function Column({ column }) {
               </MenuItem>
             </Menu>
 
+            {/* Submenu for Add from Template */}
+            <Menu
+              anchorEl={templateSubMenuAnchorEl}
+              open={templateSubMenuOpen}
+              onClose={handleCloseTemplateSubMenu}
+              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+              MenuListProps={{
+                sx: { p: 0 }
+              }}
+              sx={{
+                '& .MuiPaper-root': {
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+                  border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                  borderRadius: '10px',
+                  minWidth: 160,
+                  maxHeight: 320
+                }
+              }}
+            >
+              <Typography sx={{ px: 2, py: 1, fontSize: '12px', color: 'text.secondary', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                Card Templates
+              </Typography>
+              {templateLoading ? (
+                <MenuItem disabled><Typography fontSize="13px">Loading...</Typography></MenuItem>
+              ) : templates.length === 0 ? (
+                <MenuItem disabled><Typography fontSize="13px">No templates yet.</Typography></MenuItem>
+              ) : (
+                templates.map(tmp => (
+                  <MenuItem
+                    key={tmp._id}
+                    onClick={() => {
+                      handleUseTemplate(tmp._id)
+                      handleCloseAll()
+                    }}
+                    sx={{
+                      py: 1, px: 2,
+                      '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+                    }}
+                  >
+                    <ListItemIcon><DashboardCustomizeOutlinedIcon fontSize="small" sx={{ color: '#e3b341' }} /></ListItemIcon>
+                    <ListItemText primaryTypographyProps={{ fontSize: 14, noWrap: true }}>{tmp.title}</ListItemText>
+                  </MenuItem>
+                ))
+              )}
+            </Menu>
+
           </Box>
         </Box>
         {/* ListCard */}
@@ -449,9 +583,71 @@ function Column({ column }) {
               justifyContent: 'space-between'
             }}>
               <Button startIcon={<AddCardIcon />} onClick={toogleOpenNewCardForm}>Add new card</Button>
-              <Tooltip title='Drag to move'>
-                <DragHandleIcon sx={{ cursor: 'pointer' }}/>
-              </Tooltip>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Tooltip title='Create from template'>
+                  <IconButton
+                    size="small"
+                    onClick={handleOpenTemplateMenu}
+                    sx={{
+                      color: 'text.secondary',
+                      '&:hover': { color: '#e3b341', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2d333b' : 'rgba(0,0,0,0.04)' }
+                    }}
+                  >
+                    <DashboardCustomizeOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title='Drag to move'>
+                  <DragHandleIcon sx={{ cursor: 'pointer' }}/>
+                </Tooltip>
+              </Box>
+
+              {/* Template Menu */}
+              <Menu
+                anchorEl={templateAnchorEl}
+                open={templateMenuOpen}
+                onClose={handleCloseTemplateMenu}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                sx={{
+                  '& .MuiPaper-root': {
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+                    border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : '1px solid #d0d7de',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                    borderRadius: '10px',
+                    minWidth: 160,
+                    maxHeight: 320
+                  }
+                }}
+              >
+                <Typography sx={{ px: 2, py: 1, fontSize: '12px', color: 'text.secondary', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                  Card Templates
+                </Typography>
+                {templateLoading ? (
+                  <MenuItem disabled>
+                    <Typography fontSize="13px">Loading...</Typography>
+                  </MenuItem>
+                ) : templates.length === 0 ? (
+                  <MenuItem disabled>
+                    <Typography fontSize="13px">No templates yet.</Typography>
+                  </MenuItem>
+                ) : (
+                  templates.map(tmp => (
+                    <MenuItem
+                      key={tmp._id}
+                      onClick={() => handleUseTemplate(tmp._id)}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        py: 1,
+                        '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+                      }}
+                    >
+                      <Typography fontSize="14px" noWrap sx={{ flex: 1 }}>{tmp.title}</Typography>
+                    </MenuItem>
+                  ))
+                )}
+              </Menu>
             </Box>
             : <ClickAwayListener onClickAway={() => setOpenNewCardForm(false)}>
               <Box sx={{
@@ -469,6 +665,11 @@ function Column({ column }) {
                   data-no-dnd= 'true'
                   value={newCardtitle}
                   onChange = {(e) => setNewCardtitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      addNewCard()
+                    }
+                  }}
                   sx={{
                     '& label': { color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#334155' },
                     '& input': {
