@@ -126,6 +126,31 @@ export const activeBoardSlice = createSlice({
         column.cards = []
         column.cardOrderIds = []
       }
+    },
+    moveCardOptimistic: (state, action) => {
+      // Di chuyển card từ cột cũ sang cột mới hoặc đổi vị trí trong cùng cột
+      const { cardId, prevColumnId, nextColumnId, targetIndex } = action.payload
+      const prevColumn = state.currentActiveBoard.columns.find(col => col._id === prevColumnId)
+      const nextColumn = state.currentActiveBoard.columns.find(col => col._id === nextColumnId)
+
+      if (prevColumn && nextColumn) {
+        // Tìm card cần di chuyển
+        const cardToMove = prevColumn.cards.find(c => c._id === cardId)
+        if (!cardToMove) return
+
+        // 1. Xóa card khỏi cột cũ
+        prevColumn.cards = prevColumn.cards.filter(c => c._id !== cardId)
+        prevColumn.cardOrderIds = prevColumn.cardOrderIds.filter(id => id !== cardId)
+
+        // 2. Cập nhật columnId mới (nếu có đổi cột)
+        cardToMove.columnId = nextColumnId
+
+        // 3. Chèn card vào cột đích ở đúng vị trí targetIndex bằng splice
+        // Nếu targetIndex không được truyền lên hoặc undefined, mặc định chèn vào cuối mảng
+        const insertIndex = typeof targetIndex === 'number' ? targetIndex : nextColumn.cards.length
+        nextColumn.cards.splice(insertIndex, 0, cardToMove)
+        nextColumn.cardOrderIds.splice(insertIndex, 0, cardId)
+      }
     }
   },
   // extraReducers: nơi xử lý các hành động bất đồng bộ
@@ -169,7 +194,8 @@ export const {
   updateCustomFieldOptimistic,
   deleteCustomFieldOptimistic,
   deleteCardOptimistic,
-  clearCardsInColumnOptimistic
+  clearCardsInColumnOptimistic,
+  moveCardOptimistic
 } = activeBoardSlice.actions
 
 // Selectors: Là nơi dành cho các components bên dưới gọi bằng hook useSelector() để lấy dữ liệu từ trong kho redux store ra sử dụng

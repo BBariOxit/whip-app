@@ -84,6 +84,15 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
         setViewMode('LIST')
       }}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      PaperProps={{
+        sx: {
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1c2128' : '#fff',
+          border: (theme) => theme.palette.mode === 'dark' ? '1px solid #373e47' : 'none',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+          borderRadius: '8px',
+          mt: 1
+        }
+      }}
     >
       <Box sx={{ width: 300, p: 2 }}>
         {viewMode !== 'LIST' ? (

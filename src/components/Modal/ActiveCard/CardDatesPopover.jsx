@@ -44,33 +44,22 @@ function CardDatesPopover({ anchorEl, handleClose, activeCard, onUpdateCardDates
       slotProps={{
         paper: {
           sx: {
-            borderRadius: 3,
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1c2128' : '#fff',
+            border: (theme) => theme.palette.mode === 'dark' ? '1px solid #373e47' : 'none',
             boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-            overflow: 'hidden',
-            border: '1px solid',
-            borderColor: 'divider',
-            backgroundImage: 'none'
+            borderRadius: '8px',
+            mt: 1,
+            overflow: 'hidden'
           }
         }
       }}
     >
-      <Box sx={{ width: 'auto', minWidth: 340, p: 2, bgcolor: 'background.paper' }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'center', mb: 1.5, fontSize: '1.05rem', letterSpacing: '0.3px' }}>
-          Date & Time
-        </Typography>
-
-        <Divider sx={{ mb: 2, opacity: 0.6 }} />
-
+      <Box sx={{ width: 'auto', minWidth: 320, p: 1.5 }}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Box sx={{ 
-            bgcolor: 'background.default', 
-            borderRadius: 2, 
-            p: 1, 
-            mb: 2,
-            border: '1px solid',
-            borderColor: 'divider',
             display: 'flex',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            mb: 1.5
           }}>
             <StaticDateTimePicker
               value={selectedDate}
@@ -81,17 +70,17 @@ function CardDatesPopover({ anchorEl, handleClose, activeCard, onUpdateCardDates
                 actionBar: { sx: { display: 'none' } }, // Ẩn action bar mặc định
                 toolbar: { sx: { display: 'none' } } // Ẩn toolbar mặc định
               }}
+              orientation="portrait"
               sx={{
-                '& .MuiPickersLayout-root': { minWidth: 'unset', bgcolor: 'transparent' },
-                '& .MuiPickersLayout-contentWrapper': { bgcolor: 'transparent', width: 320 },
+                '& .MuiPickersLayout-root': { bgcolor: 'transparent' },
+                '& .MuiPickersLayout-contentWrapper': { bgcolor: 'transparent' },
                 '& .MuiTabs-root': { mb: 1, minHeight: '36px' },
                 '& .MuiTab-root': { minHeight: '36px', textTransform: 'none', fontWeight: 600 },
                 '& .MuiPickersCalendarHeader-root': { pt: 0, mt: 0 },
-                '& .MuiPickersArrowSwitcher-root': { p: 0 },
+                '& .MuiPickersArrowSwitcher-root': { display: 'none' },
                 '& .MuiDayCalendar-header': { justifyContent: 'space-between', px: 1 },
                 '& .MuiDayCalendar-weekContainer': { justifyContent: 'space-between', px: 1 },
-                '& .MuiPickersDay-root': { fontSize: '0.875rem' },
-                '& .MuiClock-root': { margin: '0 auto' }
+                '& .MuiPickersDay-root': { fontSize: '0.875rem' }
               }}
             />
           </Box>
@@ -106,13 +95,12 @@ function CardDatesPopover({ anchorEl, handleClose, activeCard, onUpdateCardDates
             disableElevation
             sx={{ 
               textTransform: 'none', 
-              fontWeight: 600, 
-              borderRadius: 2,
-              py: 1,
-              transition: 'all 0.2s',
+              fontWeight: 500, 
+              borderRadius: 1,
+              py: 0.5,
+              boxShadow: 'none',
               '&:hover': {
-                transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(25, 118, 210, 0.4)'
+                boxShadow: 'none'
               }
             }}
           >
@@ -120,21 +108,19 @@ function CardDatesPopover({ anchorEl, handleClose, activeCard, onUpdateCardDates
           </Button>
           <Button
             variant="outlined"
-            color="error"
             fullWidth
             onClick={handleRemove}
             sx={{ 
               textTransform: 'none', 
-              fontWeight: 600, 
-              borderRadius: 2,
-              py: 1,
-              borderWidth: '2px',
-              transition: 'all 0.2s',
+              fontWeight: 500, 
+              borderRadius: 1,
+              py: 0.5,
+              color: 'text.primary',
+              borderColor: (theme) => theme.palette.mode === 'dark' ? '#373e47' : '#d0d7de',
               '&:hover': {
-                borderWidth: '2px',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(211, 47, 47, 0.2)',
-                bgcolor: 'error.50'
+                color: 'error.main',
+                borderColor: 'error.main',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(211, 47, 47, 0.1)' : 'error.50'
               }
             }}
           >

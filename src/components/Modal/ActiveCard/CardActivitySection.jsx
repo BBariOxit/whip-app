@@ -310,28 +310,7 @@ function CardActivitySection({ cardId }) {
           return renderSystemLog(item)
         })}
 
-        {/* Nút Load More */}
-        {hasMore && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1, mb: 1 }}>
-            <Button
-              size="small"
-              variant="text"
-              onClick={fetchMoreData}
-              disabled={loading}
-              sx={{
-                textTransform: 'none',
-                fontSize: '13px',
-                color: 'text.secondary',
-                '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f' }
-              }}
-            >
-              {loading ? (
-                <CircularProgress size={16} sx={{ mr: 1 }} />
-              ) : null}
-              {loading ? 'Đang tải...' : 'Xem thêm hoạt động'}
-            </Button>
-          </Box>
-        )}
+        {/* Nút Load More đã bị ẩn do yêu cầu từ UI chưa cần thiết */}
 
         {/* Loading indicator khi fetch lần đầu */}
         {loading && activities.length === 0 && comments.length === 0 && (

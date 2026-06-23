@@ -38,6 +38,7 @@ import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
 import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI, getCardTemplatesAPI, useCardTemplateAPI, deleteCardTemplateAPI, saveColumnAsTemplateAPI } from '~/apis'
 import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
+import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
 
 
 function Column({ column }) {
@@ -69,7 +70,7 @@ function Column({ column }) {
 
   const handleClick = (event) => { setAnchorEl(event.currentTarget)}
   
-  const handleOpenSubMenu = (e) => setSubMenuAnchorEl(event.currentTarget)
+  const handleOpenSubMenu = (e) => setSubMenuAnchorEl(e.currentTarget)
   const handleCloseSubMenu = () => setSubMenuAnchorEl(null)
   
   const handleCloseAll = () => {
@@ -398,8 +399,8 @@ function Column({ column }) {
               }}
               sx={{
                 '& .MuiPaper-root': {
-                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
-                  border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1c2128' : '#fff',
+                  border: (theme) => theme.palette.mode === 'dark' ? '1px solid #373e47' : 'none',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                   borderRadius: '10px',
                   minWidth: 220
@@ -487,36 +488,15 @@ function Column({ column }) {
               </MenuItem>
             </Menu>
 
-            {/* Submenu for Cards Layout */}
-            <Menu
+            {/* Submenu for Layout Selection */}
+            <CardLayoutPopover
               anchorEl={subMenuAnchorEl}
-              open={subMenuOpen}
-              onClose={handleCloseSubMenu}
+              handleClose={handleCloseSubMenu}
+              onUpdateCardLayout={handleUpdateColumnCardsLayout}
               anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
               transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-              MenuListProps={{
-                sx: { p: 0 }
-              }}
-              sx={{
-                '& .MuiPaper-root': {
-                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
-                  border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-                  borderRadius: '10px',
-                  minWidth: 200
-                }
-              }}
-            >
-              <MenuItem onClick={() => handleUpdateColumnCardsLayout('compact')} sx={{ py: 1, px: 2, display: 'flex', alignItems: 'center' }}>
-                <ListItemText primary="Compact" secondary="Title only" primaryTypographyProps={{ fontSize: 14 }} secondaryTypographyProps={{ fontSize: 12 }} />
-              </MenuItem>
-              <MenuItem onClick={() => handleUpdateColumnCardsLayout('standard')} sx={{ py: 1, px: 2, display: 'flex', alignItems: 'center' }}>
-                <ListItemText primary="Standard" secondary="Title, labels, badges" primaryTypographyProps={{ fontSize: 14 }} secondaryTypographyProps={{ fontSize: 12 }} />
-              </MenuItem>
-              <MenuItem onClick={() => handleUpdateColumnCardsLayout('detailed')} sx={{ py: 1, px: 2, display: 'flex', alignItems: 'center' }}>
-                <ListItemText primary="Detailed" secondary="Cover, custom fields, etc." primaryTypographyProps={{ fontSize: 14 }} secondaryTypographyProps={{ fontSize: 12 }} />
-              </MenuItem>
-            </Menu>
+              sxProps={{ ml: 1, minWidth: 200 }}
+            />
 
             {/* Submenu for Add from Template */}
             <Menu
@@ -530,12 +510,13 @@ function Column({ column }) {
               }}
               sx={{
                 '& .MuiPaper-root': {
-                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
-                  border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : 'none',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1c2128' : '#fff',
+                  border: (theme) => theme.palette.mode === 'dark' ? '1px solid #373e47' : 'none',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                   borderRadius: '10px',
                   minWidth: 160,
-                  maxHeight: 320
+                  maxHeight: 320,
+                  ml: 1
                 }
               }}
             >
@@ -610,8 +591,8 @@ function Column({ column }) {
                 transformOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 sx={{
                   '& .MuiPaper-root': {
-                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
-                    border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : '1px solid #d0d7de',
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1c2128' : '#fff',
+                    border: (theme) => theme.palette.mode === 'dark' ? '1px solid #373e47' : '1px solid #d0d7de',
                     boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                     borderRadius: '10px',
                     minWidth: 160,
