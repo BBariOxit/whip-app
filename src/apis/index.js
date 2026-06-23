@@ -257,3 +257,24 @@ export const deleteCommentAPI = async (commentId) => {
   const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/comments/${commentId}`)
   return response.data
 }
+
+/** Column Templates */
+export const saveColumnAsTemplateAPI = async (columnId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/columns/${columnId}/save-as-template`)
+  return response.data
+}
+
+export const getColumnTemplatesAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/${boardId}/column-templates`)
+  return response.data
+}
+
+export const useColumnTemplateAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/columns/use-template`, data)
+  return response.data
+}
+
+export const deleteColumnTemplateAPI = async (templateId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/columns/templates/${templateId}`)
+  return response.data
+}

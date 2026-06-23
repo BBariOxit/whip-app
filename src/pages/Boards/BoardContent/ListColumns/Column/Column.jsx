@@ -36,7 +36,7 @@ import { toast } from 'sonner'
 import { cloneDeep } from 'lodash-es'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
-import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI, getCardTemplatesAPI, useCardTemplateAPI, deleteCardTemplateAPI } from '~/apis'
+import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI, getCardTemplatesAPI, useCardTemplateAPI, deleteCardTemplateAPI, saveColumnAsTemplateAPI } from '~/apis'
 import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
 
 
@@ -69,7 +69,7 @@ function Column({ column }) {
 
   const handleClick = (event) => { setAnchorEl(event.currentTarget)}
   
-  const handleOpenSubMenu = (e) => setSubMenuAnchorEl(e.currentTarget)
+  const handleOpenSubMenu = (e) => setSubMenuAnchorEl(event.currentTarget)
   const handleCloseSubMenu = () => setSubMenuAnchorEl(null)
   
   const handleCloseAll = () => {
@@ -216,28 +216,6 @@ function Column({ column }) {
         title: 'Delete column?',
         description: 'This action will permanently delete your Column and its Cards! Are you sure?',
         confirmationText: 'confirm'
-        // cancellationText: 'Ko,
-        // dialogProps: {
-        //   sx: {
-        //     '& .MuiDialogActions-root': {
-        //       mt: 0,
-        //       pt: 0,
-        //       mb: 1
-        //     }
-        //   },
-        //   PaperProps: {
-        //     sx: (theme) => ({
-        //       backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.background.paper,
-        //       color: theme.palette.text.primary,
-        //       backgroundImage: 'none'
-        //     })
-        //   }
-        // },
-        // buttonOrder: ['confirm', 'cancel'],
-        // allowClose: false,
-        // confirmationButtonProps: { color: 'primary', variant: 'outlined', border: '10px' },
-        // cancellationButtonProps: { color: 'inherit' }
-        // confirmationKeyword: 'phanBao'
       })
 
       // xử lý xóa 1 column và card bên trong nó
@@ -489,6 +467,13 @@ function Column({ column }) {
               >
                 <ListItemIcon><Cloud fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Archive this column</ListItemText>
+              </MenuItem>
+              <MenuItem
+                onClick={handleSaveAsTemplate}
+                sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
+              >
+                <ListItemIcon><DashboardCustomizeOutlinedIcon fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
+                <ListItemText>Save as Template</ListItemText>
               </MenuItem>
             </Menu>
 
