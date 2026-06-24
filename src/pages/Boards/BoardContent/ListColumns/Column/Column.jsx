@@ -38,9 +38,10 @@ import { cloneDeep } from 'lodash-es'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
 import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI, getCardTemplatesAPI, useCardTemplateAPI, deleteCardTemplateAPI, saveColumnAsTemplateAPI } from '~/apis'
-import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
+import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI, selectClipboard, setHoveredItem } from '~/redux/activeBoard/activeBoardSlice'
 import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
 import ColumnMoveDialog from './ColumnMoveDialog'
+import { duplicateCardAPI } from '~/apis'
 
 function Column({ column }) {
   const dispatch = useDispatch()
@@ -50,6 +51,7 @@ function Column({ column }) {
     id: column._id,
     data: { ...column }
   })
+  const clipboard = useSelector(selectClipboard)
   const dndKitColumnStyles = {
     // touchAction: 'none', // dành cho sensor default dạng PointerSensor
     // Nếu sử dụng CSS.Transform như docs sẽ lỗi kiểu stretch
@@ -334,11 +336,44 @@ function Column({ column }) {
     })
   }
 
+  const handlePasteCard = async () => {
+    if (!clipboard || clipboard.type !== 'CARD') {
+      return toast.info('Clipboard is empty or does not contain a card!')
+    }
+
+    try {
+      const newCard = await duplicateCardAPI({
+        cardId: clipboard.data._id,
+        targetColumnId: column._id
+      })
+
+      const newBoard = cloneDeep(board)
+      const targetColumn = newBoard.columns.find(c => c._id === column._id)
+      if (targetColumn) {
+        if (targetColumn.cards.some(c => c.FE_PlaceholderCard)) {
+          targetColumn.cards = [newCard]
+          targetColumn.cardOrderIds = [newCard._id]
+        } else {
+          targetColumn.cards.push(newCard)
+          targetColumn.cardOrderIds.push(newCard._id)
+        }
+      }
+      dispatch(updateCurrentActiveBoard(newBoard))
+      toast.success('Pasted successfully!')
+      handleCloseAll()
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to paste card!')
+    }
+  }
+
   return (
     //phải bọc div ở đây vì vấn đề chiều cao của column khi kéo thả sẽ có bug kiểu flickering
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
       <Box
         {...listeners}
+        onMouseEnter={() => dispatch(setHoveredItem({ type: 'COLUMN', data: column }))}
+        onMouseLeave={() => dispatch(setHoveredItem(null))}
         sx={{
           minWidth: '18.75rem',
           maxWidth: '18.75rem',
@@ -436,15 +471,11 @@ function Column({ column }) {
                 <ListItemIcon><DriveFileMoveOutlinedIcon fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Move</ListItemText>
               </MenuItem>
-              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
-                <ListItemIcon><ContentCut fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
-                <ListItemText>Cut</ListItemText>
-              </MenuItem>
-              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
-                <ListItemIcon><ContentCopy fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
-                <ListItemText>Copy</ListItemText>
-              </MenuItem>
-              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
+              <MenuItem 
+                onClick={handlePasteCard}
+                disabled={!clipboard || clipboard.type !== 'CARD'}
+                sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
+              >
                 <ListItemIcon><ContentPaste fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Paste</ListItemText>
               </MenuItem>

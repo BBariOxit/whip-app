@@ -5,6 +5,8 @@ import GroupIcon from '@mui/icons-material/Group'
 import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined'
 import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined'
 import DriveFileMoveOutlinedIcon from '@mui/icons-material/DriveFileMoveOutlined'
+import ContentCopy from '@mui/icons-material/ContentCopy'
+import ContentPaste from '@mui/icons-material/ContentPaste'
 import MyLocationIcon from '@mui/icons-material/MyLocation'
 import Button from '@mui/material/Button'
 import MuiCard from '@mui/material/Card'
@@ -30,16 +32,17 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import dayjs from 'dayjs'
 import React, { useMemo, useCallback, useState, useEffect } from 'react'
+import { cloneDeep } from 'lodash-es'
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useSelector, useDispatch } from 'react-redux'
 import { updateCurrentActiveCard, showModalActiveCard } from '~/redux/activeCard/activeCardSlice'
-import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
+import { selectCurrentActive, setHoveredItem, setClipboard, selectClipboard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import Box from '@mui/material/Box'
 import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
 import { getCardActionGridStyles } from '~/utils/formatters'
-import { deleteCardAPI, archiveCardAPI, saveCardAsTemplateAPI, moveCardAPI, updateCardDetailsAPI } from '~/apis'
+import { deleteCardAPI, archiveCardAPI, saveCardAsTemplateAPI, moveCardAPI, updateCardDetailsAPI, duplicateCardAPI } from '~/apis'
 import { deleteCardOptimistic, moveCardOptimistic, updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
 import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
 import CardMoveDialog from '~/components/Modal/ActiveCard/CardMoveDialog'
@@ -57,6 +60,7 @@ function Card({ card }) {
     [boardLabels, card?.labelIds]
   )
   const board = useSelector(selectCurrentActive)
+  const clipboard = useSelector(selectClipboard)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card._id,
@@ -179,11 +183,59 @@ function Card({ card }) {
     setMoveModalOpen(true)
   }
 
+  const handleCopyCard = (e) => {
+    e.stopPropagation()
+    dispatch(setClipboard({ type: 'CARD', data: card }))
+    toast.success(`Copied card: ${card.title}`)
+    handleCloseMenu()
+  }
+
+  const handlePasteCard = async (e) => {
+    e.stopPropagation()
+    if (!clipboard || clipboard.type !== 'CARD') {
+      return toast.info('Clipboard is empty or does not contain a card!')
+    }
+
+    try {
+      const newCard = await duplicateCardAPI({
+        cardId: clipboard.data._id,
+        targetColumnId: card.columnId
+      })
+
+      const newBoard = cloneDeep(board)
+      const targetColumn = newBoard.columns.find(c => c._id === card.columnId)
+      if (targetColumn) {
+        if (targetColumn.cards.some(c => c.FE_PlaceholderCard)) {
+          targetColumn.cards = [newCard]
+          targetColumn.cardOrderIds = [newCard._id]
+        } else {
+          // Paste the copied card right after this current card
+          const cardIndex = targetColumn.cards.findIndex(c => c._id === card._id)
+          if (cardIndex !== -1) {
+            targetColumn.cards.splice(cardIndex + 1, 0, newCard)
+            targetColumn.cardOrderIds.splice(cardIndex + 1, 0, newCard._id)
+          } else {
+            targetColumn.cards.push(newCard)
+            targetColumn.cardOrderIds.push(newCard._id)
+          }
+        }
+      }
+      dispatch(updateCurrentActiveBoard(newBoard))
+      toast.success('Pasted successfully!')
+      handleCloseMenu()
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to paste card!')
+    }
+  }
+
   const layout = card?.layout || 'detailed'
 
   return (
     <MuiCard
       onClick={setActiveCard}
+      onMouseEnter={() => dispatch(setHoveredItem({ type: 'CARD', data: card }))}
+      onMouseLeave={() => dispatch(setHoveredItem(null))}
       ref={setNodeRef} style={dndKitCardStyles} {...attributes} {...listeners}
       sx={{
         position: 'relative',
@@ -255,6 +307,27 @@ function Card({ card }) {
         >
           <ListItemIcon><DriveFileMoveOutlinedIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Move</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={handleCopyCard}
+          sx={{
+            py: 1,
+            '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+          }}
+        >
+          <ListItemIcon><ContentCopy fontSize="small" /></ListItemIcon>
+          <ListItemText>Copy</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={handlePasteCard}
+          disabled={!clipboard || clipboard.type !== 'CARD'}
+          sx={{
+            py: 1,
+            '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+          }}
+        >
+          <ListItemIcon><ContentPaste fontSize="small" /></ListItemIcon>
+          <ListItemText>Paste</ListItemText>
         </MenuItem>
         <MenuItem 
           onClick={handleArchiveCard} 

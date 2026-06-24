@@ -6,7 +6,9 @@ import { generatePlaceholderCard } from '~/utils/formatters'
 import { isEmpty } from 'lodash-es'
 
 const initialState = {
-  currentActiveBoard: null
+  currentActiveBoard: null,
+  clipboard: null,
+  hoveredItem: null
 }
 // Các hành động gọi api (bất đồng bộ) và cập nhật dữ liệu vào Redux, dùng Middleware createAsyncThunk đi kèm với extraReducers
 export const fetchBoardDetailAPI = createAsyncThunk(
@@ -32,6 +34,12 @@ export const activeBoardSlice = createSlice({
 
       //update dữ liệu của currentActiveBoard
       state.currentActiveBoard = fullBoard
+    },
+    setClipboard: (state, action) => {
+      state.clipboard = action.payload
+    },
+    setHoveredItem: (state, action) => {
+      state.hoveredItem = action.payload
     },
     updateCardInBoard: (state, action) => {
       // update nested data (cập nhật dữ liệu ở tầng sâu bên trong)
@@ -195,12 +203,22 @@ export const {
   deleteCustomFieldOptimistic,
   deleteCardOptimistic,
   clearCardsInColumnOptimistic,
-  moveCardOptimistic
+  moveCardOptimistic,
+  setClipboard,
+  setHoveredItem
 } = activeBoardSlice.actions
 
 // Selectors: Là nơi dành cho các components bên dưới gọi bằng hook useSelector() để lấy dữ liệu từ trong kho redux store ra sử dụng
 export const selectCurrentActive = (state) => {
   return state.activeBoard.currentActiveBoard
+}
+
+export const selectClipboard = (state) => {
+  return state.activeBoard.clipboard
+}
+
+export const selectHoveredItem = (state) => {
+  return state.activeBoard.hoveredItem
 }
 
 // Cái file này tên là activeBoardSlice NHƯNG chúng ta sẽ export một thứ tên là Reducer

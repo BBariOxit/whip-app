@@ -115,6 +115,11 @@ export const restoreCardAPI = async (cardId, data = {}) => {
   return response.data
 }
 
+export const duplicateCardAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards/duplicate`, data)
+  return response.data
+}
+
 /** Card Templates */
 export const saveCardAsTemplateAPI = async (cardId) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards/${cardId}/save-as-template`)
