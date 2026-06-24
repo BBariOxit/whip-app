@@ -13,6 +13,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import CheckIcon from '@mui/icons-material/Check'
 import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import DriveFileMoveOutlinedIcon from '@mui/icons-material/DriveFileMoveOutlined'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
@@ -39,7 +40,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI, getCardTemplatesAPI, useCardTemplateAPI, deleteCardTemplateAPI, saveColumnAsTemplateAPI } from '~/apis'
 import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
 import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
-
+import ColumnMoveDialog from './ColumnMoveDialog'
 
 function Column({ column }) {
   const dispatch = useDispatch()
@@ -67,6 +68,8 @@ function Column({ column }) {
   
   const [subMenuAnchorEl, setSubMenuAnchorEl] = React.useState(null)
   const subMenuOpen = Boolean(subMenuAnchorEl)
+
+  const [moveColumnModalOpen, setMoveColumnModalOpen] = React.useState(false)
 
   const handleClick = (event) => { setAnchorEl(event.currentTarget)}
   
@@ -423,6 +426,16 @@ function Column({ column }) {
                 <ListItemText>Add template</ListItemText>
                 <ChevronRightIcon fontSize="small" sx={{ color: 'text.secondary', ml: 2 }} />
               </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  setMoveColumnModalOpen(true)
+                  handleCloseAll()
+                }}
+                sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
+              >
+                <ListItemIcon><DriveFileMoveOutlinedIcon fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
+                <ListItemText>Move</ListItemText>
+              </MenuItem>
               <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
                 <ListItemIcon><ContentCut fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Cut</ListItemText>
@@ -546,6 +559,13 @@ function Column({ column }) {
                 ))
               )}
             </Menu>
+
+            <ColumnMoveDialog
+              isOpen={moveColumnModalOpen}
+              onClose={() => setMoveColumnModalOpen(false)}
+              column={column}
+              board={board}
+            />
 
           </Box>
         </Box>
