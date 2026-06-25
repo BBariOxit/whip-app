@@ -53,7 +53,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { useConfirm } from 'material-ui-confirm'
 import { toast } from 'sonner'
 
-function Card({ card }) {
+function Card({ card, isReadOnly }) {
   const dispatch = useDispatch()
   const confirm = useConfirm()
   const boardLabels = useSelector((state) => selectCurrentActive(state)?.labels || [])
@@ -67,6 +67,7 @@ function Card({ card }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card._id,
     data: { ...card },
+    disabled: isReadOnly,
     transition: {
       duration: 250,
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
@@ -114,6 +115,7 @@ function Card({ card }) {
   }, [card.title])
 
   const handleRenameClick = (e) => {
+    if (isReadOnly) return
     e.stopPropagation()
     handleCloseMenu()
     
@@ -296,32 +298,34 @@ function Card({ card }) {
       }}>
       
       {/* Nút 3 chấm */}
-      <IconButton
-        className="card-more-btn"
-        onClick={handleOpenMenu}
-        sx={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          width: 28,
-          height: 28,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          opacity: 0, // Mặc định ẩn
-          transition: 'opacity 0.15s ease',
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 39, 50, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-          color: 'text.secondary',
-          zIndex: 10,
-          '&:hover': { 
-            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#22272e' : '#f4f5f7', 
-            color: 'text.primary' 
-          }
-        }}
-        size="small"
-      >
-        <MoreHorizIcon fontSize="small" />
-      </IconButton>
+      {!isReadOnly && (
+        <IconButton
+          className="card-more-btn"
+          onClick={handleOpenMenu}
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            width: 28,
+            height: 28,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: 0, // Mặc định ẩn
+            transition: 'opacity 0.15s ease',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 39, 50, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            color: 'text.secondary',
+            zIndex: 10,
+            '&:hover': { 
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? '#22272e' : '#f4f5f7', 
+              color: 'text.primary' 
+            }
+          }}
+          size="small"
+        >
+          <MoreHorizIcon fontSize="small" />
+        </IconButton>
+      )}
 
       {/* Menu thả xuống của Card */}
       <Menu

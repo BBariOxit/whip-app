@@ -25,7 +25,7 @@ import {
   updateCurrentActiveBoard
 } from '~/redux/activeBoard/activeBoardSlice'
 
-function ListColumns({ columns }) {
+function ListColumns({ columns, isReadOnly }) {
   const dispatch = useDispatch()
   const board = useSelector(selectCurrentActive)
 
@@ -135,7 +135,7 @@ function ListColumns({ columns }) {
    * Nếu không đúng thì vẫn kéo thả được nhưng không có animation
    * https://github.com/clauderic/dnd-kit/issues/183#issuecomment-812569512
    */
-  const columnIds = useMemo(() => columns?.map(c => c._id), [columns])
+  const columnIds = useMemo(() => columns?.map(c => c._id) || [], [columns])
 
   return (
     <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
@@ -152,11 +152,12 @@ function ListColumns({ columns }) {
           return <Column
             key={column._id}
             column={column}
+            isReadOnly={isReadOnly}
           />
         })}
 
         {/* Box add new column */}
-        {!openNewColumnForm
+        {!isReadOnly && !openNewColumnForm
           ? <Box onClick= {toogleOpenNewColumnForm} sx={{
             minWidth: '15.625rem',
             maxWidth: '15.625rem',
@@ -311,8 +312,7 @@ function ListColumns({ columns }) {
                 ))
               )}
             </Menu>
-          </Box>
-        }
+          </Box>}
       </Box>
     </SortableContext>
   )

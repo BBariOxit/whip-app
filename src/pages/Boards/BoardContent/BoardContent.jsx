@@ -15,7 +15,8 @@ function BoardContent({
   board,
   moveColumn,
   moveCardSameColumn,
-  moveCardifferentColumn
+  moveCardifferentColumn,
+  isReadOnly
 }) {
   const {
     orderedColumns,
@@ -140,7 +141,7 @@ function BoardContent({
 
       // BẤM CTRL + C (HOẶC CMD + C)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
-        if (isCopying.current) return
+        if (isReadOnly || isCopying.current) return
         if (currentHoveredItem) {
           isCopying.current = true
           dispatch(setClipboard(currentHoveredItem))
@@ -154,7 +155,7 @@ function BoardContent({
 
       // BẤM CTRL + V (HOẶC CMD + V)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
-        if (!currentClipboard || isPasting.current) return
+        if (isReadOnly || !currentClipboard || isPasting.current) return
 
         if (currentClipboard.type === 'CARD') {
           if (currentHoveredItem) {
@@ -185,7 +186,7 @@ function BoardContent({
           height: (theme) => theme.trello.boardContentHeight,
           p: '10px 0'
         }}>
-        <ListColumns columns={orderedColumns} />
+        <ListColumns columns={orderedColumns} isReadOnly={isReadOnly} />
         <DragOverlay dropAnimation={customDropAnimation}>
           {!activeDragItemType && null}
           {(activeDragItemId && activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) && <Column column={activeDragItemData}/>}

@@ -43,13 +43,14 @@ import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
 import ColumnMoveDialog from './ColumnMoveDialog'
 import { duplicateCardAPI, duplicateColumnAPI } from '~/apis'
 
-function Column({ column }) {
+function Column({ column, isReadOnly }) {
   const dispatch = useDispatch()
   const board = useSelector(selectCurrentActive)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
-    data: { ...column }
+    data: { ...column },
+    disabled: isReadOnly // Khóa Drag & Drop
   })
   const clipboard = useSelector(selectClipboard)
   const dndKitColumnStyles = {
@@ -444,10 +445,12 @@ function Column({ column }) {
             value={column?.title}
             onChangedValue={onUpdateColumnTitle}
             data-no-dnd="true"
+            disabled={isReadOnly}
           />
           {/* dropdown menu */}
-          <Box>
-            <Tooltip title='more options'>
+          {!isReadOnly && (
+            <Box>
+              <Tooltip title='more options'>
               <ExpandMoreIcon
                 id="basic-column-dropdown"
                 aria-controls={open ? 'basic-menu-column-dropdown' : undefined}
@@ -648,9 +651,10 @@ function Column({ column }) {
             />
 
           </Box>
+          )}
         </Box>
         {/* ListCard */}
-        < ListCard cards={orderedCards}/>
+        <ListCard cards={orderedCards} isReadOnly={isReadOnly} />
         {/* footer */}
         <Box sx={{
           height: (theme) => theme.trello.columnFooterHeight,
@@ -663,20 +667,22 @@ function Column({ column }) {
               alignItems: 'center',
               justifyContent: 'space-between'
             }}>
-              <Button startIcon={<AddCardIcon />} onClick={toogleOpenNewCardForm}>Add new card</Button>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Tooltip title='Create from template'>
-                  <IconButton
-                    size="small"
-                    onClick={handleOpenTemplateMenu}
-                    sx={{
-                      color: 'text.secondary',
-                      '&:hover': { color: '#e3b341', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2d333b' : 'rgba(0,0,0,0.04)' }
-                    }}
-                  >
-                    <DashboardCustomizeOutlinedIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+              {!isReadOnly && <Button startIcon={<AddCardIcon />} onClick={toogleOpenNewCardForm}>Add new card</Button>}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 'auto' }}>
+                {!isReadOnly && (
+                  <Tooltip title='Create from template'>
+                    <IconButton
+                      size="small"
+                      onClick={handleOpenTemplateMenu}
+                      sx={{
+                        color: 'text.secondary',
+                        '&:hover': { color: '#e3b341', bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2d333b' : 'rgba(0,0,0,0.04)' }
+                      }}
+                    >
+                      <DashboardCustomizeOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
                 <Tooltip title='Drag to move'>
                   <DragHandleIcon sx={{ cursor: 'pointer' }}/>
                 </Tooltip>

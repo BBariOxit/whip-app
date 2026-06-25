@@ -1,5 +1,5 @@
 import Container from '@mui/material/Container'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import AppBar from '~/components/AppBar/AppBar'
 import {
@@ -20,12 +20,14 @@ import {
 } from '~/apis'
 import PageLoadingSpinner from '~/components/Loading/pageLoadingSpinner'
 import ActiveCard from '~/components/Modal/ActiveCard/ActiveCard'
+import { selectCurrentUser } from '~/redux/user/userSlice'
 
 function Board() {
   const dispatch = useDispatch()
   // ko dùng state của component nữa, mà dùng redux
   // const [board, setBoard] = useState(null)
   const board = useSelector(selectCurrentActive)
+  const currentUser = useSelector(selectCurrentUser)
   const { boardId } = useParams()
 
   useEffect(() => {
@@ -39,6 +41,8 @@ function Board() {
   // khi di chuyển column trong cùng một board
   // Chỉ cần gọi API để cập nhật mảng columnOrderIds của board chứa nó (thay đổi vị trí trong mảng)
   const moveColumn = (dndOrderedColumns) => {
+    if (isReadOnly) return // Không cho di chuyển nếu là readOnly
+
     // cập nhật lại cho chuẩn dữ liệu state board
     const dndOrderedColumnsIds = dndOrderedColumns.map(c => c._id)
     /**
@@ -59,6 +63,8 @@ function Board() {
   // khi di chuyển card trong cùng một column
   // Chỉ cần gọi API để cập nhật mảng cardOrderIds của Column chứa nó (thay đổi vị trí trong mảng)
   const moveCardSameColumn = (dndOrderedCards, dndOrderedCardIds, columnId) => {
+    if (isReadOnly) return // Không cho di chuyển nếu là readOnly
+
     // cập nhật lại cho chuẩn dữ liệu state board
 
     /**
@@ -84,6 +90,7 @@ function Board() {
   // B2: Cập nhật mảng cardOrderIds của Column tiếp theo (bản chất là thêm _id của Card vào mảng mới)
   // B3: Cập nhật lại trường columnId mới của cái Card đã kéo
   const moveCardifferentColumn = (currCardId, prevColumnId, nextColumnId, dndOrderedColumns) => {
+    if (isReadOnly) return // Không cho di chuyển nếu là readOnly
 
     // cập nhật lại cho chuẩn dữ liệu state board
     const dndOrderedColumnsIds = dndOrderedColumns.map(c => c._id)
@@ -115,6 +122,12 @@ function Board() {
     return <PageLoadingSpinner caption="Loading board..." />
   }
 
+  const currentUserId = currentUser?._id
+  const isOwner = currentUserId && board.ownerIds?.includes(currentUserId)
+  const isMember = currentUserId && board.memberIds?.includes(currentUserId)
+  const isAuthorized = isOwner || isMember
+  const isReadOnly = board.type === 'public' && !isAuthorized
+
   return (
     <Container disableGutters maxWidth={false} sx={{ height: '100vh' }}>
       {/* Modal Active Card, check đóng/mở dựa theo state isShowModalActiveCard lưu trữ trong Redux*/}
@@ -122,9 +135,10 @@ function Board() {
 
       {/* các thành phần còn lại của board details*/}
       <AppBar />
-      <BoardBar board={board}/>
+      <BoardBar board={board} isAuthorized={isAuthorized} isReadOnly={isReadOnly} />
       <BoardContent
         board={board}
+        isReadOnly={isReadOnly}
 
         // createNewCard={createNewCard}
         // deleteColumnDetails={deleteColumnDetails}

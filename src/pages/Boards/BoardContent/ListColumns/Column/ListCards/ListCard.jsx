@@ -3,8 +3,8 @@ import Card from './Card/Card'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useMemo } from 'react'
 
-function ListCard({ cards }) {
-  const cardIds = useMemo(() => cards?.map(c => c._id), [cards])
+function ListCard({ cards, isReadOnly }) {
+  const cardIds = useMemo(() => cards?.map(c => c._id) || [], [cards])
 
   return (
     <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
@@ -30,7 +30,7 @@ function ListCard({ cards }) {
         }
       }}>
         {cards?.map(card => (
-          <Card key={card._id} card={card}/>
+          <Card key={card._id} card={card} isReadOnly={isReadOnly} />
         ))}
       </Box>
     </SortableContext>
