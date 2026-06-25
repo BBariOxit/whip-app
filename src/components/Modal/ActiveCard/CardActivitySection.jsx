@@ -40,7 +40,10 @@ const ACTION_TYPE_ICONS = {
   'UPDATE_COVER': ImageIcon
 }
 
+import { selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
+
 function CardActivitySection({ cardId }) {
+  const isReadOnly = useSelector(selectIsReadOnly)
   const currentUser = useSelector(selectCurrentUser)
   
   const [activities, setActivities] = useState([])
@@ -251,7 +254,7 @@ function CardActivitySection({ cardId }) {
           <DvrOutlinedIcon />
           <Typography sx={{ fontWeight: '600', fontSize: '20px', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a' }}>Activity</Typography>
         </Box>
-        {totalActivities > 0 && (
+        {totalActivities > 0 && !isReadOnly && (
           <Button
             size="small"
             variant="text"
@@ -269,7 +272,7 @@ function CardActivitySection({ cardId }) {
       </Box>
 
       {/* Xử lý thêm comment vào Card */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+      {!isReadOnly && <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
         <Avatar
           sx={{ width: 36, height: 36, cursor: 'pointer' }}
           alt="User"
@@ -283,7 +286,7 @@ function CardActivitySection({ cardId }) {
           multiline
           onKeyDown={handleAddCardComment}
         />
-      </Box>
+      </Box>}
 
       {/* Khu vực Activity cuộn được - fix chiều cao tránh Card dài vô tận */}
       <Box sx={{

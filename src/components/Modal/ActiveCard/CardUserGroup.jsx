@@ -7,11 +7,12 @@ import AddIcon from '@mui/icons-material/Add'
 import Badge from '@mui/material/Badge'
 import avatarFallback from '../../../assets/avatar.png'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
+import { selectCurrentActive, selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
 import { useSelector } from 'react-redux'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 
 function CardUserGroup({ cardMemberIds = [], onUpdateCardMembers }) {
+  const isReadOnly = useSelector(selectIsReadOnly)
   /**
    * Xử lý Popover để ẩn hoặc hiện toàn bộ user trên một cái popup, tương tự docs để tham khảo ở đây:
    * https://mui.com/material-ui/react-popover/
@@ -64,7 +65,7 @@ function CardUserGroup({ cardMemberIds = [], onUpdateCardMembers }) {
       )}
 
       {/* Nút này để mở popover thêm member */}
-      <Tooltip title="Add new member">
+      {!isReadOnly && <Tooltip title="Add new member">
         <Box
           aria-describedby={popoverId}
           onClick={handleTogglePopover}
@@ -88,7 +89,7 @@ function CardUserGroup({ cardMemberIds = [], onUpdateCardMembers }) {
         >
           <AddIcon fontSize="small" />
         </Box>
-      </Tooltip>
+      </Tooltip>}
 
       {/* Khi Click vào + ở trên thì sẽ mở popover hiện toàn bộ users trong board để người dùng Click chọn thêm vào card  */}
       <Popover

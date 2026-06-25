@@ -1,4 +1,5 @@
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
 import CloseIcon from '@mui/icons-material/Close'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import Button from '@mui/material/Button'
@@ -22,12 +23,14 @@ import { generatePlaceholderCard } from '~/utils/formatters'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   selectCurrentActive,
-  updateCurrentActiveBoard
+  updateCurrentActiveBoard,
+  selectIsReadOnly
 } from '~/redux/activeBoard/activeBoardSlice'
 
 function ListColumns({ columns }) {
   const dispatch = useDispatch()
   const board = useSelector(selectCurrentActive)
+  const isReadOnly = useSelector(selectIsReadOnly)
 
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false)
   const toogleOpenNewColumnForm = () => setOpenNewColumnForm(!openNewColumnForm)
@@ -135,7 +138,7 @@ function ListColumns({ columns }) {
    * Nếu không đúng thì vẫn kéo thả được nhưng không có animation
    * https://github.com/clauderic/dnd-kit/issues/183#issuecomment-812569512
    */
-  const columnIds = useMemo(() => columns?.map(c => c._id), [columns])
+  const columnIds = useMemo(() => columns?.map(c => c._id) || [], [columns])
 
   return (
     <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
@@ -156,163 +159,167 @@ function ListColumns({ columns }) {
         })}
 
         {/* Box add new column */}
-        {!openNewColumnForm
-          ? <Box onClick= {toogleOpenNewColumnForm} sx={{
-            minWidth: '15.625rem',
-            maxWidth: '15.625rem',
-            mx: 2,
-            borderRadius: '20px',
-            height: 'fit-content',
-            bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(22,27,34,0.75)' : theme.palette.background.column),
-            backdropFilter: 'blur(12px)',
-            border: (theme) => (theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid #dbe3ee')
-          }}>
-            <Button
-              startIcon={<NoteAddIcon />}
-              sx={{
-                color: 'text.secondary',
-                width: '100%',
-                justifyContent: 'flex-start',
-                pl: 2.5,
-                py: 1
-              }}
-            >Add new column</Button>
-          </Box>
-          : <Box sx={{
-            minWidth: '15.625rem',
-            maxWidth: '15.625rem',
-            mx: 2,
-            p: 1,
-            borderRadius: '20px',
-            height: 'fit-content',
-            bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(22,27,34,0.75)' : theme.palette.background.column),
-            backdropFilter: 'blur(12px)',
-            border: (theme) => (theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid #dbe3ee'),
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1
-          }}>
-            <TextField
-              label="Enter column title..."
-              type="text"
-              size='small'
-              variant='outlined'
-              autoFocus
-              value={newColumntitle}
-              onChange = {(e) => setNewColumntitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  addNewColumn()
-                }
-              }}
-              sx={{
-                '& label': {
-                  color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#334155'
-                },
-                '& input': {
-                  color: (theme) => theme.palette.primary.main
-                },
-                '& label.Mui-focused': {
-                  color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7'
-                },
-                '& .MuiOutlinedInput-root': {
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#475569' : '#cbd5e1',
-                    transition: 'border-color 0.2s ease, border-width 0.2s ease'
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7',
-                    borderWidth: '1px !important'
-                  },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7',
-                    borderWidth: '1px !important'
-                  }
-                }
-              }}
-            />
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Button 
-                className='interceptor-loading'
-                onClick={addNewColumn}
-                variant='contained' color='primary' size='small'
-                sx={{
-                  boxShadow: 'none',
-                  border: '0.5px solid',
-                  borderColor: (theme) => theme.palette.primary.main,
-                  '&:hover': {
-                    bgcolor: (theme) => theme.palette.primary.main
-                  }
-                }}
-              >Add column</Button>
-              <CloseIcon
-                onClick= {toogleOpenNewColumnForm}
+        {!isReadOnly && (
+          !openNewColumnForm
+            ? <Box onClick= {toogleOpenNewColumnForm} sx={{
+              minWidth: '15.625rem',
+              maxWidth: '15.625rem',
+              mx: 2,
+              borderRadius: '20px',
+              height: 'fit-content',
+              bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(22,27,34,0.75)' : theme.palette.background.column),
+              backdropFilter: 'blur(12px)',
+              border: (theme) => (theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid #dbe3ee')
+            }}>
+              <Button
+                startIcon={<NoteAddIcon />}
                 sx={{
                   color: 'text.secondary',
-                  cursor: 'pointer',
-                  '&:hover': { opacity: 0.7 }
+                  width: '100%',
+                  justifyContent: 'flex-start',
+                  pl: 2.5,
+                  py: 1
                 }}
-                fontSize='small'
+              >Add new column</Button>
+            </Box>
+            : <ClickAwayListener onClickAway={() => setOpenNewColumnForm(false)}>
+              <Box sx={{
+                minWidth: '15.625rem',
+              maxWidth: '15.625rem',
+              mx: 2,
+              p: 1,
+              borderRadius: '20px',
+              height: 'fit-content',
+              bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(22,27,34,0.75)' : theme.palette.background.column),
+              backdropFilter: 'blur(12px)',
+              border: (theme) => (theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid #dbe3ee'),
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1
+            }}>
+              <TextField
+                label="Enter column title..."
+                type="text"
+                size='small'
+                variant='outlined'
+                autoFocus
+                value={newColumntitle}
+                onChange = {(e) => setNewColumntitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    addNewColumn()
+                  }
+                }}
+                sx={{
+                  '& label': {
+                    color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#334155'
+                  },
+                  '& input': {
+                    color: (theme) => theme.palette.primary.main
+                  },
+                  '& label.Mui-focused': {
+                    color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7'
+                  },
+                  '& .MuiOutlinedInput-root': {
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#475569' : '#cbd5e1',
+                      transition: 'border-color 0.2s ease, border-width 0.2s ease'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7',
+                      borderWidth: '1px !important'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#0284c7',
+                      borderWidth: '1px !important'
+                    }
+                  }
+                }}
               />
-              <Tooltip title='Create from template'>
-                <IconButton
-                  size="small"
-                  onClick={handleOpenTemplateMenu}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Button 
+                  className='interceptor-loading'
+                  onClick={addNewColumn}
+                  variant='contained' color='primary' size='small'
                   sx={{
-                    color: '#e3b341',
-                    bgcolor: 'transparent',
-                    '&:hover': { 
-                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2d333b' : 'rgba(0,0,0,0.04)'
+                    boxShadow: 'none',
+                    border: '0.5px solid',
+                    borderColor: (theme) => theme.palette.primary.main,
+                    '&:hover': {
+                      bgcolor: (theme) => theme.palette.primary.main
                     }
                   }}
-                >
-                  <DashboardCustomizeOutlinedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Box>
-
-            {/* Column Template Menu */}
-            <Menu
-              anchorEl={templateAnchorEl}
-              open={templateMenuOpen}
-              onClose={handleCloseTemplateMenu}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-              sx={{
-                '& .MuiPaper-root': {
-                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
-                  border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : '1px solid #d0d7de',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-                  borderRadius: '10px',
-                  minWidth: 200,
-                  maxHeight: 320
-                }
-              }}
-            >
-              <Typography sx={{ px: 2, py: 1, fontSize: '12px', color: 'text.secondary', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                Column Templates
-              </Typography>
-              {templateLoading ? (
-                <MenuItem disabled><Typography fontSize="13px">Loading...</Typography></MenuItem>
-              ) : templates.length === 0 ? (
-                <MenuItem disabled><Typography fontSize="13px">No templates yet.</Typography></MenuItem>
-              ) : (
-                templates.map(tmp => (
-                  <MenuItem
-                    key={tmp._id}
-                    onClick={() => handleUseTemplate(tmp._id)}
+                >Add column</Button>
+                <CloseIcon
+                  onClick= {toogleOpenNewColumnForm}
+                  sx={{
+                    color: 'text.secondary',
+                    cursor: 'pointer',
+                    '&:hover': { opacity: 0.7 }
+                  }}
+                  fontSize='small'
+                />
+                <Tooltip title='Create from template'>
+                  <IconButton
+                    size="small"
+                    onClick={handleOpenTemplateMenu}
                     sx={{
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1,
-                      '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+                      color: 'text.secondary',
+                      bgcolor: 'transparent',
+                      '&:hover': { 
+                        color: '#e3b341',
+                        bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2d333b' : 'rgba(0,0,0,0.04)'
+                      }
                     }}
                   >
-                    <ListItemText primaryTypographyProps={{ fontSize: 14, noWrap: true }}>{tmp.title}</ListItemText>
-                  </MenuItem>
-                ))
-              )}
-            </Menu>
-          </Box>
-        }
+                    <DashboardCustomizeOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+
+              {/* Column Template Menu */}
+              <Menu
+                anchorEl={templateAnchorEl}
+                open={templateMenuOpen}
+                onClose={handleCloseTemplateMenu}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                sx={{
+                  '& .MuiPaper-root': {
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+                    border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : '1px solid #d0d7de',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                    borderRadius: '10px',
+                    minWidth: 200,
+                    maxHeight: 320
+                  }
+                }}
+              >
+                <Typography sx={{ px: 2, py: 1, fontSize: '12px', color: 'text.secondary', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                  Column Templates
+                </Typography>
+                {templateLoading ? (
+                  <MenuItem disabled><Typography fontSize="13px">Loading...</Typography></MenuItem>
+                ) : templates.length === 0 ? (
+                  <MenuItem disabled><Typography fontSize="13px">No templates yet.</Typography></MenuItem>
+                ) : (
+                  templates.map(tmp => (
+                    <MenuItem
+                      key={tmp._id}
+                      onClick={() => handleUseTemplate(tmp._id)}
+                      sx={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1,
+                        '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+                      }}
+                    >
+                      <ListItemText primaryTypographyProps={{ fontSize: 14, noWrap: true }}>{tmp.title}</ListItemText>
+                    </MenuItem>
+                  ))
+                )}
+              </Menu>
+            </Box>
+            </ClickAwayListener>
+        )}
       </Box>
     </SortableContext>
   )

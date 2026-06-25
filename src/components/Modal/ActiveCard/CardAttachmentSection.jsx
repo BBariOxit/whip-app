@@ -32,7 +32,11 @@ const getCloudinaryThumbnailUrl = (url, width = 200, height = 150) => {
   return `${before}w_${width},h_${height},c_fill/${after}`
 }
 
+import { useSelector } from 'react-redux'
+import { selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
+
 function CardAttachmentSection({ attachments = [], onDeleteAttachment }) {
+  const isReadOnly = useSelector(selectIsReadOnly)
   const confirmDelete = useConfirm()
 
   const handleDelete = (attachment) => {
@@ -131,16 +135,16 @@ function CardAttachmentSection({ attachments = [], onDeleteAttachment }) {
 
             {/* Action buttons */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Tooltip title="Download">
+              {!isReadOnly && <Tooltip title="Download">
                 <IconButton size="small" onClick={() => handleDownload(att.url, att.filename)}>
                   <DownloadOutlinedIcon fontSize="small" />
                 </IconButton>
-              </Tooltip>
-              <Tooltip title="Delete">
+              </Tooltip>}
+              {!isReadOnly && <Tooltip title="Delete">
                 <IconButton size="small" onClick={() => handleDelete(att)} color="error">
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
-              </Tooltip>
+              </Tooltip>}
             </Box>
           </Box>
         ))}

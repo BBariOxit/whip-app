@@ -33,7 +33,7 @@ import { toast } from 'sonner'
 import { updateCardDetailsAPI, uploadCardAttachmentAPI, deleteCardAttachmentAPI, archiveCardAPI, saveCardAsTemplateAPI } from '~/apis'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
-import { updateCardInBoard, selectCurrentActive, deleteCardOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
+import { updateCardInBoard, selectCurrentActive, deleteCardOptimistic, fetchBoardDetailAPI, selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
 import {
   clearAndHideCurrentActiveCard,
   selectCurrentActiveCard,
@@ -99,6 +99,11 @@ function ActiveCard() {
   
   const boardLabels = board?.labels || []
   const cardLabels = boardLabels.filter(label => activeCard?.labelIds?.includes(label._id))
+
+  const isOwner = currentUser?._id && board?.ownerIds?.includes(currentUser._id)
+  const isMember = currentUser?._id && board?.memberIds?.includes(currentUser._id)
+  const isAuthorized = isOwner || isMember
+  const isReadOnly = useSelector(selectIsReadOnly)
 
   // Tính trạng thái due date
   const dueDateState = getDueDateState(activeCard?.dueDate, activeCard?.dueComplete)
@@ -309,15 +314,19 @@ function ActiveCard() {
           <CreditCardIcon />
 
           {/* Feature 01: Xử lý tiêu đề của Card */}
-          <ToggleFocusInput
-            inputFontSize='22px'
-            value={activeCard?.title}
-            onChangedValue={onUpdateCardTitle} />
+          {isReadOnly ? (
+            <Typography variant="h6" sx={{ fontSize: '22px', fontWeight: 600 }}>{activeCard?.title}</Typography>
+          ) : (
+            <ToggleFocusInput
+              inputFontSize='22px'
+              value={activeCard?.title}
+              onChangedValue={onUpdateCardTitle} />
+          )}
         </Box>
 
         <Grid container spacing={2} sx={{ mb: 3 }}>
           {/* Left side */}
-          <Grid xs={12} sm={9}>
+          <Grid xs={12} sm={isReadOnly ? 12 : 9}>
             <Box sx={{ mb: 3, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
               <Box>
                 <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Members</Typography>
@@ -340,14 +349,16 @@ function ActiveCard() {
                         {label.title}
                       </Box>
                     ))}
-                    <Box onClick={(e) => setAnchorElLabels(e.currentTarget)} sx={{
-                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f',
-                      px: 1.5, py: 0.5, borderRadius: 1, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#33485D' : theme.palette.grey[300] }
-                    }}>
-                      <AddOutlinedIcon fontSize="small" />
-                    </Box>
+                    {!isReadOnly && (
+                      <Box onClick={(e) => setAnchorElLabels(e.currentTarget)} sx={{
+                        bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f',
+                        px: 1.5, py: 0.5, borderRadius: 1, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#33485D' : theme.palette.grey[300] }
+                      }}>
+                        <AddOutlinedIcon fontSize="small" />
+                      </Box>
+                    )}
                   </Box>
                 </Box>
               )}
@@ -357,6 +368,7 @@ function ActiveCard() {
                   <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Dates</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <Checkbox
+                      disabled={isReadOnly}
                       checked={!!activeCard?.dueComplete}
                       onChange={onToggleDueComplete}
                       size="small"
@@ -372,11 +384,11 @@ function ActiveCard() {
                       px: 1.5, py: 0.5, borderRadius: 1,
                       fontWeight: 600, fontSize: 14,
                       display: 'flex', alignItems: 'center', gap: 0.5,
-                      cursor: 'pointer',
+                      cursor: isReadOnly ? 'default' : 'pointer',
                       transition: 'all 0.2s ease',
-                      '&:hover': { opacity: 0.85 }
+                      '&:hover': { opacity: isReadOnly ? 1 : 0.85 }
                     })}
-                    onClick={(e) => setAnchorElDates(e.currentTarget)}
+                    onClick={(e) => { if (!isReadOnly) setAnchorElDates(e.currentTarget) }}
                     >
                       {dueDateState === 'completed'
                         ? <TaskAltOutlinedIcon sx={{ fontSize: 16 }} />
@@ -442,8 +454,9 @@ function ActiveCard() {
           </Grid>
 
           {/* Right side */}
-          <Grid xs={12} sm={3}>
-            <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Add To Card</Typography>
+          {!isReadOnly && (
+            <Grid xs={12} sm={3}>
+              <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Add To Card</Typography>
             <Stack direction="column" spacing={1}>
               {/* Feature 05: Xử lý hành động bản thân user tự join vào card */}
               {/* Nếu user hiện tại đang đăng nhập chưa thuộc mảng memberIds của card thì mới cho hiện nút Join ra */}
@@ -534,6 +547,7 @@ function ActiveCard() {
               <SidebarItem><ShareOutlinedIcon fontSize="small" />Share</SidebarItem>
             </Stack>
           </Grid>
+          )}
         </Grid>
       </Box>
       </Modal>

@@ -45,7 +45,7 @@ import Box from '@mui/material/Box'
 import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
 import { getCardActionGridStyles } from '~/utils/formatters'
 import { deleteCardAPI, archiveCardAPI, saveCardAsTemplateAPI, moveCardAPI, updateCardDetailsAPI, duplicateCardAPI } from '~/apis'
-import { deleteCardOptimistic, moveCardOptimistic, updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
+import { deleteCardOptimistic, moveCardOptimistic, updateCardInBoard, selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
 import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
 import CardMoveDialog from '~/components/Modal/ActiveCard/CardMoveDialog'
 import ViewComfyOutlinedIcon from '@mui/icons-material/ViewComfyOutlined'
@@ -62,11 +62,13 @@ function Card({ card }) {
     [boardLabels, card?.labelIds]
   )
   const board = useSelector(selectCurrentActive)
+  const isReadOnly = useSelector(selectIsReadOnly)
   const clipboard = useSelector(selectClipboard)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card._id,
     data: { ...card },
+    disabled: isReadOnly,
     transition: {
       duration: 250,
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
@@ -114,6 +116,7 @@ function Card({ card }) {
   }, [card.title])
 
   const handleRenameClick = (e) => {
+    if (isReadOnly) return
     e.stopPropagation()
     handleCloseMenu()
     
@@ -296,32 +299,34 @@ function Card({ card }) {
       }}>
       
       {/* Nút 3 chấm */}
-      <IconButton
-        className="card-more-btn"
-        onClick={handleOpenMenu}
-        sx={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          width: 28,
-          height: 28,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          opacity: 0, // Mặc định ẩn
-          transition: 'opacity 0.15s ease',
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 39, 50, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-          color: 'text.secondary',
-          zIndex: 10,
-          '&:hover': { 
-            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#22272e' : '#f4f5f7', 
-            color: 'text.primary' 
-          }
-        }}
-        size="small"
-      >
-        <MoreHorizIcon fontSize="small" />
-      </IconButton>
+      {!isReadOnly && (
+        <IconButton
+          className="card-more-btn"
+          onClick={handleOpenMenu}
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            width: 28,
+            height: 28,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: 0, // Mặc định ẩn
+            transition: 'opacity 0.15s ease',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 39, 50, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            color: 'text.secondary',
+            zIndex: 10,
+            '&:hover': { 
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? '#22272e' : '#f4f5f7', 
+              color: 'text.primary' 
+            }
+          }}
+          size="small"
+        >
+          <MoreHorizIcon fontSize="small" />
+        </IconButton>
+      )}
 
       {/* Menu thả xuống của Card */}
       <Menu

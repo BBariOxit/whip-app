@@ -16,11 +16,15 @@ const markdownValueExample = `
   import MDEditor from '@uiw/react-md-editor'
   \`\`\`
 `
+import { useSelector } from 'react-redux'
+import { selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
+
 /**
  * Vài ví dụ Markdown từ lib
  * https://codesandbox.io/embed/markdown-editor-for-react-izdd6?fontsize=14&hidenavigation=1&theme=dark
  */
 function CardDescriptionMdEditor({ cardDescriptionProp, handleUpdateCardDescription }) {
+  const isReadOnly = useSelector(selectIsReadOnly)
   // Lấy giá trị 'dark', 'light' hoặc 'system' mode từ MUI để support phần Markdown bên dưới: data-color-mode={mode}
   // https://www.npmjs.com/package/@uiw/react-md-editor#support-dark-modenight-mode
   const { mode } = useColorScheme()
@@ -37,8 +41,8 @@ function CardDescriptionMdEditor({ cardDescriptionProp, handleUpdateCardDescript
   }
 
   return (
-    <Box sx={{ mt: -4 }}>
-      {markdownEditMode
+    <Box sx={{ mt: isReadOnly ? 1 : -4 }}>
+      {markdownEditMode && !isReadOnly
         ? <Box sx={{ mt: 5, display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Box data-color-mode={mode}>
             <MDEditor
@@ -72,7 +76,7 @@ function CardDescriptionMdEditor({ cardDescriptionProp, handleUpdateCardDescript
           </Box>
         </Box>
         : <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Button
+          {!isReadOnly && <Button
             sx={{ alignSelf: 'flex-end' }}
             onClick={() => setMarkdownEditMode(true)}
             type="button"
@@ -81,17 +85,23 @@ function CardDescriptionMdEditor({ cardDescriptionProp, handleUpdateCardDescript
             size="small"
             startIcon={<EditNoteIcon />}>
             Edit
-          </Button>
+          </Button>}
           <Box data-color-mode={mode}>
-            <MDEditor.Markdown
-              source={cardDescription}
-              style={{
-                whiteSpace: 'pre-wrap',
-                padding: cardDescription ? '10px' : '0px',
-                border:  cardDescription ? '0.5px solid rgba(0, 0, 0, 0.2)' : 'none',
-                borderRadius: '8px'
-              }}
-            />
+            {cardDescription ? (
+              <MDEditor.Markdown
+                source={cardDescription}
+                style={{
+                  whiteSpace: 'pre-wrap',
+                  padding: cardDescription ? '10px' : '0px',
+                  border:  cardDescription ? '0.5px solid rgba(0, 0, 0, 0.2)' : 'none',
+                  borderRadius: '8px'
+                }}
+              />
+            ) : (
+              <Box sx={{ p: 1.5, color: 'text.secondary', fontSize: '14px' }}>
+                No description found!
+              </Box>
+            )}
           </Box>
         </Box>
       }
