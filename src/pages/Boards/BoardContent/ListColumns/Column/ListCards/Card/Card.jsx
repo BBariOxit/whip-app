@@ -21,6 +21,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import DeleteIcon from '@mui/icons-material/Delete'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined'
 import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
 import Dialog from '@mui/material/Dialog'
@@ -30,6 +31,7 @@ import DialogActions from '@mui/material/DialogActions'
 import Select from '@mui/material/Select'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
 import dayjs from 'dayjs'
 import React, { useMemo, useCallback, useState, useEffect } from 'react'
 import { cloneDeep } from 'lodash-es'
@@ -101,6 +103,51 @@ function Card({ card }) {
 
   // State cho Move Card Dialog
   const [moveModalOpen, setMoveModalOpen] = useState(false)
+
+  // State cho Rename Card
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [newTitle, setNewTitle] = useState(card.title)
+
+  // Cập nhật local state khi prop card thay đổi (tránh chớp nháy UI khi rename)
+  useEffect(() => {
+    setNewTitle(card.title)
+  }, [card.title])
+
+  const handleRenameClick = (e) => {
+    e.stopPropagation()
+    handleCloseMenu()
+    
+    // Đợi MUI Menu đóng xong xuôi giải phóng Focus Trap rồi mới bật input
+    setTimeout(() => {
+      setIsEditingTitle(true)
+      setNewTitle(card.title)
+    }, 100)
+  }
+
+  const handleUpdateTitle = async () => {
+    setIsEditingTitle(false)
+    if (newTitle.trim() === card.title || !newTitle.trim()) {
+      setNewTitle(card.title)
+      return
+    }
+    const updatedTitle = newTitle.trim()
+    dispatch(updateCardInBoard({ ...card, title: updatedTitle }))
+    try {
+      await updateCardDetailsAPI(card._id, { title: updatedTitle })
+    } catch (error) {
+      toast.error('Failed to update card title!')
+    }
+  }
+
+  const handleTitleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleUpdateTitle()
+    } else if (e.key === 'Escape') {
+      setNewTitle(card.title)
+      setIsEditingTitle(false)
+    }
+  }
 
   const handleOpenMenu = (e) => {
     e.stopPropagation()
@@ -280,10 +327,12 @@ function Card({ card }) {
 
       {/* Menu thả xuống của Card */}
       <Menu
+        id="basic-menu-card"
         anchorEl={anchorEl}
         open={open}
         onClose={handleCloseMenu}
         onClick={(e) => e.stopPropagation()} // Chặn click vùng trống menu làm mở Modal Card
+        disableRestoreFocus
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         MenuListProps={{
@@ -298,6 +347,16 @@ function Card({ card }) {
           }
         }}
       >
+        <MenuItem
+          onClick={handleRenameClick}
+          sx={{
+            py: 1,
+            '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+          }}
+        >
+          <ListItemIcon><EditOutlinedIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Rename</ListItemText>
+        </MenuItem>
         <MenuItem
           onClick={handleOpenMoveModal}
           sx={{
@@ -413,7 +472,41 @@ function Card({ card }) {
             ))}
           </Box>
         }
-        <Typography>{card?.title}</Typography>
+        {isEditingTitle ? (
+          <ClickAwayListener onClickAway={handleUpdateTitle}>
+            <Box 
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <input
+                autoFocus
+                onFocus={(e) => {
+                  const val = e.target.value
+                  e.target.value = ''
+                  e.target.value = val
+                }}
+                type="text"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onKeyDown={handleTitleKeyDown}
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  outline: 'none',
+                  background: 'transparent',
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                  color: 'inherit',
+                  padding: 0,
+                  margin: 0
+                }}
+              />
+            </Box>
+          </ClickAwayListener>
+        ) : (
+          <Typography>{newTitle}</Typography>
+        )}
       </CardContent>
       {layout !== 'compact' && showCardAction() &&
         <CardActions sx={{ 
