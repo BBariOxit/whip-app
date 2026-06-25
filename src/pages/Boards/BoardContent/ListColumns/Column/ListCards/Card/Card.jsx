@@ -5,6 +5,8 @@ import GroupIcon from '@mui/icons-material/Group'
 import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined'
 import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined'
 import DriveFileMoveOutlinedIcon from '@mui/icons-material/DriveFileMoveOutlined'
+import ContentCopy from '@mui/icons-material/ContentCopy'
+import ContentPaste from '@mui/icons-material/ContentPaste'
 import MyLocationIcon from '@mui/icons-material/MyLocation'
 import Button from '@mui/material/Button'
 import MuiCard from '@mui/material/Card'
@@ -19,6 +21,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import DeleteIcon from '@mui/icons-material/Delete'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined'
 import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
 import Dialog from '@mui/material/Dialog'
@@ -28,18 +31,20 @@ import DialogActions from '@mui/material/DialogActions'
 import Select from '@mui/material/Select'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
 import dayjs from 'dayjs'
 import React, { useMemo, useCallback, useState, useEffect } from 'react'
+import { cloneDeep } from 'lodash-es'
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useSelector, useDispatch } from 'react-redux'
 import { updateCurrentActiveCard, showModalActiveCard } from '~/redux/activeCard/activeCardSlice'
-import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
+import { selectCurrentActive, setHoveredItem, setClipboard, selectClipboard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import Box from '@mui/material/Box'
 import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
 import { getCardActionGridStyles } from '~/utils/formatters'
-import { deleteCardAPI, archiveCardAPI, saveCardAsTemplateAPI, moveCardAPI, updateCardDetailsAPI } from '~/apis'
+import { deleteCardAPI, archiveCardAPI, saveCardAsTemplateAPI, moveCardAPI, updateCardDetailsAPI, duplicateCardAPI } from '~/apis'
 import { deleteCardOptimistic, moveCardOptimistic, updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
 import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
 import CardMoveDialog from '~/components/Modal/ActiveCard/CardMoveDialog'
@@ -57,6 +62,7 @@ function Card({ card }) {
     [boardLabels, card?.labelIds]
   )
   const board = useSelector(selectCurrentActive)
+  const clipboard = useSelector(selectClipboard)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card._id,
@@ -97,6 +103,51 @@ function Card({ card }) {
 
   // State cho Move Card Dialog
   const [moveModalOpen, setMoveModalOpen] = useState(false)
+
+  // State cho Rename Card
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [newTitle, setNewTitle] = useState(card.title)
+
+  // Cập nhật local state khi prop card thay đổi (tránh chớp nháy UI khi rename)
+  useEffect(() => {
+    setNewTitle(card.title)
+  }, [card.title])
+
+  const handleRenameClick = (e) => {
+    e.stopPropagation()
+    handleCloseMenu()
+    
+    // Đợi MUI Menu đóng xong xuôi giải phóng Focus Trap rồi mới bật input
+    setTimeout(() => {
+      setIsEditingTitle(true)
+      setNewTitle(card.title)
+    }, 100)
+  }
+
+  const handleUpdateTitle = async () => {
+    setIsEditingTitle(false)
+    if (newTitle.trim() === card.title || !newTitle.trim()) {
+      setNewTitle(card.title)
+      return
+    }
+    const updatedTitle = newTitle.trim()
+    dispatch(updateCardInBoard({ ...card, title: updatedTitle }))
+    try {
+      await updateCardDetailsAPI(card._id, { title: updatedTitle })
+    } catch (error) {
+      toast.error('Failed to update card title!')
+    }
+  }
+
+  const handleTitleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleUpdateTitle()
+    } else if (e.key === 'Escape') {
+      setNewTitle(card.title)
+      setIsEditingTitle(false)
+    }
+  }
 
   const handleOpenMenu = (e) => {
     e.stopPropagation()
@@ -179,12 +230,58 @@ function Card({ card }) {
     setMoveModalOpen(true)
   }
 
+  const handleCopyCard = (e) => {
+    e.stopPropagation()
+    dispatch(setClipboard({ type: 'CARD', data: card }))
+    toast.success(`Copied card: ${card.title}`)
+    handleCloseMenu()
+  }
+
+  const handlePasteCard = async (e) => {
+    e.stopPropagation()
+    if (!clipboard || clipboard.type !== 'CARD') {
+      return toast.info('Clipboard is empty or does not contain a card!')
+    }
+
+    try {
+      const newCard = await duplicateCardAPI({
+        cardId: clipboard.data._id,
+        targetColumnId: card.columnId
+      })
+
+      const newBoard = cloneDeep(board)
+      const targetColumn = newBoard.columns.find(c => c._id === card.columnId)
+      if (targetColumn) {
+        if (targetColumn.cards.some(c => c.FE_PlaceholderCard)) {
+          targetColumn.cards = [newCard]
+          targetColumn.cardOrderIds = [newCard._id]
+        } else {
+          // Paste the copied card right after this current card
+          const cardIndex = targetColumn.cards.findIndex(c => c._id === card._id)
+          if (cardIndex !== -1) {
+            targetColumn.cards.splice(cardIndex + 1, 0, newCard)
+            targetColumn.cardOrderIds.splice(cardIndex + 1, 0, newCard._id)
+          } else {
+            targetColumn.cards.push(newCard)
+            targetColumn.cardOrderIds.push(newCard._id)
+          }
+        }
+      }
+      dispatch(updateCurrentActiveBoard(newBoard))
+      toast.success('Pasted successfully!')
+      handleCloseMenu()
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to paste card!')
+    }
+  }
+
   const layout = card?.layout || 'detailed'
 
   return (
     <MuiCard
       onClick={setActiveCard}
-      ref={setNodeRef} style={dndKitCardStyles} {...attributes} {...listeners}
+      ref={setNodeRef} style={dndKitCardStyles} {...attributes} {...listeners} data-card-id={card._id}
       sx={{
         position: 'relative',
         cursor: 'pointer',
@@ -228,10 +325,12 @@ function Card({ card }) {
 
       {/* Menu thả xuống của Card */}
       <Menu
+        id="basic-menu-card"
         anchorEl={anchorEl}
         open={open}
         onClose={handleCloseMenu}
         onClick={(e) => e.stopPropagation()} // Chặn click vùng trống menu làm mở Modal Card
+        disableRestoreFocus
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         MenuListProps={{
@@ -247,6 +346,16 @@ function Card({ card }) {
         }}
       >
         <MenuItem
+          onClick={handleRenameClick}
+          sx={{
+            py: 1,
+            '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+          }}
+        >
+          <ListItemIcon><EditOutlinedIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Rename</ListItemText>
+        </MenuItem>
+        <MenuItem
           onClick={handleOpenMoveModal}
           sx={{
             py: 1,
@@ -255,6 +364,27 @@ function Card({ card }) {
         >
           <ListItemIcon><DriveFileMoveOutlinedIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Move</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={handleCopyCard}
+          sx={{
+            py: 1,
+            '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+          }}
+        >
+          <ListItemIcon><ContentCopy fontSize="small" /></ListItemIcon>
+          <ListItemText>Copy</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={handlePasteCard}
+          disabled={!clipboard || clipboard.type !== 'CARD'}
+          sx={{
+            py: 1,
+            '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+          }}
+        >
+          <ListItemIcon><ContentPaste fontSize="small" /></ListItemIcon>
+          <ListItemText>Paste</ListItemText>
         </MenuItem>
         <MenuItem 
           onClick={handleArchiveCard} 
@@ -340,7 +470,41 @@ function Card({ card }) {
             ))}
           </Box>
         }
-        <Typography>{card?.title}</Typography>
+        {isEditingTitle ? (
+          <ClickAwayListener onClickAway={handleUpdateTitle}>
+            <Box 
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <input
+                autoFocus
+                onFocus={(e) => {
+                  const val = e.target.value
+                  e.target.value = ''
+                  e.target.value = val
+                }}
+                type="text"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onKeyDown={handleTitleKeyDown}
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  outline: 'none',
+                  background: 'transparent',
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                  color: 'inherit',
+                  padding: 0,
+                  margin: 0
+                }}
+              />
+            </Box>
+          </ClickAwayListener>
+        ) : (
+          <Typography>{newTitle}</Typography>
+        )}
       </CardContent>
       {layout !== 'compact' && showCardAction() &&
         <CardActions sx={{ 

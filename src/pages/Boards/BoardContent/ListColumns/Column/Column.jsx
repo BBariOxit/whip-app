@@ -38,9 +38,10 @@ import { cloneDeep } from 'lodash-es'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
 import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI, getCardTemplatesAPI, useCardTemplateAPI, deleteCardTemplateAPI, saveColumnAsTemplateAPI } from '~/apis'
-import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
+import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI, selectClipboard, setHoveredItem } from '~/redux/activeBoard/activeBoardSlice'
 import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
 import ColumnMoveDialog from './ColumnMoveDialog'
+import { duplicateCardAPI, duplicateColumnAPI } from '~/apis'
 
 function Column({ column }) {
   const dispatch = useDispatch()
@@ -50,6 +51,7 @@ function Column({ column }) {
     id: column._id,
     data: { ...column }
   })
+  const clipboard = useSelector(selectClipboard)
   const dndKitColumnStyles = {
     // touchAction: 'none', // dành cho sensor default dạng PointerSensor
     // Nếu sử dụng CSS.Transform như docs sẽ lỗi kiểu stretch
@@ -334,9 +336,81 @@ function Column({ column }) {
     })
   }
 
+  const handlePasteCard = async () => {
+    if (!clipboard || clipboard.type !== 'CARD') {
+      return toast.info('Clipboard is empty or does not contain a card!')
+    }
+
+    try {
+      const newCard = await duplicateCardAPI({
+        cardId: clipboard.data._id,
+        targetColumnId: column._id
+      })
+
+      const newBoard = cloneDeep(board)
+      const targetColumn = newBoard.columns.find(c => c._id === column._id)
+      if (targetColumn) {
+        if (targetColumn.cards.some(c => c.FE_PlaceholderCard)) {
+          targetColumn.cards = [newCard]
+          targetColumn.cardOrderIds = [newCard._id]
+        } else {
+          targetColumn.cards.push(newCard)
+          targetColumn.cardOrderIds.push(newCard._id)
+        }
+      }
+      dispatch(updateCurrentActiveBoard(newBoard))
+      toast.success('Pasted successfully!')
+      handleCloseAll()
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to paste card!')
+    }
+  }
+
+  const handleCopyColumn = () => {
+    dispatch(setClipboard({ type: 'COLUMN', data: column }))
+    toast.success(`Copied column: ${column.title}`)
+    handleCloseAll()
+  }
+
+  const handlePasteColumn = async () => {
+    if (!clipboard || clipboard.type !== 'COLUMN') return
+
+    try {
+      const nextBoard = cloneDeep(board)
+      const currentIndex = nextBoard.columnOrderIds.indexOf(column._id)
+      const targetIndex = currentIndex !== -1 ? currentIndex + 1 : nextBoard.columnOrderIds.length
+
+      const newColumnWithCards = await duplicateColumnAPI({
+        columnId: clipboard.data._id,
+        boardId: board._id,
+        targetIndex: targetIndex
+      })
+
+      nextBoard.columns.splice(targetIndex, 0, newColumnWithCards)
+      nextBoard.columnOrderIds.splice(targetIndex, 0, newColumnWithCards._id)
+
+      dispatch(updateCurrentActiveBoard(nextBoard))
+      toast.success('Pasted column successfully!')
+      handleCloseAll()
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to paste column!')
+    }
+  }
+
+  const handlePasteGeneral = () => {
+    if (!clipboard) return
+    if (clipboard.type === 'CARD') {
+      handlePasteCard()
+    } else if (clipboard.type === 'COLUMN') {
+      handlePasteColumn()
+    }
+  }
+
   return (
     //phải bọc div ở đây vì vấn đề chiều cao của column khi kéo thả sẽ có bug kiểu flickering
-    <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
+    <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes} data-column-id={column._id}>
       <Box
         {...listeners}
         sx={{
@@ -436,15 +510,21 @@ function Column({ column }) {
                 <ListItemIcon><DriveFileMoveOutlinedIcon fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Move</ListItemText>
               </MenuItem>
-              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
-                <ListItemIcon><ContentCut fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
-                <ListItemText>Cut</ListItemText>
-              </MenuItem>
-              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
+              
+              <Divider sx={{ my: 1, borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }} />
+
+              <MenuItem onClick={handleCopyColumn} sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
                 <ListItemIcon><ContentCopy fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
-                <ListItemText>Copy</ListItemText>
+                <ListItemText>Copy column</ListItemText>
               </MenuItem>
-              <MenuItem sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
+              <MenuItem 
+                onClick={handlePasteGeneral}
+                disabled={!clipboard || (clipboard.type !== 'CARD' && clipboard.type !== 'COLUMN')}
+                sx={{
+                  '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' },
+                  '&.Mui-disabled': { opacity: 0.3 }
+                }}
+              >
                 <ListItemIcon><ContentPaste fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Paste</ListItemText>
               </MenuItem>
