@@ -32,7 +32,7 @@ const getCloudinaryThumbnailUrl = (url, width = 200, height = 150) => {
   return `${before}w_${width},h_${height},c_fill/${after}`
 }
 
-function CardAttachmentSection({ attachments = [], onDeleteAttachment }) {
+function CardAttachmentSection({ attachments = [], onDeleteAttachment, isReadOnly }) {
   const confirmDelete = useConfirm()
 
   const handleDelete = (attachment) => {
@@ -136,11 +136,11 @@ function CardAttachmentSection({ attachments = [], onDeleteAttachment }) {
                   <DownloadOutlinedIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Delete">
+              {!isReadOnly && <Tooltip title="Delete">
                 <IconButton size="small" onClick={() => handleDelete(att)} color="error">
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
-              </Tooltip>
+              </Tooltip>}
             </Box>
           </Box>
         ))}

@@ -50,6 +50,13 @@ function ToggleFocusInput({ value, onChangedValue, inputFontSize = '16px', ...pr
           backgroundColor: (theme) => theme.palette.mode === 'dark' ? '#33485D' : 'white',
           '& fieldset': { borderColor: 'primary.main' }
         },
+        '& .MuiOutlinedInput-root.Mui-disabled': {
+          '& fieldset': { borderColor: 'transparent' }
+        },
+        '& .MuiOutlinedInput-input.Mui-disabled': {
+          WebkitTextFillColor: (theme) => theme.palette.text.primary,
+          cursor: 'default'
+        },
         '& .MuiOutlinedInput-input': {
           px: '6px',
           overflow: 'hidden',

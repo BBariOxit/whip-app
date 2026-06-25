@@ -41,7 +41,7 @@ const MENU_STYLE = {
     bgcolor: (theme) => theme.palette.mode === 'dark' ? '#334155' : 'rgba(0,0,0,0.05)'
   },
   '&.Mui-disabled': {
-    opacity: 0.5
+    opacity: 1
   }
 }
 

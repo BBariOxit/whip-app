@@ -18,7 +18,7 @@ import CloseIcon from '@mui/icons-material/Close'
  *  - checklists: mảng checklists từ activeCard
  *  - onUpdateChecklists: callback nhận mảng checklists mới (đã mutate)
  */
-function CardChecklistSection({ checklists = [], onUpdateChecklists }) {
+function CardChecklistSection({ checklists = [], onUpdateChecklists, isReadOnly }) {
   const [addingItemForChecklistId, setAddingItemForChecklistId] = useState(null)
   const [newItemTitle, setNewItemTitle] = useState('')
   const [editingChecklistId, setEditingChecklistId] = useState(null)
@@ -153,19 +153,21 @@ function CardChecklistSection({ checklists = [], onUpdateChecklists }) {
                     sx={{
                       fontWeight: '600',
                       fontSize: '20px',
-                      cursor: 'pointer',
-                      '&:hover': { opacity: 0.7 }
+                      cursor: isReadOnly ? 'default' : 'pointer',
+                      '&:hover': { opacity: isReadOnly ? 1 : 0.7 }
                     }}
                     onClick={() => {
-                      setEditingChecklistId(checklist._id)
-                      setEditingChecklistTitle(checklist.title)
+                      if (!isReadOnly) {
+                        setEditingChecklistId(checklist._id)
+                        setEditingChecklistTitle(checklist.title)
+                      }
                     }}
                   >
                     {checklist.title}
                   </Typography>
                 )}
               </Box>
-              <Button
+              {!isReadOnly && <Button
                 size="small"
                 variant="outlined"
                 color="inherit"
@@ -179,7 +181,7 @@ function CardChecklistSection({ checklists = [], onUpdateChecklists }) {
                 }}
               >
                 Delete
-              </Button>
+              </Button>}
             </Box>
 
             {/* ===== PROGRESS BAR ===== */}
@@ -231,6 +233,7 @@ function CardChecklistSection({ checklists = [], onUpdateChecklists }) {
                   }}
                 >
                   <Checkbox
+                    disabled={isReadOnly}
                     checked={!!item.isCompleted}
                     onChange={() => handleToggleItem(checklist._id, item._id)}
                     size="small"
@@ -259,22 +262,24 @@ function CardChecklistSection({ checklists = [], onUpdateChecklists }) {
                         flex: 1,
                         pt: '5px',
                         fontSize: '14px',
-                        cursor: 'pointer',
+                        cursor: isReadOnly ? 'default' : 'pointer',
                         textDecoration: item.isCompleted ? 'line-through' : 'none',
                         color: item.isCompleted ? 'text.disabled' : 'text.primary',
                         transition: 'all 0.2s ease',
                         wordBreak: 'break-word',
-                        '&:hover': { opacity: 0.7 }
+                        '&:hover': { opacity: isReadOnly ? 1 : 0.7 }
                       }}
                       onClick={() => {
-                        setEditingItemId(item._id)
-                        setEditingItemTitle(item.title)
+                        if (!isReadOnly) {
+                          setEditingItemId(item._id)
+                          setEditingItemTitle(item.title)
+                        }
                       }}
                     >
                       {item.title}
                     </Typography>
                   )}
-                  <IconButton
+                  {!isReadOnly && <IconButton
                     className="delete-item-btn"
                     size="small"
                     onClick={() => handleDeleteItem(checklist._id, item._id)}
@@ -287,7 +292,7 @@ function CardChecklistSection({ checklists = [], onUpdateChecklists }) {
                     }}
                   >
                     <DeleteOutlineIcon fontSize="small" />
-                  </IconButton>
+                  </IconButton>}
                 </Box>
               ))}
 
@@ -337,7 +342,7 @@ function CardChecklistSection({ checklists = [], onUpdateChecklists }) {
                 </Box>
               </Collapse>
 
-              {addingItemForChecklistId !== checklist._id && (
+              {addingItemForChecklistId !== checklist._id && !isReadOnly && (
                 <Button
                   size="small"
                   startIcon={<AddIcon />}
