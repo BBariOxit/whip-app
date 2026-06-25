@@ -1,4 +1,5 @@
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
 import CloseIcon from '@mui/icons-material/Close'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import Button from '@mui/material/Button'
@@ -181,8 +182,9 @@ function ListColumns({ columns }) {
                 }}
               >Add new column</Button>
             </Box>
-            : <Box sx={{
-              minWidth: '15.625rem',
+            : <ClickAwayListener onClickAway={() => setOpenNewColumnForm(false)}>
+              <Box sx={{
+                minWidth: '15.625rem',
               maxWidth: '15.625rem',
               mx: 2,
               p: 1,
@@ -316,6 +318,7 @@ function ListColumns({ columns }) {
                 )}
               </Menu>
             </Box>
+            </ClickAwayListener>
         )}
       </Box>
     </SortableContext>

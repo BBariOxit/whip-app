@@ -191,6 +191,33 @@ const theme = extendTheme({
           padding: 0
         }
       }
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.column : theme.palette.background.paper,
+          border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid #d0d7de',
+          borderRadius: '8px'
+        })
+      }
+    },
+    MuiPopover: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.column : theme.palette.background.paper,
+          border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid #d0d7de',
+          borderRadius: '8px'
+        })
+      }
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.column : theme.palette.background.paper,
+          border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid #d0d7de',
+          borderRadius: '8px'
+        })
+      }
     }
   }
 })

@@ -55,24 +55,18 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <Provider store={store}>
     <PersistGate persistor={persistor}>
       <BrowserRouter>
-        <CssVarsProvider theme={theme}>
+        <CssVarsProvider defaultMode="dark" theme={theme}>
           <ConfirmProvider 
             useLegacyReturn={true}
             defaultOptions={{
               dialogProps: {
+                maxWidth: 'xs',
                 sx: {
                   '& .MuiDialogActions-root': {
                     mt: 0,
                     pt: 0,
                     mb: 1
                   }
-                },
-                PaperProps: {
-                  sx: (theme) => ({
-                    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.background.paper,
-                    color: theme.palette.text.primary,
-                    backgroundImage: 'none'
-                  })
                 }
               },
               buttonOrder: ['confirm', 'cancel'],
