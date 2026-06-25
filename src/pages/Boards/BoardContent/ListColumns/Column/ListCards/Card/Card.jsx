@@ -281,9 +281,7 @@ function Card({ card }) {
   return (
     <MuiCard
       onClick={setActiveCard}
-      onMouseEnter={() => dispatch(setHoveredItem({ type: 'CARD', data: card }))}
-      onMouseLeave={() => dispatch(setHoveredItem(null))}
-      ref={setNodeRef} style={dndKitCardStyles} {...attributes} {...listeners}
+      ref={setNodeRef} style={dndKitCardStyles} {...attributes} {...listeners} data-card-id={card._id}
       sx={{
         position: 'relative',
         cursor: 'pointer',

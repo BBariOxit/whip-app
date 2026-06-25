@@ -94,6 +94,11 @@ export const restoreColumnAPI = async (columnId) => {
   return response.data
 }
 
+export const duplicateColumnAPI = async (duplicateData) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/columns/duplicate`, duplicateData)
+  return response.data
+}
+
 // cards
 export const createNewCardAPI = async (newCardData) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/cards`, newCardData)

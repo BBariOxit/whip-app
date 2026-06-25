@@ -41,7 +41,7 @@ import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAl
 import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI, selectClipboard, setHoveredItem } from '~/redux/activeBoard/activeBoardSlice'
 import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
 import ColumnMoveDialog from './ColumnMoveDialog'
-import { duplicateCardAPI } from '~/apis'
+import { duplicateCardAPI, duplicateColumnAPI } from '~/apis'
 
 function Column({ column }) {
   const dispatch = useDispatch()
@@ -367,13 +367,52 @@ function Column({ column }) {
     }
   }
 
+  const handleCopyColumn = () => {
+    dispatch(setClipboard({ type: 'COLUMN', data: column }))
+    toast.success(`Copied column: ${column.title}`)
+    handleCloseAll()
+  }
+
+  const handlePasteColumn = async () => {
+    if (!clipboard || clipboard.type !== 'COLUMN') return
+
+    try {
+      const nextBoard = cloneDeep(board)
+      const currentIndex = nextBoard.columnOrderIds.indexOf(column._id)
+      const targetIndex = currentIndex !== -1 ? currentIndex + 1 : nextBoard.columnOrderIds.length
+
+      const newColumnWithCards = await duplicateColumnAPI({
+        columnId: clipboard.data._id,
+        boardId: board._id,
+        targetIndex: targetIndex
+      })
+
+      nextBoard.columns.splice(targetIndex, 0, newColumnWithCards)
+      nextBoard.columnOrderIds.splice(targetIndex, 0, newColumnWithCards._id)
+
+      dispatch(updateCurrentActiveBoard(nextBoard))
+      toast.success('Pasted column successfully!')
+      handleCloseAll()
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to paste column!')
+    }
+  }
+
+  const handlePasteGeneral = () => {
+    if (!clipboard) return
+    if (clipboard.type === 'CARD') {
+      handlePasteCard()
+    } else if (clipboard.type === 'COLUMN') {
+      handlePasteColumn()
+    }
+  }
+
   return (
     //phải bọc div ở đây vì vấn đề chiều cao của column khi kéo thả sẽ có bug kiểu flickering
-    <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
+    <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes} data-column-id={column._id}>
       <Box
         {...listeners}
-        onMouseEnter={() => dispatch(setHoveredItem({ type: 'COLUMN', data: column }))}
-        onMouseLeave={() => dispatch(setHoveredItem(null))}
         sx={{
           minWidth: '18.75rem',
           maxWidth: '18.75rem',
@@ -471,10 +510,20 @@ function Column({ column }) {
                 <ListItemIcon><DriveFileMoveOutlinedIcon fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Move</ListItemText>
               </MenuItem>
+              
+              <Divider sx={{ my: 1, borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }} />
+
+              <MenuItem onClick={handleCopyColumn} sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}>
+                <ListItemIcon><ContentCopy fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
+                <ListItemText>Copy column</ListItemText>
+              </MenuItem>
               <MenuItem 
-                onClick={handlePasteCard}
-                disabled={!clipboard || clipboard.type !== 'CARD'}
-                sx={{ '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
+                onClick={handlePasteGeneral}
+                disabled={!clipboard || (clipboard.type !== 'CARD' && clipboard.type !== 'COLUMN')}
+                sx={{
+                  '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' },
+                  '&.Mui-disabled': { opacity: 0.3 }
+                }}
               >
                 <ListItemIcon><ContentPaste fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Paste</ListItemText>
