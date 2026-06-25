@@ -22,6 +22,7 @@ import TemplateManagerDrawer from './TemplateManagerDrawer'
 import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
+import { selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
 import { useConfirm } from 'material-ui-confirm'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
@@ -45,10 +46,11 @@ const MENU_STYLE = {
   }
 }
 
-function BoardBar({ board, isAuthorized, isReadOnly }) {
+function BoardBar({ board, isAuthorized }) {
   const [isArchivedDrawerOpen, setIsArchivedDrawerOpen] = useState(false)
   const [isTemplateDrawerOpen, setIsTemplateDrawerOpen] = useState(false)
   const currentUser = useSelector(selectCurrentUser)
+  const isReadOnly = useSelector(selectIsReadOnly)
   const dispatch = useDispatch()
   const confirm = useConfirm()
   const [anchorElVisibility, setAnchorElVisibility] = useState(null)
@@ -76,7 +78,24 @@ function BoardBar({ board, isAuthorized, isReadOnly }) {
           cancellationText: 'Cancel',
           confirmationKeyword: board.title,
           buttonOrder: ['confirm', 'cancel'],
-          confirmationButtonProps: { color: 'error', variant: 'contained' }
+          confirmationButtonProps: { color: 'error', variant: 'contained' },
+          dialogProps: { maxWidth: 'xs' },
+          confirmationKeywordTextFieldProps: {
+            autoFocus: true,
+            variant: 'outlined',
+            size: 'small',
+            sx: { 
+              mt: 2,
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
+                },
+                '&:hover fieldset': {
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)'
+                }
+              }
+            }
+          }
         })
       }
 
@@ -118,8 +137,8 @@ function BoardBar({ board, isAuthorized, isReadOnly }) {
         <Chip
           sx={{
             ...MENU_STYLE,
-            color: board?.type === 'public' ? 'success.main' : 'text.primary',
-            '& .MuiSvgIcon-root': { color: board?.type === 'public' ? 'success.main' : 'text.primary' }
+            color: board?.type === 'public' ? 'info.main' : 'text.primary',
+            '& .MuiSvgIcon-root': { color: board?.type === 'public' ? 'info.main' : 'text.primary' }
           }}
           icon={board?.type === 'public' ? <PublicIcon /> : <LockIcon />}
           label={capitalizeFirstLetter(board?.type)}
@@ -152,7 +171,7 @@ function BoardBar({ board, isAuthorized, isReadOnly }) {
             onClick={() => handleToggleVisibility('public')}
             selected={board?.type === 'public'}
           >
-            <ListItemIcon><PublicIcon sx={{ color: '#238636' }} fontSize="small" /></ListItemIcon>
+            <ListItemIcon><PublicIcon sx={{ color: 'info.main' }} fontSize="small" /></ListItemIcon>
             <ListItemText 
               primaryTypographyProps={{ fontSize: 14 }}
               primary="Public" 

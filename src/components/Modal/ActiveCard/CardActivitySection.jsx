@@ -40,7 +40,10 @@ const ACTION_TYPE_ICONS = {
   'UPDATE_COVER': ImageIcon
 }
 
-function CardActivitySection({ cardId, isReadOnly }) {
+import { selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
+
+function CardActivitySection({ cardId }) {
+  const isReadOnly = useSelector(selectIsReadOnly)
   const currentUser = useSelector(selectCurrentUser)
   
   const [activities, setActivities] = useState([])

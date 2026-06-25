@@ -1,9 +1,10 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit'
 import authorizedAxiosInstance from '~/utils/authorizeAxios'
 import { API_ROOT } from '~/utils/constants'
 import { mapOrder } from '~/utils/sorts'
 import { generatePlaceholderCard } from '~/utils/formatters'
 import { isEmpty } from 'lodash-es'
+import { selectCurrentUser } from '~/redux/user/userSlice'
 
 const initialState = {
   currentActiveBoard: null,
@@ -220,6 +221,16 @@ export const selectClipboard = (state) => {
 export const selectHoveredItem = (state) => {
   return state.activeBoard.hoveredItem
 }
+
+export const selectIsReadOnly = createSelector(
+  [selectCurrentActive, selectCurrentUser],
+  (board, currentUser) => {
+    if (!board) return false
+    const isOwner = currentUser?._id && board.ownerIds?.includes(currentUser._id)
+    const isMember = currentUser?._id && board.memberIds?.includes(currentUser._id)
+    return board.type === 'public' && !(isOwner || isMember)
+  }
+)
 
 // Cái file này tên là activeBoardSlice NHƯNG chúng ta sẽ export một thứ tên là Reducer
 // export default activeBoardSlice.reducer

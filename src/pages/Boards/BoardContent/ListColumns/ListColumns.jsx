@@ -22,12 +22,14 @@ import { generatePlaceholderCard } from '~/utils/formatters'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   selectCurrentActive,
-  updateCurrentActiveBoard
+  updateCurrentActiveBoard,
+  selectIsReadOnly
 } from '~/redux/activeBoard/activeBoardSlice'
 
-function ListColumns({ columns, isReadOnly }) {
+function ListColumns({ columns }) {
   const dispatch = useDispatch()
   const board = useSelector(selectCurrentActive)
+  const isReadOnly = useSelector(selectIsReadOnly)
 
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false)
   const toogleOpenNewColumnForm = () => setOpenNewColumnForm(!openNewColumnForm)
@@ -152,7 +154,6 @@ function ListColumns({ columns, isReadOnly }) {
           return <Column
             key={column._id}
             column={column}
-            isReadOnly={isReadOnly}
           />
         })}
 
@@ -261,9 +262,10 @@ function ListColumns({ columns, isReadOnly }) {
                     size="small"
                     onClick={handleOpenTemplateMenu}
                     sx={{
-                      color: '#e3b341',
+                      color: 'text.secondary',
                       bgcolor: 'transparent',
                       '&:hover': { 
+                        color: '#e3b341',
                         bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2d333b' : 'rgba(0,0,0,0.04)'
                       }
                     }}

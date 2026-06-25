@@ -5,7 +5,8 @@ import AppBar from '~/components/AppBar/AppBar'
 import {
   fetchBoardDetailAPI,
   selectCurrentActive,
-  updateCurrentActiveBoard
+  updateCurrentActiveBoard,
+  selectIsReadOnly
 } from '~/redux/activeBoard/activeBoardSlice'
 import BoardBar from './BoardBar/BoardBar'
 import BoardContent from './BoardContent/BoardContent'
@@ -28,6 +29,7 @@ function Board() {
   // const [board, setBoard] = useState(null)
   const board = useSelector(selectCurrentActive)
   const currentUser = useSelector(selectCurrentUser)
+  const isReadOnly = useSelector(selectIsReadOnly)
   const { boardId } = useParams()
 
   useEffect(() => {
@@ -126,7 +128,6 @@ function Board() {
   const isOwner = currentUserId && board.ownerIds?.includes(currentUserId)
   const isMember = currentUserId && board.memberIds?.includes(currentUserId)
   const isAuthorized = isOwner || isMember
-  const isReadOnly = board.type === 'public' && !isAuthorized
 
   return (
     <Container disableGutters maxWidth={false} sx={{ height: '100vh' }}>
@@ -135,10 +136,9 @@ function Board() {
 
       {/* các thành phần còn lại của board details*/}
       <AppBar />
-      <BoardBar board={board} isAuthorized={isAuthorized} isReadOnly={isReadOnly} />
+      <BoardBar board={board} isAuthorized={isAuthorized} />
       <BoardContent
         board={board}
-        isReadOnly={isReadOnly}
 
         // createNewCard={createNewCard}
         // deleteColumnDetails={deleteColumnDetails}

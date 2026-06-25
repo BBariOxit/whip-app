@@ -16,11 +16,15 @@ const markdownValueExample = `
   import MDEditor from '@uiw/react-md-editor'
   \`\`\`
 `
+import { useSelector } from 'react-redux'
+import { selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
+
 /**
  * Vài ví dụ Markdown từ lib
  * https://codesandbox.io/embed/markdown-editor-for-react-izdd6?fontsize=14&hidenavigation=1&theme=dark
  */
-function CardDescriptionMdEditor({ cardDescriptionProp, handleUpdateCardDescription, isReadOnly }) {
+function CardDescriptionMdEditor({ cardDescriptionProp, handleUpdateCardDescription }) {
+  const isReadOnly = useSelector(selectIsReadOnly)
   // Lấy giá trị 'dark', 'light' hoặc 'system' mode từ MUI để support phần Markdown bên dưới: data-color-mode={mode}
   // https://www.npmjs.com/package/@uiw/react-md-editor#support-dark-modenight-mode
   const { mode } = useColorScheme()

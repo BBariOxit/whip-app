@@ -38,14 +38,15 @@ import { cloneDeep } from 'lodash-es'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
 import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI, getCardTemplatesAPI, useCardTemplateAPI, deleteCardTemplateAPI, saveColumnAsTemplateAPI } from '~/apis'
-import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI, selectClipboard, setHoveredItem } from '~/redux/activeBoard/activeBoardSlice'
+import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI, selectClipboard, setHoveredItem, selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
 import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
 import ColumnMoveDialog from './ColumnMoveDialog'
 import { duplicateCardAPI, duplicateColumnAPI } from '~/apis'
 
-function Column({ column, isReadOnly }) {
+function Column({ column }) {
   const dispatch = useDispatch()
   const board = useSelector(selectCurrentActive)
+  const isReadOnly = useSelector(selectIsReadOnly)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
@@ -654,7 +655,7 @@ function Column({ column, isReadOnly }) {
           )}
         </Box>
         {/* ListCard */}
-        <ListCard cards={orderedCards} isReadOnly={isReadOnly} />
+        <ListCard cards={orderedCards} />
         {/* footer */}
         <Box sx={{
           height: (theme) => theme.trello.columnFooterHeight,

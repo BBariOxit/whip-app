@@ -33,7 +33,7 @@ import { toast } from 'sonner'
 import { updateCardDetailsAPI, uploadCardAttachmentAPI, deleteCardAttachmentAPI, archiveCardAPI, saveCardAsTemplateAPI } from '~/apis'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
-import { updateCardInBoard, selectCurrentActive, deleteCardOptimistic, fetchBoardDetailAPI } from '~/redux/activeBoard/activeBoardSlice'
+import { updateCardInBoard, selectCurrentActive, deleteCardOptimistic, fetchBoardDetailAPI, selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
 import {
   clearAndHideCurrentActiveCard,
   selectCurrentActiveCard,
@@ -103,7 +103,7 @@ function ActiveCard() {
   const isOwner = currentUser?._id && board?.ownerIds?.includes(currentUser._id)
   const isMember = currentUser?._id && board?.memberIds?.includes(currentUser._id)
   const isAuthorized = isOwner || isMember
-  const isReadOnly = board?.type === 'public' && !isAuthorized
+  const isReadOnly = useSelector(selectIsReadOnly)
 
   // Tính trạng thái due date
   const dueDateState = getDueDateState(activeCard?.dueDate, activeCard?.dueComplete)
@@ -335,7 +335,6 @@ function ActiveCard() {
                 <CardUserGroup 
                   cardMemberIds={activeCard?.memberIds}
                   onUpdateCardMembers={onUpdateCardMembers}
-                  isReadOnly={isReadOnly}
                 />
               </Box>
               
@@ -425,7 +424,6 @@ function ActiveCard() {
               <CardDescriptionMdEditor
                 cardDescriptionProp={activeCard?.description}
                 handleUpdateCardDescription={onUpdateCardDescription}
-                isReadOnly={isReadOnly}
               />
             </Box>
 
@@ -435,7 +433,6 @@ function ActiveCard() {
                 <CardChecklistSection
                   checklists={activeCard?.checklists}
                   onUpdateChecklists={onUpdateChecklists}
-                  isReadOnly={isReadOnly}
                 />
               </Box>
             )}
@@ -445,7 +442,6 @@ function ActiveCard() {
               <CardAttachmentSection
                 attachments={activeCard?.attachments}
                 onDeleteAttachment={onDeleteAttachment}
-                isReadOnly={isReadOnly}
               />
             )}
 
@@ -453,7 +449,6 @@ function ActiveCard() {
               {/* Feature 04: Xử lý các hành động, ví dụ comment vào Card */}
               <CardActivitySection
                 cardId={activeCard?._id}
-                isReadOnly={isReadOnly}
               />
             </Box>
           </Grid>

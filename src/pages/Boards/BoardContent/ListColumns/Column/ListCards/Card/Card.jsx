@@ -45,7 +45,7 @@ import Box from '@mui/material/Box'
 import { getDueDateState, getDueDateColor, getDueDateTextColor } from '~/utils/getDueDateState'
 import { getCardActionGridStyles } from '~/utils/formatters'
 import { deleteCardAPI, archiveCardAPI, saveCardAsTemplateAPI, moveCardAPI, updateCardDetailsAPI, duplicateCardAPI } from '~/apis'
-import { deleteCardOptimistic, moveCardOptimistic, updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
+import { deleteCardOptimistic, moveCardOptimistic, updateCardInBoard, selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
 import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
 import CardMoveDialog from '~/components/Modal/ActiveCard/CardMoveDialog'
 import ViewComfyOutlinedIcon from '@mui/icons-material/ViewComfyOutlined'
@@ -53,7 +53,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { useConfirm } from 'material-ui-confirm'
 import { toast } from 'sonner'
 
-function Card({ card, isReadOnly }) {
+function Card({ card }) {
   const dispatch = useDispatch()
   const confirm = useConfirm()
   const boardLabels = useSelector((state) => selectCurrentActive(state)?.labels || [])
@@ -62,6 +62,7 @@ function Card({ card, isReadOnly }) {
     [boardLabels, card?.labelIds]
   )
   const board = useSelector(selectCurrentActive)
+  const isReadOnly = useSelector(selectIsReadOnly)
   const clipboard = useSelector(selectClipboard)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({

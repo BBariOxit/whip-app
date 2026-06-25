@@ -12,13 +12,17 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
 
+import { useSelector } from 'react-redux'
+import { selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
+
 /**
  * Component render toàn bộ checklists của 1 card.
  * Props:
  *  - checklists: mảng checklists từ activeCard
  *  - onUpdateChecklists: callback nhận mảng checklists mới (đã mutate)
  */
-function CardChecklistSection({ checklists = [], onUpdateChecklists, isReadOnly }) {
+function CardChecklistSection({ checklists = [], onUpdateChecklists }) {
+  const isReadOnly = useSelector(selectIsReadOnly)
   const [addingItemForChecklistId, setAddingItemForChecklistId] = useState(null)
   const [newItemTitle, setNewItemTitle] = useState('')
   const [editingChecklistId, setEditingChecklistId] = useState(null)

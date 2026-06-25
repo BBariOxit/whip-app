@@ -6,7 +6,7 @@ import Column from './ListColumns/Column/Column'
 import Card from './ListColumns/Column/ListCards/Card/Card'
 import ListColumns from './ListColumns/ListColumns'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectClipboard, selectHoveredItem, setClipboard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
+import { selectClipboard, selectHoveredItem, setClipboard, updateCurrentActiveBoard, selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
 import { duplicateCardAPI, duplicateColumnAPI } from '~/apis'
 import { cloneDeep } from 'lodash-es'
 import { toast } from 'sonner'
@@ -15,8 +15,7 @@ function BoardContent({
   board,
   moveColumn,
   moveCardSameColumn,
-  moveCardifferentColumn,
-  isReadOnly
+  moveCardifferentColumn
 }) {
   const {
     orderedColumns,
@@ -40,6 +39,7 @@ function BoardContent({
   const dispatch = useDispatch()
   const clipboard = useSelector(selectClipboard)
   const hoveredItem = useSelector(selectHoveredItem)
+  const isReadOnly = useSelector(selectIsReadOnly)
 
   // Lưu trữ state mới nhất vào ref để event listener không bị tháo lắp liên tục khi rê chuột
   const stateRef = useRef({ board, clipboard, hoveredItem })
@@ -186,7 +186,7 @@ function BoardContent({
           height: (theme) => theme.trello.boardContentHeight,
           p: '10px 0'
         }}>
-        <ListColumns columns={orderedColumns} isReadOnly={isReadOnly} />
+        <ListColumns columns={orderedColumns} />
         <DragOverlay dropAnimation={customDropAnimation}>
           {!activeDragItemType && null}
           {(activeDragItemId && activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) && <Column column={activeDragItemData}/>}
