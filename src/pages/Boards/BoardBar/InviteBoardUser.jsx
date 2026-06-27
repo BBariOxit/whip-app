@@ -52,7 +52,7 @@ function InviteBoardUser({ boardId }) {
           sx={{
             color: 'text.primary',
             borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'divider',
-            '&:hover': { borderColor: 'primary.main', bgcolor: 'transparent' }
+            '&:hover': { borderColor: 'primary.main', bgcolor: 'transparent', boxShadow: (theme) => `0 0 0 1px ${theme.palette.primary.main}` }
           }}
         >
           Invite

@@ -5,7 +5,7 @@ import Avatar from '@mui/material/Avatar'
 import Tooltip from '@mui/material/Tooltip'
 import Popover from '@mui/material/Popover'
 
-function BoardUserGroup({ boardUsers = [], limit = 6 }) {
+function BoardUserGroup({ boardUsers = [], limit = 4 }) {
   /**
    * Xử lý Popover để ẩn hoặc hiện toàn bộ user trên một cái popup, tương tự docs để tham khảo ở đây:
    * https://mui.com/material-ui/react-popover/

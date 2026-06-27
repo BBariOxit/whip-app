@@ -77,7 +77,15 @@ function AccountTab() {
                 fullWidth
                 helperText={`Your profile URL: whip.cobweb.id.vn/u/${currentUser?.username}`}
                 disabled
-                sx={{ '& .MuiOutlinedInput-root': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa' }, '& .MuiFormHelperText-root': { color: '#768390' } }}
+                sx={{ 
+                  '& .MuiOutlinedInput-root': { 
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa',
+                    '& fieldset': { borderWidth: '1px !important', transition: 'none !important' },
+                    '&:hover fieldset': { borderWidth: '2px !important' },
+                    '&.Mui-focused fieldset': { borderWidth: '2px !important' }
+                  }, 
+                  '& .MuiFormHelperText-root': { color: '#768390' } 
+                }}
               />
 
               <TextField 
@@ -85,14 +93,28 @@ function AccountTab() {
                 defaultValue={currentUser?.email} 
                 disabled 
                 fullWidth
-                sx={{ '& .MuiOutlinedInput-root': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa' } }}
+                sx={{ 
+                  '& .MuiOutlinedInput-root': { 
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa',
+                    '& fieldset': { borderWidth: '1px !important', transition: 'none !important' },
+                    '&:hover fieldset': { borderWidth: '2px !important' },
+                    '&.Mui-focused fieldset': { borderWidth: '2px !important' }
+                  } 
+                }}
               />
 
               <Box>
                 <TextField 
                   label="Display Name" 
                   fullWidth
-                  sx={{ '& .MuiOutlinedInput-root': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa' } }}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': { 
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa',
+                      '& fieldset': { borderWidth: '1px !important', transition: 'none !important' },
+                      '&:hover fieldset': { borderWidth: '2px !important' },
+                      '&.Mui-focused fieldset': { borderWidth: '2px !important' }
+                    } 
+                  }}
                   {...register('displayName', {
                     required: FIELD_REQUIRED_MESSAGE
                   })}

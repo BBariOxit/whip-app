@@ -137,9 +137,13 @@ function AutoCompleteSearchBoard() {
             '& label.Mui-focused': { color: 'primary.main' },
             '& .MuiOutlinedInput-root': {
               color: 'text.primary',
-              '& fieldset': { borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'divider' },
-              '&:hover fieldset': { borderColor: 'primary.main' },
-              '&.Mui-focused fieldset': { borderColor: 'primary.main' }
+              '& fieldset': { 
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'divider', 
+                borderWidth: '1px !important',
+                transition: 'none !important'
+              },
+              '&:hover fieldset': { borderColor: 'primary.main', borderWidth: '2px !important' },
+              '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '2px !important' }
             },
             '.MuiSvgIcon-root': { color: 'text.primary' }
           }}

@@ -20,6 +20,7 @@ import InviteBoardUser from './InviteBoardUser'
 import ArchivedItemsDrawer from './ArchivedItemsDrawer'
 import TemplateManagerDrawer from './TemplateManagerDrawer'
 import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
+import ShareModal from '~/components/Modal/ShareModal/ShareModal'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
@@ -28,6 +29,8 @@ import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
+import Button from '@mui/material/Button'
+import ShareIcon from '@mui/icons-material/Share'
 
 const MENU_STYLE = {
   color: 'text.primary',
@@ -49,6 +52,7 @@ const MENU_STYLE = {
 function BoardBar({ board, isAuthorized }) {
   const [isArchivedDrawerOpen, setIsArchivedDrawerOpen] = useState(false)
   const [isTemplateDrawerOpen, setIsTemplateDrawerOpen] = useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const currentUser = useSelector(selectCurrentUser)
   const isReadOnly = useSelector(selectIsReadOnly)
   const dispatch = useDispatch()
@@ -220,12 +224,29 @@ function BoardBar({ board, isAuthorized }) {
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {/* Nút share Board */}
+        <Chip
+          sx={MENU_STYLE}
+          icon={<ShareIcon />}
+          label="Share"
+          clickable
+          onClick={() => setIsShareModalOpen(true)}
+        />
+
         {/* xử lý cho phép chủ sở hữu board mời thành viên khác vào board */}
         {!isReadOnly && <InviteBoardUser boardId={board._id} />}
 
         {/* xử lý hiển thị danh sách thành viên của board */}
         <BoardUserGroup boardUsers={board?.FE_allUser} />
       </Box>
+
+      <ShareModal 
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        shareUrl={window.location.href}
+        title={board?.title}
+        type="Board"
+      />
 
       <ArchivedItemsDrawer
         isOpen={isArchivedDrawerOpen}

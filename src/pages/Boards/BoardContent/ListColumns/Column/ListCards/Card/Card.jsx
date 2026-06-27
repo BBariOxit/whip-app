@@ -293,7 +293,8 @@ function Card({ card }) {
         bgcolor: 'background.paper',
         flexShrink: 0, // Không cho card bị shrink khi list có nhiều card
         '&:hover': {
-          borderColor: (theme) => theme.palette.primary.main
+          borderColor: (theme) => theme.palette.primary.main,
+          boxShadow: (theme) => `0 0 0 1px ${theme.palette.primary.main}`
         },
         '&:hover .card-more-btn': { opacity: 1 }
       }}>
