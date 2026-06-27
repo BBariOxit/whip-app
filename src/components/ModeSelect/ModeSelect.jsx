@@ -53,12 +53,16 @@ function ModeSelect() {
             color: 'text.primary',
             '.MuiOutlinedInput-notchedOutline': {
               borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'divider',
+              borderWidth: '1px !important',
+              transition: 'none !important'
             },
             '&:hover .MuiOutlinedInput-notchedOutline': {
               borderColor: 'primary.main',
+              borderWidth: '2px !important'
             },
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
               borderColor: 'primary.main',
+              borderWidth: '2px !important'
             },
             '.MuiSvgIcon-root': {
               color: 'text.primary'

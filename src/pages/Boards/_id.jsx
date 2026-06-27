@@ -13,7 +13,7 @@ import BoardContent from './BoardContent/BoardContent'
 
 // import { mockData } from '~/apis/mock-data'
 import { cloneDeep } from 'lodash-es'
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation } from 'react-router-dom'
 import {
   moveCarDifferentColumnlAPI,
   updateBoardDetailAPI,
@@ -22,6 +22,7 @@ import {
 import PageLoadingSpinner from '~/components/Loading/pageLoadingSpinner'
 import ActiveCard from '~/components/Modal/ActiveCard/ActiveCard'
 import { selectCurrentUser } from '~/redux/user/userSlice'
+import { updateCurrentActiveCard } from '~/redux/activeCard/activeCardSlice'
 
 function Board() {
   const dispatch = useDispatch()
@@ -31,6 +32,7 @@ function Board() {
   const currentUser = useSelector(selectCurrentUser)
   const isReadOnly = useSelector(selectIsReadOnly)
   const { boardId } = useParams()
+  const location = useLocation()
 
   useEffect(() => {
     // Reset board data before fetching new board to prevent flashing previous board UI
@@ -38,6 +40,32 @@ function Board() {
     // call api
     dispatch(fetchBoardDetailAPI(boardId))
   }, [dispatch, boardId])
+
+  // Xử lý Deep Link khi có ?cardId=... trên URL
+  useEffect(() => {
+    if (!board) return // Đợi load Board xong đã
+
+    // Phân tích cái đuôi URL
+    const searchParams = new URLSearchParams(location.search)
+    const cardIdFromUrl = searchParams.get('cardId')
+
+    if (cardIdFromUrl) {
+      // Lùng sục tìm con Card trong Board
+      let targetCard = null
+      for (const column of board.columns) {
+        const found = column.cards?.find(c => c._id === cardIdFromUrl)
+        if (found) {
+          targetCard = found
+          break
+        }
+      }
+
+      // Nếu tìm thấy card trong board thì cập nhật vào state để bật Modal lên
+      if (targetCard) {
+        dispatch(updateCurrentActiveCard(targetCard))
+      }
+    }
+  }, [location.search, board, dispatch])
 
   // func này có nhiệm vụ gọi API và xử lý khi kéo thả column xong
   // khi di chuyển column trong cùng một board

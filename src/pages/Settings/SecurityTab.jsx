@@ -72,7 +72,14 @@ function SecurityTab() {
                 label="Current Password"
                 type="password"
                 variant="outlined"
-                sx={{ '& .MuiOutlinedInput-root': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa' } }}
+                sx={{ 
+                  '& .MuiOutlinedInput-root': { 
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa',
+                    '& fieldset': { borderWidth: '1px !important', transition: 'none !important' },
+                    '&:hover fieldset': { borderWidth: '2px !important' },
+                    '&.Mui-focused fieldset': { borderWidth: '2px !important' }
+                  } 
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -98,7 +105,14 @@ function SecurityTab() {
                 label="New Password"
                 type="password"
                 variant="outlined"
-                sx={{ '& .MuiOutlinedInput-root': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa' } }}
+                sx={{ 
+                  '& .MuiOutlinedInput-root': { 
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa',
+                    '& fieldset': { borderWidth: '1px !important', transition: 'none !important' },
+                    '&:hover fieldset': { borderWidth: '2px !important' },
+                    '&.Mui-focused fieldset': { borderWidth: '2px !important' }
+                  } 
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -124,7 +138,14 @@ function SecurityTab() {
                 label="New Password Confirmation"
                 type="password"
                 variant="outlined"
-                sx={{ '& .MuiOutlinedInput-root': { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa' } }}
+                sx={{ 
+                  '& .MuiOutlinedInput-root': { 
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa',
+                    '& fieldset': { borderWidth: '1px !important', transition: 'none !important' },
+                    '&:hover fieldset': { borderWidth: '2px !important' },
+                    '&.Mui-focused fieldset': { borderWidth: '2px !important' }
+                  } 
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">

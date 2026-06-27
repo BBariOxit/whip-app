@@ -55,6 +55,7 @@ import CardCustomFieldsPopover from './CardCustomFieldsPopover'
 import CardCustomFieldsSection from './CardCustomFieldsSection'
 import CardLayoutPopover from './CardLayoutPopover'
 import CardMoveDialog from './CardMoveDialog'
+import ShareModal from '~/components/Modal/ShareModal/ShareModal'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
 
@@ -96,6 +97,7 @@ function ActiveCard() {
   const [anchorElCustomFields, setAnchorElCustomFields] = useState(null)
   const [anchorElCardLayout, setAnchorElCardLayout] = useState(null)
   const [moveModalOpen, setMoveModalOpen] = useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   
   const boardLabels = board?.labels || []
   const cardLabels = boardLabels.filter(label => activeCard?.labelIds?.includes(label._id))
@@ -544,13 +546,21 @@ function ActiveCard() {
               <SidebarItem><ContentCopyOutlinedIcon fontSize="small" />Copy</SidebarItem>
               <SidebarItem onClick={onSaveAsTemplate}><DashboardCustomizeOutlinedIcon fontSize="small" />Make Template</SidebarItem>
               <SidebarItem onClick={onArchiveCard}><ArchiveOutlinedIcon fontSize="small" />Archive</SidebarItem>
-              <SidebarItem><ShareOutlinedIcon fontSize="small" />Share</SidebarItem>
+              <SidebarItem onClick={() => setIsShareModalOpen(true)}><ShareOutlinedIcon fontSize="small" />Share</SidebarItem>
             </Stack>
           </Grid>
           )}
         </Grid>
       </Box>
       </Modal>
+
+      <ShareModal 
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        shareUrl={`${window.location.origin}/boards/${board?._id}?cardId=${activeCard?._id}`}
+        title={activeCard?.title}
+        type="Card"
+      />
 
       <CardMoveDialog
         isOpen={moveModalOpen}
