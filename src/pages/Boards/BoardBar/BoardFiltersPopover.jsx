@@ -87,6 +87,7 @@ function BoardFiltersPopover({ anchorEl, handleClose, board, filters, setFilters
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mb: 1 }}>Keyword</Typography>
           <TextField
+            autoFocus
             fullWidth
             size="small"
             placeholder="Enter a keyword..."

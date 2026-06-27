@@ -154,7 +154,7 @@ const theme = extendTheme({
           '& .MuiOutlinedInput-notchedOutline': {
             borderWidth: '1px !important',
             borderColor: theme.palette.divider,
-            transition: 'border-color 0.2s ease, border-width 0.2s ease'
+            transition: 'border-color 0.2s ease'
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
             borderWidth: '2px !important',
