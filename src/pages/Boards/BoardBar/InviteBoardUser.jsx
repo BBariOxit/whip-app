@@ -11,6 +11,9 @@ import { EMAIL_RULE, FIELD_REQUIRED_MESSAGE, EMAIL_RULE_MESSAGE } from '~/utils/
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import { inviteUserToBoardAPI } from '~/apis'
 import { socketIoInstance } from '~/socketClient'
+import { useSelector } from 'react-redux'
+import { selectCurrentUser } from '~/redux/user/userSlice'
+import { toast } from 'sonner'
 
 function InviteBoardUser({ boardId }) {
   /**
@@ -25,9 +28,14 @@ function InviteBoardUser({ boardId }) {
     else setAnchorPopoverElement(null)
   }
 
+  const currentUser = useSelector(selectCurrentUser)
   const { register, handleSubmit, setValue, formState: { errors } } = useForm()
   const submitInviteUserToBoard = (data) => {
     const { inviteeEmail } = data
+    if (inviteeEmail === currentUser?.email) {
+      toast.error('You cannot invite yourself!', { id: 'error-invite-self' })
+      return
+    }
     // console.log('inviteeEmail:', inviteeEmail)
     // gọi api mời người dùng nào đó vào làm thành viên của board
     inviteUserToBoardAPI({ inviteeEmail, boardId }).then(invitation => {
@@ -65,10 +73,18 @@ function InviteBoardUser({ boardId }) {
         open={isOpenPopover}
         anchorEl={anchorPopoverElement}
         onClose={handleTogglePopover}
+        disableScrollLock={true}
+        disableAutoFocus={true}
+        disableEnforceFocus={true}
+        transitionDuration={0}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <form onSubmit={handleSubmit(submitInviteUserToBoard)} style={{ width: '320px' }}>
+        <form onSubmit={handleSubmit(submitInviteUserToBoard, (errors) => {
+          if (errors.inviteeEmail) {
+            toast.error(errors.inviteeEmail.message, { id: 'error-invitee-email' })
+          }
+        })} style={{ width: '320px' }}>
           <Box sx={{ p: '15px 20px 20px 20px', display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography variant="span" sx={{ fontWeight: 'bold', fontSize: '16px' }}>Invite User To This Board!</Typography>
             <Box>
@@ -82,9 +98,13 @@ function InviteBoardUser({ boardId }) {
                   required: FIELD_REQUIRED_MESSAGE,
                   pattern: { value: EMAIL_RULE, message: EMAIL_RULE_MESSAGE }
                 })}
-                error={!!errors['inviteeEmail']}
+                sx={{
+                  '& .MuiInputBase-input:-webkit-autofill, & .MuiInputBase-input:-webkit-autofill:hover, & .MuiInputBase-input:-webkit-autofill:focus, & .MuiInputBase-input:-webkit-autofill:active, & .MuiInputBase-input:-internal-autofill-previewed': {
+                    transition: 'background-color 5000s ease-in-out 0s',
+                    WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000'
+                  }
+                }}
               />
-              <FieldErrorAlert errors={errors} fieldName={'inviteeEmail'} />
             </Box>
 
             <Box sx={{ alignSelf: 'flex-end' }}>

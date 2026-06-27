@@ -23,20 +23,15 @@ function ModeSelect() {
   return (
     <Box>
       <FormControl size='small' sx={{ minWidth: 120 }}>
-        <InputLabel
-          id="label-select-dark-light-mode"
-          sx={{
-            color: 'text.primary',
-            '&.Mui-focused': { color: 'primary.main' }
-          }}
-        >mode</InputLabel>
         <Select
-          labelId="label-select-dark-light-mode"
           id="select-dark-light-mode"
           value={mode}
-          label="mode"
           onChange={handleChange}
           MenuProps={{
+            transitionDuration: 0,
+            disableScrollLock: true,
+            disableAutoFocusItem: true,
+            autoFocus: false,
             anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
             transformOrigin: { vertical: 'top', horizontal: 'left' },
             sx: {

@@ -33,7 +33,7 @@ import { toast } from 'sonner'
 import { updateCardDetailsAPI, uploadCardAttachmentAPI, deleteCardAttachmentAPI, archiveCardAPI, saveCardAsTemplateAPI } from '~/apis'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
-import { updateCardInBoard, selectCurrentActive, deleteCardOptimistic, fetchBoardDetailAPI, selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
+import { updateCardInBoard, selectCurrentActive, deleteCardOptimistic, fetchBoardDetailAPI, selectIsReadOnly, setClipboard } from '~/redux/activeBoard/activeBoardSlice'
 import {
   clearAndHideCurrentActiveCard,
   selectCurrentActiveCard,
@@ -270,6 +270,12 @@ function ActiveCard() {
     } catch (error) {
       toast.error('Failed to save as template!')
     }
+  }
+
+  // ===== COPY HANDLER =====
+  const onCopyCard = () => {
+    dispatch(setClipboard({ type: 'CARD', data: activeCard }))
+    toast.success(`Copied card: ${activeCard.title}`)
   }
 
   return (
@@ -543,7 +549,7 @@ function ActiveCard() {
             <Typography sx={{ fontWeight: '600', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', mb: 1 }}>Actions</Typography>
             <Stack direction="column" spacing={1}>
               <SidebarItem onClick={() => setMoveModalOpen(true)}><ArrowForwardOutlinedIcon fontSize="small" />Move</SidebarItem>
-              <SidebarItem><ContentCopyOutlinedIcon fontSize="small" />Copy</SidebarItem>
+              <SidebarItem onClick={onCopyCard}><ContentCopyOutlinedIcon fontSize="small" />Copy</SidebarItem>
               <SidebarItem onClick={onSaveAsTemplate}><DashboardCustomizeOutlinedIcon fontSize="small" />Make Template</SidebarItem>
               <SidebarItem onClick={onArchiveCard}><ArchiveOutlinedIcon fontSize="small" />Archive</SidebarItem>
               <SidebarItem onClick={() => setIsShareModalOpen(true)}><ShareOutlinedIcon fontSize="small" />Share</SidebarItem>

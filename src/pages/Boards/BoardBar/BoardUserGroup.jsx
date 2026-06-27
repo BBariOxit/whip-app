@@ -67,6 +67,10 @@ function BoardUserGroup({ boardUsers = [], limit = 4 }) {
         open={isOpenPopover}
         anchorEl={anchorPopoverElement}
         onClose={handleTogglePopover}
+        disableScrollLock={true}
+        disableAutoFocus={true}
+        disableEnforceFocus={true}
+        transitionDuration={0}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         sx={{

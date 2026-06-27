@@ -127,6 +127,10 @@ function Notifications() {
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
+        disableScrollLock={true}
+        disableAutoFocusItem={true}
+        autoFocus={false}
+        transitionDuration={0}
         MenuListProps={{ 
           'aria-labelledby': 'basic-button-open-notification',
           disablePadding: true,
@@ -160,139 +164,116 @@ function Notifications() {
         {notifications?.map((notification, index) => (
           <div key={index} style={{ margin: 0, padding: 0 }}>
             <MenuItem sx={{
-              minWidth: 320,
-              maxWidth: 360,
-              p: 2.5,
+              minWidth: 400,
+              maxWidth: 420,
+              p: 2,
               whiteSpace: 'normal',
               bgcolor: 'transparent',
               '&:hover': {
                 bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)'
               }
             }}>
-              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                {/* Nội dung của thông báo */}
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+              <Box sx={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                {/* Cột 1: Icon / Avatar */}
+                <Box sx={{ flexShrink: 0 }}>
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center', 
-                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)', 
-                    color: '#3b82f6',
+                    bgcolor: (theme) => notification.boardInvitation?.status === BOARD_INVITATION_STATUS.PENDING 
+                      ? (theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)')
+                      : (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'), 
+                    color: notification.boardInvitation?.status === BOARD_INVITATION_STATUS.PENDING 
+                      ? '#3b82f6' 
+                      : (theme => theme.palette.mode === 'dark' ? '#94a3b8' : '#64748b'),
                     borderRadius: '50%',
-                    p: 1,
-                    mt: 0.5
+                    width: 40,
+                    height: 40
                   }}>
                     <GroupAddIcon fontSize="small" />
                   </Box>
+                </Box>
+                
+                {/* Cột 2: Nội dung & Thời gian */}
+                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Box sx={{ 
-                    fontSize: '14px', 
-                    lineHeight: 1.5,
-                    color: (theme) => theme.palette.mode === 'dark' ? '#e6edf3' : '#1d2125'
+                    fontSize: '13.5px', 
+                    lineHeight: 1.4,
+                    color: (theme) => notification.boardInvitation?.status === BOARD_INVITATION_STATUS.PENDING 
+                      ? (theme.palette.mode === 'dark' ? '#e6edf3' : '#1d2125')
+                      : (theme.palette.mode === 'dark' ? '#94a3b8' : '#64748b')
                   }}>
                     <strong>{notification?.inviter?.displayName || notification?.inviter?.username || notification?.inviter?.fullName}</strong> had invited you to join the board <strong>{notification?.board?.title}</strong>
                   </Box>
-                </Box>
-
-                {/* Khi Status của thông báo này là PENDING thì sẽ hiện 2 Button */}
-                { notification.boardInvitation?.status === BOARD_INVITATION_STATUS.PENDING && 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end', mt: 1 }}>
-                    <Button
-                      className="interceptor-loading"
-                      type="submit"
-                      variant="contained"
-                      size="small"
-                      sx={{
-                        px: 2,
-                        py: 0.5,
-                        fontSize: '12.5px',
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        borderRadius: '6px',
-                        color: '#ffffff',
-                        bgcolor: '#3b82f6',
-                        boxShadow: 'none',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          bgcolor: '#2563eb',
-                          boxShadow: 'none'
-                        }
-                      }}
-                      onClick={() => updateBoardInvitation(BOARD_INVITATION_STATUS.ACCEPTED, notification._id)}
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      className="interceptor-loading"
-                      type="submit"
-                      variant="text"
-                      size="small"
-                      sx={{
-                        px: 2,
-                        py: 0.5,
-                        fontSize: '12.5px',
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        borderRadius: '6px',
-                        color: (theme) => theme.palette.mode === 'dark' ? '#f1f5f9' : '#334155',
-                        bgcolor: 'transparent',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'
-                        }
-                      }}
-                      onClick={() => updateBoardInvitation(BOARD_INVITATION_STATUS.REJECTED, notification._id)}
-                    >
-                      Reject
-                    </Button>
-                  </Box>
-                }
-
-                {/* Khi Status của thông báo này là ACCEPTED hoặc REJECTED thì sẽ hiện thông tin đó lên */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: 'flex-end' }}>
-
-                  { notification.boardInvitation?.status === BOARD_INVITATION_STATUS.ACCEPTED &&
-                    <Chip 
-                      icon={<DoneIcon sx={{ '&&': { color: (theme) => theme.palette.mode === 'dark' ? '#34d399' : '#059669' } }} />} 
-                      label="Accepted" 
-                      size="small" 
-                      sx={{
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(52, 211, 153, 0.12)' : 'rgba(209, 250, 229, 0.7)',
-                      color: (theme) => theme.palette.mode === 'dark' ? '#34d399' : '#059669',
-                      border: (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(52, 211, 153, 0.2)' : '1px solid rgba(52, 211, 153, 0.3)',
-                      p: '2px 4px'
-                    }}/>
-                  }
-
-                  { notification.boardInvitation?.status === BOARD_INVITATION_STATUS.REJECTED &&
-                    <Chip 
-                      icon={<NotInterestedIcon sx={{ '&&': { color: (theme) => theme.palette.mode === 'dark' ? '#f87171' : '#dc2626' } }} />} 
-                      label="Rejected" 
-                      size="small" 
-                      sx={{
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.12)' : 'rgba(254, 226, 226, 0.7)',
-                      color: (theme) => theme.palette.mode === 'dark' ? '#f87171' : '#dc2626',
-                      border: (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(248, 113, 113, 0.2)' : '1px solid rgba(248, 113, 113, 0.3)',
-                      p: '2px 4px'
-                    }}/>
-                  }
-                </Box>
-
-                {/* Thời gian của thông báo */}
-                <Box sx={{ textAlign: 'right' }}>
                   <Typography 
                     variant="span" 
                     sx={{ 
-                      fontSize: '11px', 
+                      fontSize: '11.5px', 
                       color: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
                       fontWeight: 500
                     }}
                   >
-                    {dayjs(notification.createdAt).format('llll')}
+                    {dayjs(notification.createdAt).format('MMM D, YYYY h:mm A')}
                   </Typography>
+                </Box>
+
+                {/* Cột 3: Hành động hoặc Trạng thái */}
+                <Box sx={{ flexShrink: 0, width: '85px', display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                  { notification.boardInvitation?.status === BOARD_INVITATION_STATUS.PENDING && (
+                    <>
+                      <Button
+                        className="interceptor-loading"
+                        variant="contained"
+                        size="small"
+                        sx={{
+                          px: 2,
+                          py: 0.5,
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          textTransform: 'none',
+                          borderRadius: '6px',
+                          color: '#ffffff',
+                          bgcolor: '#3b82f6',
+                          boxShadow: 'none',
+                          minWidth: '85px',
+                          '&:hover': { bgcolor: '#2563eb', boxShadow: 'none' }
+                        }}
+                        onClick={() => updateBoardInvitation(BOARD_INVITATION_STATUS.ACCEPTED, notification._id)}
+                      >
+                        Accept
+                      </Button>
+                      <Button
+                        className="interceptor-loading"
+                        variant="text"
+                        size="small"
+                        sx={{
+                          px: 2,
+                          py: 0.5,
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          textTransform: 'none',
+                          borderRadius: '6px',
+                          color: (theme) => theme.palette.mode === 'dark' ? '#f87171' : '#dc2626',
+                          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.08)' : 'rgba(220, 38, 38, 0.08)',
+                          minWidth: '85px',
+                          '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(248, 113, 113, 0.2)' : 'rgba(220, 38, 38, 0.15)' }
+                        }}
+                        onClick={() => updateBoardInvitation(BOARD_INVITATION_STATUS.REJECTED, notification._id)}
+                      >
+                        Decline
+                      </Button>
+                    </>
+                  )}
+                  { notification.boardInvitation?.status === BOARD_INVITATION_STATUS.ACCEPTED && (
+                    <Typography sx={{ fontSize: '12.5px', fontWeight: 600, color: (theme) => theme.palette.mode === 'dark' ? '#34d399' : '#059669', mt: 1 }}>
+                      Accepted
+                    </Typography>
+                  )}
+                  { notification.boardInvitation?.status === BOARD_INVITATION_STATUS.REJECTED && (
+                    <Typography sx={{ fontSize: '12.5px', fontWeight: 600, color: (theme) => theme.palette.mode === 'dark' ? '#f87171' : '#dc2626', mt: 1 }}>
+                      Declined
+                    </Typography>
+                  )}
                 </Box>
               </Box>
             </MenuItem>

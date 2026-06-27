@@ -65,6 +65,10 @@ function Profiles() {
         open={open}
         onClose={handleClose}
         onClick={handleClose}
+        disableScrollLock={true}
+        disableAutoFocusItem={true}
+        autoFocus={false}
+        transitionDuration={0}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         MenuListProps={{

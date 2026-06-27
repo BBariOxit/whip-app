@@ -109,7 +109,12 @@ function CardCustomFieldsSection({ onUpdateCardCustomFields }) {
                   value={value} 
                   onChange={(e) => handleDebouncedChange(field._id, e.target.value)} 
                   placeholder={`Enter ${field.name}`}
-                  sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#091e420f' }}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#091e420f',
+                      '& fieldset': { transition: 'none !important' }
+                    }
+                  }}
                 />
               )}
               
@@ -121,7 +126,12 @@ function CardCustomFieldsSection({ onUpdateCardCustomFields }) {
                   value={value} 
                   onChange={(e) => handleDebouncedChange(field._id, e.target.value)} 
                   placeholder={`Enter number`}
-                  sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f' }}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f',
+                      '& fieldset': { transition: 'none !important' }
+                    }
+                  }}
                 />
               )}
 
@@ -132,7 +142,12 @@ function CardCustomFieldsSection({ onUpdateCardCustomFields }) {
                   type="date"
                   value={value} 
                   onChange={(e) => handleDebouncedChange(field._id, e.target.value)} 
-                  sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f' }}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f',
+                      '& fieldset': { transition: 'none !important' }
+                    }
+                  }}
                 />
               )}
               
@@ -156,7 +171,11 @@ function CardCustomFieldsSection({ onUpdateCardCustomFields }) {
                   value={value} 
                   onChange={(e) => handleInstantChange(field._id, e.target.value)}
                   displayEmpty
-                  sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f' }}
+                  sx={{ 
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#2f3542' : '#091e420f',
+                    borderRadius: '10px',
+                    '& .MuiOutlinedInput-notchedOutline': { transition: 'none !important' }
+                  }}
                 >
                   <MenuItem value=""><em>None</em></MenuItem>
                   {field.options?.map(opt => (

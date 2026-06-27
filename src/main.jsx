@@ -71,8 +71,22 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               },
               buttonOrder: ['confirm', 'cancel'],
               allowClose: false,
-              confirmationButtonProps: { color: 'primary', variant: 'outlined', border: '10px' },
-              cancellationButtonProps: { color: 'inherit' }
+              confirmationButtonProps: { 
+                color: 'primary', 
+                variant: 'outlined', 
+                sx: { '&:hover': { boxShadow: '0 0 0 1px currentColor' } } 
+              },
+              cancellationButtonProps: { 
+                color: 'inherit',
+                variant: 'outlined',
+                sx: { 
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#d0d7de',
+                  '&:hover': { 
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+                    boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 0 0 1px rgba(255,255,255,0.3)' : '0 0 0 1px rgba(0,0,0,0.3)'
+                  } 
+                }
+              }
             }}
           >
             <Root />

@@ -19,6 +19,7 @@ import BoardUserGroup from './BoardUserGroup'
 import InviteBoardUser from './InviteBoardUser'
 import ArchivedItemsDrawer from './ArchivedItemsDrawer'
 import TemplateManagerDrawer from './TemplateManagerDrawer'
+import BoardFiltersPopover from './BoardFiltersPopover'
 import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
 import ShareModal from '~/components/Modal/ShareModal/ShareModal'
 import { useSelector } from 'react-redux'
@@ -49,7 +50,7 @@ const MENU_STYLE = {
   }
 }
 
-function BoardBar({ board, isAuthorized }) {
+function BoardBar({ board, isAuthorized, filters, setFilters }) {
   const [isArchivedDrawerOpen, setIsArchivedDrawerOpen] = useState(false)
   const [isTemplateDrawerOpen, setIsTemplateDrawerOpen] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
@@ -58,6 +59,7 @@ function BoardBar({ board, isAuthorized }) {
   const dispatch = useDispatch()
   const confirm = useConfirm()
   const [anchorElVisibility, setAnchorElVisibility] = useState(null)
+  const [anchorElFilters, setAnchorElFilters] = useState(null)
 
   const handleOpenVisibilityMenu = (event) => setAnchorElVisibility(event.currentTarget)
   const handleCloseVisibilityMenu = () => setAnchorElVisibility(null)
@@ -200,6 +202,7 @@ function BoardBar({ board, isAuthorized }) {
           icon={<FilterListIcon />}
           label="Filters"
           clickable
+          onClick={(e) => setAnchorElFilters(e.currentTarget)}
         />
         <Chip
           sx={MENU_STYLE}
@@ -259,6 +262,14 @@ function BoardBar({ board, isAuthorized }) {
         onClose={() => setIsTemplateDrawerOpen(false)}
         boardId={board?._id}
         currentUser={currentUser}
+      />
+
+      <BoardFiltersPopover
+        anchorEl={anchorElFilters}
+        handleClose={() => setAnchorElFilters(null)}
+        board={board}
+        filters={filters}
+        setFilters={setFilters}
       />
     </Box>
   )

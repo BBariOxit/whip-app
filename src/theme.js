@@ -133,18 +133,28 @@ const theme = extendTheme({
     },
     MuiTypography: {
       styleOverrides: {
-        '&.MuiTypography-body1': { fontSize: '0.875rem' }
+        root: {
+          '&.MuiTypography-body1': { fontSize: '0.875rem' }
+        }
       }
     },
     MuiOutlinedInput: {
       styleOverrides: {
+        input: ({ theme }) => ({
+          '&:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus, &:-webkit-autofill:active, &:-internal-autofill-previewed, &:-internal-autofill-selected': {
+            WebkitBoxShadow: theme.palette.mode === 'dark' ? '0 0 0 100px #151b23 inset !important' : '0 0 0 100px #fff inset !important',
+            WebkitTextFillColor: theme.palette.mode === 'dark' ? '#fff !important' : '#333 !important',
+            caretColor: theme.palette.mode === 'dark' ? '#fff !important' : '#000 !important',
+            borderRadius: 'inherit !important'
+          }
+        }),
         root: ({ theme }) => ({
           fontSize: '0.875rem',
           borderRadius: '10px',
           '& .MuiOutlinedInput-notchedOutline': {
             borderWidth: '1px !important',
             borderColor: theme.palette.divider,
-            transition: 'border-color 0.2s ease, border-width 0.2s ease'
+            transition: 'border-color 0.2s ease'
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
             borderWidth: '2px !important',
