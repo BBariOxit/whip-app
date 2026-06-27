@@ -115,7 +115,7 @@ function AutoCompleteSearchBoard() {
       renderInput={(params) => (
         <TextField
           {...params}
-          label="Type to search..."
+          placeholder="Type to search..."
           size="small"
           InputProps={{
             ...params.InputProps,

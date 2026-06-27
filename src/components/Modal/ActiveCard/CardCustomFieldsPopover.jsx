@@ -18,9 +18,11 @@ import { useSelector, useDispatch } from 'react-redux'
 import { selectCurrentActive, addNewCustomField, updateCustomFieldOptimistic, deleteCustomFieldOptimistic } from '~/redux/activeBoard/activeBoardSlice'
 import { createCustomFieldAPI, updateCustomFieldAPI, deleteCustomFieldAPI } from '~/apis'
 import { toast } from 'sonner'
+import { useConfirm } from 'material-ui-confirm'
 
 function CardCustomFieldsPopover({ anchorEl, handleClose }) {
   const dispatch = useDispatch()
+  const confirm = useConfirm()
   const board = useSelector(selectCurrentActive)
   const customFields = board?.customFields || []
 
@@ -103,8 +105,14 @@ function CardCustomFieldsPopover({ anchorEl, handleClose }) {
     }
   }
 
-  const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this custom field? This will remove all values from all cards.')) {
+  const handleDelete = () => {
+    confirm({
+      title: 'Delete Custom Field?',
+      description: 'Are you sure you want to delete this custom field? This will remove all values from all cards.',
+      confirmationText: 'Confirm',
+      cancellationText: 'Cancel',
+      confirmationButtonProps: { color: 'error', variant: 'outlined' }
+    }).then(async () => {
       try {
         await deleteCustomFieldAPI(board._id, editingFieldId)
         dispatch(deleteCustomFieldOptimistic(editingFieldId))
@@ -112,7 +120,7 @@ function CardCustomFieldsPopover({ anchorEl, handleClose }) {
       } catch (error) {
         // Handled
       }
-    }
+    }).catch(() => {})
   }
 
   const open = Boolean(anchorEl)
@@ -127,6 +135,10 @@ function CardCustomFieldsPopover({ anchorEl, handleClose }) {
         handleClose()
         setViewMode('LIST')
       }}
+      disableScrollLock={true}
+      disableAutoFocus={true}
+      disableEnforceFocus={true}
+      transitionDuration={0}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       PaperProps={{
         sx: {
@@ -145,13 +157,25 @@ function CardCustomFieldsPopover({ anchorEl, handleClose }) {
               {viewMode === 'CREATE' ? 'Create Custom Field' : 'Edit Custom Field'}
             </Typography>
             
+            <Typography sx={{ mb: 1, fontSize: 14, fontWeight: 600 }}>Field Name</Typography>
             <TextField
               fullWidth
               size="small"
-              label="Field Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': { 
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+                    transition: 'none !important' 
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#579DFF' : '#0c66e4',
+                    borderWidth: '2px'
+                  }
+                }
+              }}
             />
 
             <Typography sx={{ mb: 1, fontSize: 14, fontWeight: 600 }}>Type</Typography>
@@ -161,7 +185,17 @@ function CardCustomFieldsPopover({ anchorEl, handleClose }) {
               value={type}
               onChange={(e) => setType(e.target.value)}
               disabled={viewMode === 'EDIT'} // Cannot change type once created
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 2,
+                '& .MuiOutlinedInput-notchedOutline': { 
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+                  transition: 'none !important' 
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? '#579DFF' : '#0c66e4',
+                  borderWidth: '2px !important'
+                }
+              }}
             >
               <MenuItem value="text">Text</MenuItem>
               <MenuItem value="number">Number</MenuItem>
@@ -182,6 +216,18 @@ function CardCustomFieldsPopover({ anchorEl, handleClose }) {
                         placeholder={`Option ${index + 1}`}
                         value={opt.text}
                         onChange={(e) => handleOptionChange(opt._id, e.target.value)}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': { 
+                              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+                              transition: 'none !important' 
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: (theme) => theme.palette.mode === 'dark' ? '#579DFF' : '#0c66e4',
+                              borderWidth: '2px'
+                            }
+                          }
+                        }}
                       />
                       <IconButton size="small" color="error" onClick={() => handleRemoveOption(opt._id)}>
                         <DeleteOutlineIcon fontSize="small" />
@@ -216,7 +262,20 @@ function CardCustomFieldsPopover({ anchorEl, handleClose }) {
                 </Button>
               )}
             </Stack>
-            <Button variant="outlined" color="inherit" fullWidth onClick={() => setViewMode('LIST')} sx={{ mt: 1 }}>
+            <Button 
+              variant="outlined" 
+              color="inherit" 
+              fullWidth 
+              onClick={() => setViewMode('LIST')} 
+              sx={{ 
+                mt: 1,
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#d0d7de',
+                '&:hover': { 
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+                  boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 0 0 1px rgba(255,255,255,0.3)' : '0 0 0 1px rgba(0,0,0,0.3)'
+                }
+              }}
+            >
               Cancel
             </Button>
           </>

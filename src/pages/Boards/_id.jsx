@@ -1,5 +1,5 @@
 import Container from '@mui/material/Container'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import AppBar from '~/components/AppBar/AppBar'
 import {
@@ -33,6 +33,43 @@ function Board() {
   const isReadOnly = useSelector(selectIsReadOnly)
   const { boardId } = useParams()
   const location = useLocation()
+
+  // State lưu trữ các điều kiện lọc
+  const [filters, setFilters] = useState({
+    searchKey: '',
+    memberIds: [],
+    labelIds: []
+  })
+
+  // Dùng useMemo để tính toán ra một board mới đã được lọc
+  const filteredBoard = useMemo(() => {
+    if (!board) return null
+
+    // Nếu không có filter nào thì trả về board gốc luôn
+    if (!filters.searchKey && filters.memberIds.length === 0 && filters.labelIds.length === 0) {
+      return board
+    }
+
+    const clonedBoard = cloneDeep(board)
+
+    clonedBoard.columns.forEach(column => {
+      column.cards = column.cards.filter(card => {
+        // Giữ lại placeholder card để Cột rỗng vẫn hoạt động kéo thả chuẩn
+        if (card.FE_PlaceholderCard) return true
+
+        const isMatchSearch = !filters.searchKey || card.title.toLowerCase().includes(filters.searchKey.toLowerCase())
+        const isMatchMembers = filters.memberIds.length === 0 || filters.memberIds.some(id => card.memberIds?.includes(id))
+        const isMatchLabels = filters.labelIds.length === 0 || filters.labelIds.some(id => card.labelIds?.includes(id))
+
+        return isMatchSearch && isMatchMembers && isMatchLabels
+      })
+
+      // Cập nhật lại cardOrderIds sau khi filter
+      column.cardOrderIds = column.cards.map(card => card._id)
+    })
+
+    return clonedBoard
+  }, [board, filters])
 
   useEffect(() => {
     // Reset board data before fetching new board to prevent flashing previous board UI
@@ -164,9 +201,14 @@ function Board() {
 
       {/* các thành phần còn lại của board details*/}
       <AppBar />
-      <BoardBar board={board} isAuthorized={isAuthorized} />
+      <BoardBar 
+        board={board} 
+        isAuthorized={isAuthorized} 
+        filters={filters}
+        setFilters={setFilters}
+      />
       <BoardContent
-        board={board}
+        board={filteredBoard}
 
         // createNewCard={createNewCard}
         // deleteColumnDetails={deleteColumnDetails}

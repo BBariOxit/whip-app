@@ -83,6 +83,10 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
         handleClose()
         setViewMode('LIST')
       }}
+      disableScrollLock={true}
+      disableAutoFocus={true}
+      disableEnforceFocus={true}
+      transitionDuration={0}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       PaperProps={{
         sx: {
@@ -129,7 +133,8 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
                 mb: 2,
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': {
-                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#8C9BAB' : '#DFE1E6'
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#8C9BAB' : '#DFE1E6',
+                    transition: 'none !important'
                   },
                   '&.Mui-focused fieldset': {
                     borderColor: (theme) => theme.palette.mode === 'dark' ? '#579DFF' : '#0c66e4',
@@ -164,7 +169,20 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
                 </Button>
               )}
             </Stack>
-            <Button variant="outlined" color="inherit" fullWidth onClick={() => setViewMode('LIST')} sx={{ mt: 1 }}>
+            <Button 
+              variant="outlined" 
+              color="inherit" 
+              fullWidth 
+              onClick={() => setViewMode('LIST')} 
+              sx={{ 
+                mt: 1,
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#d0d7de',
+                '&:hover': { 
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+                  boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 0 0 1px rgba(255,255,255,0.3)' : '0 0 0 1px rgba(0,0,0,0.3)'
+                }
+              }}
+            >
               Cancel
             </Button>
           </>

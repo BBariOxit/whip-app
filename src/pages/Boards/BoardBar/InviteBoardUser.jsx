@@ -65,6 +65,10 @@ function InviteBoardUser({ boardId }) {
         open={isOpenPopover}
         anchorEl={anchorPopoverElement}
         onClose={handleTogglePopover}
+        disableScrollLock={true}
+        disableAutoFocus={true}
+        disableEnforceFocus={true}
+        transitionDuration={0}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >

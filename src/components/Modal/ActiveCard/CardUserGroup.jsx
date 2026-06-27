@@ -97,6 +97,10 @@ function CardUserGroup({ cardMemberIds = [], onUpdateCardMembers }) {
         open={isOpenPopover}
         anchorEl={anchorPopoverElement}
         onClose={handleTogglePopover}
+        disableScrollLock={true}
+        disableAutoFocus={true}
+        disableEnforceFocus={true}
+        transitionDuration={0}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
         <Box sx={{ p: 2, maxWidth: '260px', display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>

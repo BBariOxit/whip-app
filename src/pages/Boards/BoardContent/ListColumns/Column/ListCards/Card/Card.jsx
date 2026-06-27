@@ -337,6 +337,10 @@ function Card({ card }) {
         onClose={handleCloseMenu}
         onClick={(e) => e.stopPropagation()} // Chặn click vùng trống menu làm mở Modal Card
         disableRestoreFocus
+        disableScrollLock={true}
+        disableAutoFocusItem
+        autoFocus={false}
+        transitionDuration={0}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         MenuListProps={{
