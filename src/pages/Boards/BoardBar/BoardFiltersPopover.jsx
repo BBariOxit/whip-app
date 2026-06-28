@@ -65,7 +65,6 @@ function BoardFiltersPopover({ anchorEl, handleClose, board, filters, setFilters
       disableScrollLock={true}
       disableAutoFocus={true}
       disableEnforceFocus={true}
-      transitionDuration={0}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       transformOrigin={{ vertical: 'top', horizontal: 'left' }}
       sx={{ mt: 1 }}

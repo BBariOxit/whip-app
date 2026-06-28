@@ -14,8 +14,14 @@ import { socketIoInstance } from '~/socketClient'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { toast } from 'sonner'
+import Avatar from '@mui/material/Avatar'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemAvatar from '@mui/material/ListItemAvatar'
+import ListItemText from '@mui/material/ListItemText'
+import Divider from '@mui/material/Divider'
 
-function InviteBoardUser({ boardId }) {
+function InviteBoardUser({ boardId, boardMembers = [], workspaceMembers = [] }) {
   /**
    * Xử lý Popover để ẩn hoặc hiện một popup nhỏ, tương tự docs để tham khảo ở đây:
    * https://mui.com/material-ui/react-popover/
@@ -39,15 +45,21 @@ function InviteBoardUser({ boardId }) {
     // console.log('inviteeEmail:', inviteeEmail)
     // gọi api mời người dùng nào đó vào làm thành viên của board
     inviteUserToBoardAPI({ inviteeEmail, boardId }).then(invitation => {
-      // Clear thẻ input sử dụng react-hook-form bằng setValue
       setValue('inviteeEmail', null)
       setAnchorPopoverElement(null)
-
-      // Mời một người dùng vào board xong thì cũng sẽ gửi/emit sự kiện socket lên server (tính năng real-time)
       socketIoInstance.emit('FE_USER_INVITED_TO_BOARD', invitation)
     })
-
   }
+
+  const handleInviteSuggestedUser = (email) => {
+    setValue('inviteeEmail', email)
+    handleSubmit(submitInviteUserToBoard)()
+  }
+
+  // Lọc ra những người có trong workspace nhưng CHƯA CÓ trong board
+  const suggestedUsersToInvite = workspaceMembers?.filter(
+    (wspMember) => !boardMembers.some((bMemberId) => bMemberId.toString() === wspMember._id.toString())
+  ) || []
 
   return (
     <Box>
@@ -76,7 +88,6 @@ function InviteBoardUser({ boardId }) {
         disableScrollLock={true}
         disableAutoFocus={true}
         disableEnforceFocus={true}
-        transitionDuration={0}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
@@ -117,6 +128,44 @@ function InviteBoardUser({ boardId }) {
                 Invite
               </Button>
             </Box>
+
+            {/* HIỂN THỊ SUGGESTED USERS TỪ WORKSPACE */}
+            {suggestedUsersToInvite.length > 0 && (
+              <>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                  Suggested from Workspace
+                </Typography>
+                <List sx={{ pt: 0, pb: 0, maxHeight: 200, overflow: 'auto' }}>
+                  {suggestedUsersToInvite.map((user) => (
+                    <ListItem 
+                      key={user._id} 
+                      disableGutters 
+                      sx={{ py: 0.5 }}
+                    >
+                      <ListItemAvatar sx={{ minWidth: 40 }}>
+                        <Avatar sx={{ width: 30, height: 30 }} src={user.avatar} alt={user.displayName} />
+                      </ListItemAvatar>
+                      <ListItemText 
+                        primary={user.displayName} 
+                        secondary={user.email} 
+                        primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+                        secondaryTypographyProps={{ variant: 'caption' }}
+                        sx={{ my: 0 }}
+                      />
+                      <Button 
+                        size="small" 
+                        variant="outlined" 
+                        onClick={() => handleInviteSuggestedUser(user.email)}
+                        sx={{ textTransform: 'none', px: 1, minWidth: 'auto', height: 28 }}
+                      >
+                        Add
+                      </Button>
+                    </ListItem>
+                  ))}
+                </List>
+              </>
+            )}
           </Box>
         </form>
       </Popover>

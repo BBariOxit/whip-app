@@ -1,5 +1,5 @@
 import { experimental_extendTheme as extendTheme } from '@mui/material/styles'
-
+import Fade from '@mui/material/Fade'
 const APP_BAR_HEIGHT = '3.625rem'
 const BOARD_BAR_HEIGHT = '3.75rem'
 const BOARD_CONTENT_HEIGHT = `calc(100vh - ${APP_BAR_HEIGHT} - ${BOARD_BAR_HEIGHT})`
@@ -212,6 +212,9 @@ const theme = extendTheme({
       }
     },
     MuiPopover: {
+      defaultProps: {
+        TransitionComponent: Fade
+      },
       styleOverrides: {
         paper: ({ theme }) => ({
           backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.column : theme.palette.background.paper,
@@ -221,6 +224,9 @@ const theme = extendTheme({
       }
     },
     MuiMenu: {
+      defaultProps: {
+        TransitionComponent: Fade
+      },
       styleOverrides: {
         paper: ({ theme }) => ({
           backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.column : theme.palette.background.paper,

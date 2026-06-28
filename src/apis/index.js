@@ -305,3 +305,26 @@ export const deleteColumnTemplateAPI = async (templateId) => {
   const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/columns/templates/${templateId}`)
   return response.data
 }
+
+/** Workspaces */
+export const fetchWorkspacesAPI = async () => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces`)
+  return response.data
+}
+
+export const createWorkspaceAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/workspaces`, data)
+  toast.success('Workspace created successfully')
+  return response.data
+}
+
+export const updateWorkspaceAPI = async (workspaceId, updateData) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/workspaces/${workspaceId}`, updateData)
+  return response.data
+}
+
+export const deleteWorkspaceAPI = async (workspaceId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/workspaces/${workspaceId}`)
+  toast.success('Workspace deleted successfully')
+  return response.data
+}

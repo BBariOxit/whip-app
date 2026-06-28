@@ -75,22 +75,7 @@ export const TemplateCard = ({ template, index }) => {
           position: 'relative',
           flexShrink: 0
         }}>
-          {/* Tag to indicate this is a template */}
-          <Box sx={{
-            position: 'absolute',
-            top: 10,
-            left: 10,
-            bgcolor: 'rgba(0, 0, 0, 0.5)',
-            color: '#fff',
-            px: 1,
-            py: 0.5,
-            borderRadius: '4px',
-            fontSize: '0.75rem',
-            fontWeight: 'bold',
-            textTransform: 'uppercase'
-          }}>
-            Template
-          </Box>
+
         </Box>
 
         <CardContent sx={{ 

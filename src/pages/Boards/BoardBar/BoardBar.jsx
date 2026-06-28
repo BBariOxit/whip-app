@@ -14,6 +14,7 @@ import ArchiveIcon from '@mui/icons-material/Archive'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import Tooltip from '@mui/material/Tooltip'
+import Avatar from '@mui/material/Avatar'
 import { capitalizeFirstLetter } from '~/utils/formatters'
 import BoardUserGroup from './BoardUserGroup'
 import InviteBoardUser from './InviteBoardUser'
@@ -32,6 +33,12 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Button from '@mui/material/Button'
 import ShareIcon from '@mui/icons-material/Share'
+import BusinessIcon from '@mui/icons-material/Business'
+import PersonIcon from '@mui/icons-material/Person'
+import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove'
+import { useNavigate } from 'react-router-dom'
+import { updateBoardDetailAPI, fetchWorkspacesAPI } from '~/apis'
+import Typography from '@mui/material/Typography'
 
 const MENU_STYLE = {
   color: 'text.primary',
@@ -50,6 +57,35 @@ const MENU_STYLE = {
   }
 }
 
+export const BoardTitleIndicator = ({ board }) => {
+  const isPersonal = !board.workspaceId
+  const workspaceName = board.workspace?.title || 'Personal'
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Tooltip title={isPersonal ? "Personal Workspace" : workspaceName} arrow>
+        <Box sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', p: 0.5, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}>
+          {isPersonal ? (
+            <PersonIcon sx={{ color: 'text.secondary' }} />
+          ) : (
+            <Avatar variant="rounded" sx={{ width: 24, height: 24, fontSize: '12px', fontWeight: 'bold', bgcolor: 'primary.main' }}>
+              {workspaceName.charAt(0).toUpperCase()}
+            </Avatar>
+          )}
+        </Box>
+      </Tooltip>
+      
+      <Typography sx={{ color: 'text.secondary', fontSize: '1.2rem', userSelect: 'none' }}>/</Typography>
+      
+      <Tooltip title={board?.title} arrow>
+        <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary', cursor: 'pointer' }}>
+          {board.title}
+        </Typography>
+      </Tooltip>
+    </Box>
+  )
+}
+
 function BoardBar({ board, isAuthorized, filters, setFilters }) {
   const [isArchivedDrawerOpen, setIsArchivedDrawerOpen] = useState(false)
   const [isTemplateDrawerOpen, setIsTemplateDrawerOpen] = useState(false)
@@ -60,6 +96,9 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
   const confirm = useConfirm()
   const [anchorElVisibility, setAnchorElVisibility] = useState(null)
   const [anchorElFilters, setAnchorElFilters] = useState(null)
+  const [anchorElMove, setAnchorElMove] = useState(null)
+  const [workspaces, setWorkspaces] = useState([])
+  const navigate = useNavigate()
 
   const handleOpenVisibilityMenu = (event) => setAnchorElVisibility(event.currentTarget)
   const handleCloseVisibilityMenu = () => setAnchorElVisibility(null)
@@ -114,6 +153,27 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
     }
   }
 
+  const handleOpenMoveMenu = async (event) => {
+    setAnchorElMove(event.currentTarget)
+    try {
+      const res = await fetchWorkspacesAPI()
+      setWorkspaces(res)
+    } catch (error) {
+      toast.error('Failed to fetch workspaces')
+    }
+  }
+
+  const handleMoveBoard = async (newWorkspaceId) => {
+    setAnchorElMove(null)
+    try {
+      await updateBoardDetailAPI(board._id, { workspaceId: newWorkspaceId })
+      toast.success('Board moved successfully!')
+      navigate(`/boards?workspaceId=${newWorkspaceId}`)
+    } catch (error) {
+      toast.error('Failed to move board')
+    }
+  }
+
   return (
     <Box px={2} sx={{
       width: '100%',
@@ -130,14 +190,9 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
     }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Tooltip title={board?.description}>
-          <Chip
-            sx={MENU_STYLE}
-            icon={<ViewColumnIcon />}
-            label={board?.title}
-            clickable
-          />
-        </Tooltip>
+        <Box sx={{ px: 1, py: 0.5 }}>
+          <BoardTitleIndicator board={board} />
+        </Box>
         
         {/* Toggle Public / Private */}
         <Chip
@@ -224,6 +279,66 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
             if (!isReadOnly) setIsTemplateDrawerOpen(true)
           }}
         />
+        <Chip
+          sx={MENU_STYLE}
+          icon={<DriveFileMoveIcon />}
+          label="Move Board"
+          clickable={!isReadOnly && isAuthorized && board.ownerIds?.includes(currentUser?._id)}
+          disabled={!isAuthorized || !board.ownerIds?.includes(currentUser?._id)}
+          onClick={(e) => {
+            if (!isReadOnly && isAuthorized && board.ownerIds?.includes(currentUser?._id)) {
+              handleOpenMoveMenu(e)
+            }
+          }}
+        />
+        
+        {/* Menu cho Move Board */}
+        <Menu
+          anchorEl={anchorElMove}
+          open={Boolean(anchorElMove)}
+          onClose={() => setAnchorElMove(null)}
+          MenuListProps={{ sx: { py: 0, pb: 1 } }}
+          PaperProps={{ sx: { mt: 0.5, minWidth: 200, borderRadius: '8px' } }}
+        >
+          <Box sx={{ px: 2, pt: 1.5, pb: 1, textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ fontWeight: '600', color: 'text.secondary', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Move to Workspace
+            </Typography>
+          </Box>
+          <MenuItem 
+            onClick={() => handleMoveBoard(null)}
+            selected={!board.workspaceId}
+            sx={{ gap: 1.5, px: 2, py: 1 }}
+          >
+            <Box sx={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PersonIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+            </Box>
+            <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>Personal Boards</ListItemText>
+          </MenuItem>
+          {workspaces.map(wsp => (
+            <MenuItem 
+              key={wsp._id} 
+              onClick={() => handleMoveBoard(wsp._id)}
+              selected={board.workspaceId === wsp._id}
+              sx={{ gap: 1.5, px: 2, py: 1 }}
+            >
+              <Box sx={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <BusinessIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+              </Box>
+              <ListItemText primaryTypographyProps={{ 
+                fontSize: 14, 
+                fontWeight: 500,
+                sx: {
+                  display: 'block',
+                  maxWidth: '140px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }
+              }}>{wsp.title}</ListItemText>
+            </MenuItem>
+          ))}
+        </Menu>
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -237,7 +352,7 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
         />
 
         {/* xử lý cho phép chủ sở hữu board mời thành viên khác vào board */}
-        {!isReadOnly && <InviteBoardUser boardId={board._id} />}
+        {!isReadOnly && <InviteBoardUser boardId={board._id} boardMembers={board.memberIds} workspaceMembers={board.workspaceMembers} />}
 
         {/* xử lý hiển thị danh sách thành viên của board */}
         <BoardUserGroup boardUsers={board?.FE_allUser} />

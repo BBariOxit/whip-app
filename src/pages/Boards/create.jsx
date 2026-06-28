@@ -359,34 +359,25 @@ export function BoardModalForm({ isOpen, handleClose, initialData, onSubmit, tit
   )
 }
 
-function SidebarCreateBoardModal({ afterCreateNewBoard }) {
-  const [isOpen, setIsOpen] = useState(false)
-  const handleOpenModal = () => setIsOpen(true)
-  const handleCloseModal = () => setIsOpen(false)
-
+export function CreateBoardModal({ isOpen, handleClose, afterCreateNewBoard, currentWorkspaceId }) {
   const submitCreateNewBoard = (data) => {
-    createNewBoardAPI(data).then(() => {
-      handleCloseModal()
+    // Thêm workspaceId vào data nếu có
+    const finalData = { ...data, workspaceId: currentWorkspaceId }
+    createNewBoardAPI(finalData).then(() => {
+      handleClose()
       afterCreateNewBoard()
     })
   }
 
   return (
-    <>
-      <SidebarItem onClick={handleOpenModal}>
-        <LibraryAddIcon fontSize="small" />
-        Create a new board
-      </SidebarItem>
-
-      <BoardModalForm 
-        isOpen={isOpen}
-        handleClose={handleCloseModal}
-        onSubmit={submitCreateNewBoard}
-        title="Create a new board"
-        submitText="Create Board"
-      />
-    </>
+    <BoardModalForm 
+      isOpen={isOpen}
+      handleClose={handleClose}
+      onSubmit={submitCreateNewBoard}
+      title="Create a new board"
+      submitText="Create Board"
+    />
   )
 }
 
-export default SidebarCreateBoardModal
+export default CreateBoardModal
