@@ -23,14 +23,14 @@ const SidebarItem = styled(Box)(({ theme }) => ({
   },
   '&.active': {
     color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main,
-    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : '#eff6ff',
-    fontWeight: 600,
-    border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.3)' : '#bfdbfe'}`,
-    boxShadow: theme.palette.mode === 'dark' ? 'inset 4px 0 0 #3b82f6' : 'inset 4px 0 0 #2563eb'
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+    fontWeight: 'bold',
+    border: '1px solid transparent',
+    boxShadow: 'none'
   }
 }))
 
-export const Sidebar = ({ currentView, setCurrentView, afterCreateNewBoard, workspaces, onOpenCreateWorkspace }) => {
+export const Sidebar = ({ currentView, setCurrentView, afterCreateNewBoard, workspaces, onOpenCreateWorkspace, onOpenDeleteWorkspace, onOpenRenameWorkspace }) => {
   return (
     <Box sx={{ 
       width: '280px', 
@@ -82,6 +82,8 @@ export const Sidebar = ({ currentView, setCurrentView, afterCreateNewBoard, work
         currentWorkspaceId={currentView.type === 'workspace' ? currentView.id : null}
         onSelectWorkspace={(id, title) => setCurrentView({ type: 'workspace', id, title })}
         onOpenCreateModal={onOpenCreateWorkspace}
+        onOpenRenameModal={onOpenRenameWorkspace}
+        onOpenDeleteModal={onOpenDeleteWorkspace}
       />
 
     </Box>

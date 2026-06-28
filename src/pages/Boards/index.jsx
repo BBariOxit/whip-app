@@ -3,12 +3,14 @@ import AppBar from '~/components/AppBar/AppBar'
 import PageLoadingSpinner from '~/components/Loading/pageLoadingSpinner'
 import Box from '@mui/material/Box'
 import { useLocation } from 'react-router-dom'
-import { fetchBoardsAPI, fetchTemplatesAPI, bulkDeleteBoardsAPI, fetchWorkspacesAPI } from '~/apis'
+import { fetchBoardsAPI, fetchTemplatesAPI, bulkDeleteBoardsAPI, fetchWorkspacesAPI, deleteWorkspaceAPI } from '~/apis'
 import { toast } from 'sonner'
 import { useConfirm } from 'material-ui-confirm'
 import { Sidebar } from './Sidebar'
 import { MainContent } from './MainContent'
 import { CreateWorkspaceModal } from '~/components/Modal/CreateWorkspaceModal/CreateWorkspaceModal'
+import { DeleteWorkspaceModal } from '~/components/Modal/DeleteWorkspaceModal/DeleteWorkspaceModal'
+import { RenameWorkspaceModal } from '~/components/Modal/RenameWorkspaceModal/RenameWorkspaceModal'
 import CreateBoardModal from './create'
 
 function Boards() {
@@ -23,6 +25,10 @@ function Boards() {
   const [workspaces, setWorkspaces] = useState([])
   const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false)
   const [isCreateBoardOpen, setIsCreateBoardOpen] = useState(false)
+  const [isDeleteWorkspaceOpen, setIsDeleteWorkspaceOpen] = useState(false)
+  const [workspaceToDelete, setWorkspaceToDelete] = useState(null)
+  const [isRenameWorkspaceOpen, setIsRenameWorkspaceOpen] = useState(false)
+  const [workspaceToRename, setWorkspaceToRename] = useState(null)
 
   // Pagination
   const location = useLocation()
@@ -73,6 +79,29 @@ function Boards() {
   const handleWorkspaceCreated = (newWorkspace) => {
     setWorkspaces([newWorkspace, ...workspaces])
     setCurrentView({ type: 'workspace', id: newWorkspace._id, title: newWorkspace.title })
+  }
+
+  const handleDeleteWorkspace = async (workspaceId) => {
+    await deleteWorkspaceAPI(workspaceId)
+    setWorkspaces(workspaces.filter(w => w._id !== workspaceId))
+    setIsDeleteWorkspaceOpen(false)
+    setWorkspaceToDelete(null)
+    if (currentView.type === 'workspace' && currentView.id === workspaceId) {
+      setCurrentView({ type: 'home', id: null })
+    }
+  }
+
+  const handleRenameSuccess = (newTitle, workspaceId) => {
+    // Cập nhật lại mảng workspaces
+    const updatedWorkspaces = workspaces.map(w => 
+      w._id === workspaceId ? { ...w, title: newTitle } : w
+    )
+    setWorkspaces(updatedWorkspaces)
+
+    // Nếu đang view workspace đó thì cập nhật luôn currentView.title
+    if (currentView.type === 'workspace' && currentView.id === workspaceId) {
+      setCurrentView({ ...currentView, title: newTitle })
+    }
   }
 
   // Show loading spinner if fetching boards for the first time
@@ -134,6 +163,14 @@ function Boards() {
           afterCreateNewBoard={afterCreateNewBoard}
           workspaces={workspaces}
           onOpenCreateWorkspace={() => setIsCreateWorkspaceOpen(true)}
+          onOpenRenameWorkspace={(wsp) => {
+            setWorkspaceToRename(wsp)
+            setIsRenameWorkspaceOpen(true)
+          }}
+          onOpenDeleteWorkspace={(wsp) => {
+            setWorkspaceToDelete(wsp)
+            setIsDeleteWorkspaceOpen(true)
+          }}
         />
 
         {/* MAIN CONTENT */}
@@ -167,6 +204,26 @@ function Boards() {
         handleClose={() => setIsCreateBoardOpen(false)} 
         afterCreateNewBoard={afterCreateNewBoard} 
         currentWorkspaceId={currentView.type === 'workspace' ? currentView.id : null} 
+      />
+
+      <DeleteWorkspaceModal
+        isOpen={isDeleteWorkspaceOpen}
+        handleClose={() => {
+          setIsDeleteWorkspaceOpen(false)
+          setWorkspaceToDelete(null)
+        }}
+        workspaceToDelete={workspaceToDelete}
+        onSubmit={handleDeleteWorkspace}
+      />
+
+      <RenameWorkspaceModal
+        isOpen={isRenameWorkspaceOpen}
+        onClose={() => {
+          setIsRenameWorkspaceOpen(false)
+          setWorkspaceToRename(null)
+        }}
+        currentWorkspace={workspaceToRename}
+        onRenameSuccess={handleRenameSuccess}
       />
     </Box>
   )
