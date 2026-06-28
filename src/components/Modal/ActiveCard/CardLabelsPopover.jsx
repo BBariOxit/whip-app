@@ -86,7 +86,6 @@ function CardLabelsPopover({ anchorEl, handleClose, activeCard, onUpdateCardLabe
       disableScrollLock={true}
       disableAutoFocus={true}
       disableEnforceFocus={true}
-      transitionDuration={0}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       PaperProps={{
         sx: {

@@ -138,7 +138,6 @@ function CardCustomFieldsPopover({ anchorEl, handleClose }) {
       disableScrollLock={true}
       disableAutoFocus={true}
       disableEnforceFocus={true}
-      transitionDuration={0}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       PaperProps={{
         sx: {

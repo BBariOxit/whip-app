@@ -42,7 +42,6 @@ function CardDatesPopover({ anchorEl, handleClose, activeCard, onUpdateCardDates
       disableScrollLock={true}
       disableAutoFocus={true}
       disableEnforceFocus={true}
-      transitionDuration={0}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       transformOrigin={{ vertical: 'top', horizontal: 'left' }}
       slotProps={{

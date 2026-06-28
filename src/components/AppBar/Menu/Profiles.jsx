@@ -68,7 +68,6 @@ function Profiles() {
         disableScrollLock={true}
         disableAutoFocusItem={true}
         autoFocus={false}
-        transitionDuration={0}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         MenuListProps={{

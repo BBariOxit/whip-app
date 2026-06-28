@@ -17,7 +17,7 @@ import Workspaces from './Menu/Workspaces'
 import Notifications from './Notifications/Notifications'
 import AutoCompleteSearchBoard from './SearchBoards/AutoCompleteSearchBoard'
 
-function AppBar() {
+function AppBar({ onOpenCreateBoard }) {
   return (
     <Box sx={{
       width: '100%',
@@ -64,13 +64,14 @@ function AppBar() {
           <Starred />
           <Templates />
           <Button
+            onClick={onOpenCreateBoard}
             sx={{
               color: 'text.secondary',
               border: 'none',
               '&:hover': { border:'none' }
             }}
             variant="outlined"
-            startIcon = {<LibraryAddIcon />}>
+            startIcon={<LibraryAddIcon />}>
           Create</Button>
         </Box>
 

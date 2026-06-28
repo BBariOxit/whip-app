@@ -340,7 +340,6 @@ function Card({ card }) {
         disableScrollLock={true}
         disableAutoFocusItem
         autoFocus={false}
-        transitionDuration={0}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         MenuListProps={{

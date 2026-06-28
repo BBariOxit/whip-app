@@ -469,7 +469,6 @@ function Column({ column }) {
               disableScrollLock={true}
               disableAutoFocusItem
               autoFocus={false}
-              transitionDuration={0}
               onClick={(e) => {
                 // Prevent closing menu when clicking submenu triggers
                 if (!e.target.closest('#submenu-trigger') && !e.target.closest('#template-submenu-trigger')) {
@@ -607,7 +606,6 @@ function Column({ column }) {
               disableScrollLock={true}
               disableAutoFocusItem
               autoFocus={false}
-              transitionDuration={0}
               anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
               transformOrigin={{ vertical: 'top', horizontal: 'left' }}
               MenuListProps={{
@@ -705,7 +703,6 @@ function Column({ column }) {
                 disableScrollLock={true}
                 disableAutoFocusItem
                 autoFocus={false}
-                transitionDuration={0}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 sx={{

@@ -130,7 +130,6 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
           disableScrollLock={true}
           disableAutoFocusItem={true}
           autoFocus={false}
-          transitionDuration={0}
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()

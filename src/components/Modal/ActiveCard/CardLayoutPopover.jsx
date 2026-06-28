@@ -26,7 +26,6 @@ function CardLayoutPopover({ anchorEl, handleClose, onUpdateCardLayout, anchorOr
       disableScrollLock={true}
       disableAutoFocus={true}
       disableEnforceFocus={true}
-      transitionDuration={0}
       anchorOrigin={anchorOrigin || { vertical: 'bottom', horizontal: 'left' }}
       transformOrigin={transformOrigin}
       slotProps={{

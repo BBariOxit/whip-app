@@ -130,7 +130,6 @@ function Notifications() {
         disableScrollLock={true}
         disableAutoFocusItem={true}
         autoFocus={false}
-        transitionDuration={0}
         MenuListProps={{ 
           'aria-labelledby': 'basic-button-open-notification',
           disablePadding: true,
