@@ -64,13 +64,15 @@ export const MainContent = ({
               textTransform: 'none',
               fontWeight: 600,
               px: 2,
-              color: 'primary.main',
-              borderColor: 'primary.main',
-              borderWidth: '2px',
+              color: isBulkMode ? 'error.main' : 'text.primary',
+              borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de',
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? '#21262d' : '#f6f8fa',
+              boxShadow: (theme) => theme.palette.mode === 'dark' ? 'none' : '0 1px 0 rgba(27,31,36,0.04), inset 0 1px 0 rgba(255,255,255,0.25)',
+              transition: 'all 0.2s ease-in-out',
               '&:hover': { 
-                borderColor: 'primary.dark', 
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.1)' : 'rgba(25, 118, 210, 0.05)',
-                borderWidth: '2px'
+                borderColor: (theme) => theme.palette.mode === 'dark' ? '#8b949e' : 'rgba(31,35,40,0.15)',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#f3f4f6',
+                transform: 'translateY(-1px)'
               }
             }}
           >
@@ -91,6 +93,7 @@ export const MainContent = ({
           </Button>
         )}
       </Box>
+
 
       {/* BOARDS LIST (Personal or Workspace) */}
       {(currentView.type === 'personal' || currentView.type === 'workspace') && (
@@ -154,7 +157,10 @@ export const MainContent = ({
                 renderItem={(item) => (
                   <PaginationItem
                     component={Link}
-                    to={`/boards${item.page === DEFAULT_PAGE ? '' : `?page=${item.page}`}`}
+                    to={`/boards?${new URLSearchParams({
+                      ...(item.page !== DEFAULT_PAGE && { page: item.page }),
+                      ...(currentView.type === 'workspace' && currentView.id && { workspaceId: currentView.id })
+                    }).toString()}`}
                     {...item}
                     sx={{
                       borderRadius: '8px'

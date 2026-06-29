@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import AppBar from '~/components/AppBar/AppBar'
 import PageLoadingSpinner from '~/components/Loading/pageLoadingSpinner'
 import Box from '@mui/material/Box'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { fetchBoardsAPI, fetchTemplatesAPI, bulkDeleteBoardsAPI, fetchWorkspacesAPI, deleteWorkspaceAPI } from '~/apis'
 import { toast } from 'sonner'
 import { useConfirm } from 'material-ui-confirm'
@@ -14,9 +14,19 @@ import { RenameWorkspaceModal } from '~/components/Modal/RenameWorkspaceModal/Re
 import CreateBoardModal from './create'
 
 function Boards() {
-  // Navigation State
-  // Default to null, will fetch workspaces first and set default
-  const [currentView, setCurrentView] = useState({ type: 'personal', id: null, title: 'Your Personal Boards' })
+  // Pagination and Location
+  const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const query = new URLSearchParams(location.search)
+
+  // Fetch workspaces before determining currentView if we need title, but for now we initialize from URL
+  const initWorkspaceId = query.get('workspaceId')
+  const [currentView, setCurrentView] = useState(() => {
+    if (initWorkspaceId && initWorkspaceId !== 'null') {
+      return { type: 'workspace', id: initWorkspaceId, title: 'Workspace Boards' }
+    }
+    return { type: 'personal', id: null, title: 'Your Personal Boards' }
+  })
 
   // Boards & Workspace Data State
   const [boards, setBoards] = useState(null)
@@ -30,9 +40,6 @@ function Boards() {
   const [isRenameWorkspaceOpen, setIsRenameWorkspaceOpen] = useState(false)
   const [workspaceToRename, setWorkspaceToRename] = useState(null)
 
-  // Pagination
-  const location = useLocation()
-  const query = new URLSearchParams(location.search)
   const page = parseInt(query.get('page') || '1', 10)
 
   // Bulk Edit State
@@ -47,7 +54,14 @@ function Boards() {
 
   // Fetch Workspaces on Mount
   useEffect(() => {
-    fetchWorkspacesAPI().then(res => setWorkspaces(res))
+    fetchWorkspacesAPI().then(res => {
+      setWorkspaces(res)
+      // Update title if we initialized from URL
+      if (currentView.type === 'workspace') {
+        const wsp = res.find(w => w._id === currentView.id)
+        if (wsp) setCurrentView(prev => ({ ...prev, title: wsp.title }))
+      }
+    })
   }, [])
 
   // Fetch Boards when switching to personal or workspace
@@ -115,7 +129,15 @@ function Boards() {
   }
 
   const onBoardUpdated = (updatedBoard) => {
-    setBoards(prev => prev.map(b => b._id === updatedBoard._id ? updatedBoard : b))
+    if (currentView.type === 'personal' && updatedBoard.workspaceId) {
+      setBoards(prev => prev.filter(b => b._id !== updatedBoard._id))
+      setTotalBoards(prev => prev - 1)
+    } else if (currentView.type === 'workspace' && updatedBoard.workspaceId !== currentView.id) {
+      setBoards(prev => prev.filter(b => b._id !== updatedBoard._id))
+      setTotalBoards(prev => prev - 1)
+    } else {
+      setBoards(prev => prev.map(b => b._id === updatedBoard._id ? updatedBoard : b))
+    }
   }
 
   const handleSelectCard = (boardId) => {
@@ -148,6 +170,26 @@ function Boards() {
     }).catch(() => {})
   }
 
+  const handleViewChange = (newView) => {
+    setCurrentView(newView)
+    
+    // Tạo copy của params hiện tại để giữ lại (nếu có các param khác ngoài page)
+    const newParams = new URLSearchParams(searchParams)
+
+    if (newView.type === 'workspace') {
+      newParams.set('workspaceId', newView.id)
+      newParams.set('page', '1') // RESET PAGE NÈ ĐM!
+    } else if (newView.type === 'personal') {
+      newParams.delete('workspaceId')
+      newParams.set('page', '1') // CŨNG PHẢI RESET PAGE!
+    } else if (newView.type === 'home' || newView.type === 'templates') {
+      newParams.delete('workspaceId')
+      newParams.delete('page')
+    }
+
+    setSearchParams(newParams)
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
       {/* APP BAR HEADER */}
@@ -159,7 +201,7 @@ function Boards() {
         {/* SIDEBAR */}
         <Sidebar 
           currentView={currentView}
-          setCurrentView={setCurrentView}
+          handleViewChange={handleViewChange}
           afterCreateNewBoard={afterCreateNewBoard}
           workspaces={workspaces}
           onOpenCreateWorkspace={() => setIsCreateWorkspaceOpen(true)}

@@ -30,7 +30,7 @@ const SidebarItem = styled(Box)(({ theme }) => ({
   }
 }))
 
-export const Sidebar = ({ currentView, setCurrentView, afterCreateNewBoard, workspaces, onOpenCreateWorkspace, onOpenDeleteWorkspace, onOpenRenameWorkspace }) => {
+export const Sidebar = ({ currentView, handleViewChange, afterCreateNewBoard, workspaces, onOpenCreateWorkspace, onOpenDeleteWorkspace, onOpenRenameWorkspace }) => {
   return (
     <Box sx={{ 
       width: '280px', 
@@ -47,14 +47,14 @@ export const Sidebar = ({ currentView, setCurrentView, afterCreateNewBoard, work
       <Stack direction="column" spacing={1}>
         <SidebarItem
           className={currentView.type === 'home' ? 'active' : ''}
-          onClick={() => setCurrentView({ type: 'home', id: null })}
+          onClick={() => handleViewChange({ type: 'home', id: null })}
         >
           <HomeIcon fontSize="small" />
           Home
         </SidebarItem>
         <SidebarItem
           className={currentView.type === 'templates' ? 'active' : ''}
-          onClick={() => setCurrentView({ type: 'templates', id: null })}
+          onClick={() => handleViewChange({ type: 'templates', id: null })}
         >
           <ListAltIcon fontSize="small" />
           Templates
@@ -67,7 +67,7 @@ export const Sidebar = ({ currentView, setCurrentView, afterCreateNewBoard, work
       <Stack direction="column" spacing={1}>
         <SidebarItem 
           className={currentView.type === 'personal' ? 'active' : ''}
-          onClick={() => setCurrentView({ type: 'personal', id: null, title: 'Your Personal Boards' })}
+          onClick={() => handleViewChange({ type: 'personal', id: null, title: 'Your Personal Boards' })}
         >
           <ViewColumnIcon fontSize="small" />
           Your Personal Boards
@@ -80,7 +80,7 @@ export const Sidebar = ({ currentView, setCurrentView, afterCreateNewBoard, work
       <WorkspaceSidebarList 
         workspaces={workspaces}
         currentWorkspaceId={currentView.type === 'workspace' ? currentView.id : null}
-        onSelectWorkspace={(id, title) => setCurrentView({ type: 'workspace', id, title })}
+        onSelectWorkspace={(id, title) => handleViewChange({ type: 'workspace', id, title })}
         onOpenCreateModal={onOpenCreateWorkspace}
         onOpenRenameModal={onOpenRenameWorkspace}
         onOpenDeleteModal={onOpenDeleteWorkspace}
