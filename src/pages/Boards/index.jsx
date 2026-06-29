@@ -47,6 +47,8 @@ function Boards() {
   const [selectedIds, setSelectedIds] = useState([])
   const confirmBulkDelete = useConfirm()
 
+  const [isFetchingBoards, setIsFetchingBoards] = useState(false)
+
   const updateStateData = (res) => {
     setBoards(res.boards || [])
     setTotalBoards(res.totalBoards || 0)
@@ -56,7 +58,6 @@ function Boards() {
   useEffect(() => {
     fetchWorkspacesAPI().then(res => {
       setWorkspaces(res)
-      // Update title if we initialized from URL
       if (currentView.type === 'workspace') {
         const wsp = res.find(w => w._id === currentView.id)
         if (wsp) setCurrentView(prev => ({ ...prev, title: wsp.title }))
@@ -64,14 +65,27 @@ function Boards() {
     })
   }, [])
 
-  // Fetch Boards when switching to personal or workspace
+  // Fetch Boards when switching to personal or workspace or changing page
   useEffect(() => {
     if (currentView.type === 'personal' || currentView.type === 'workspace') {
-      const searchParams = new URLSearchParams(location.search)
-      searchParams.set('workspaceId', currentView.id)
-      fetchBoardsAPI(`?${searchParams.toString()}`).then(updateStateData)
+      const searchParams = new URLSearchParams()
+      if (page && page > 1) searchParams.set('page', page)
+      if (currentView.type === 'workspace' && currentView.id) {
+        searchParams.set('workspaceId', currentView.id)
+      } else if (currentView.type === 'personal') {
+        searchParams.set('workspaceId', 'null')
+      }
+      
+      setIsFetchingBoards(true)
+      fetchBoardsAPI(`?${searchParams.toString()}`)
+        .then(res => {
+          updateStateData(res)
+        })
+        .finally(() => {
+          setIsFetchingBoards(false)
+        })
     }
-  }, [location.search, currentView])
+  }, [page, currentView.type, currentView.id])
 
   // Fetch Templates when switching to templates view
   useEffect(() => {
@@ -82,8 +96,13 @@ function Boards() {
 
   const afterCreateNewBoard = () => {
     if (currentView.type === 'personal' || currentView.type === 'workspace') {
-      const searchParams = new URLSearchParams(location.search)
-      searchParams.set('workspaceId', currentView.id)
+      const searchParams = new URLSearchParams()
+      if (page && page > 1) searchParams.set('page', page)
+      if (currentView.type === 'workspace' && currentView.id) {
+        searchParams.set('workspaceId', currentView.id)
+      } else if (currentView.type === 'personal') {
+        searchParams.set('workspaceId', 'null')
+      }
       fetchBoardsAPI(`?${searchParams.toString()}`).then(updateStateData)
     } else {
       setCurrentView({ type: 'personal', id: null, title: 'Your Personal Boards' })
@@ -106,21 +125,14 @@ function Boards() {
   }
 
   const handleRenameSuccess = (newTitle, workspaceId) => {
-    // Cập nhật lại mảng workspaces
     const updatedWorkspaces = workspaces.map(w => 
       w._id === workspaceId ? { ...w, title: newTitle } : w
     )
     setWorkspaces(updatedWorkspaces)
 
-    // Nếu đang view workspace đó thì cập nhật luôn currentView.title
     if (currentView.type === 'workspace' && currentView.id === workspaceId) {
       setCurrentView({ ...currentView, title: newTitle })
     }
-  }
-
-  // Show loading spinner if fetching boards for the first time
-  if ((currentView.type === 'personal' || currentView.type === 'workspace') && !boards) {
-    return <PageLoadingSpinner caption="Loading Boards..." />
   }
 
   const onBoardDeleted = (deletedBoardId) => {
@@ -180,7 +192,7 @@ function Boards() {
       newParams.set('workspaceId', newView.id)
       newParams.set('page', '1') // RESET PAGE NÈ ĐM!
     } else if (newView.type === 'personal') {
-      newParams.delete('workspaceId')
+      newParams.set('workspaceId', 'null')
       newParams.set('page', '1') // CŨNG PHẢI RESET PAGE!
     } else if (newView.type === 'home' || newView.type === 'templates') {
       newParams.delete('workspaceId')
@@ -220,6 +232,7 @@ function Boards() {
           currentView={currentView}
           onOpenCreateBoard={() => setIsCreateBoardOpen(true)}
           boards={boards}
+          isFetchingBoards={isFetchingBoards}
           templates={templates}
           totalBoards={totalBoards}
           page={page}

@@ -71,8 +71,14 @@ function InviteBoardUser({ boardId, boardMembers = [], workspaceMembers = [] }) 
           startIcon={<PersonAddIcon />}
           sx={{
             color: 'text.primary',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#ffffff',
             borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'divider',
-            '&:hover': { borderColor: 'primary.main', bgcolor: 'transparent', boxShadow: (theme) => `0 0 0 1px ${theme.palette.primary.main}` }
+            borderWidth: '2px',
+            '&:hover': { 
+              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)', 
+              borderWidth: '2px',
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#ffffff'
+            }
           }}
         >
           Invite

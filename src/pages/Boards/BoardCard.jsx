@@ -80,7 +80,7 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
     <>
       <Card sx={{ 
         width: '100%',
-        height: '220px',
+        height: '180px',
         borderRadius: '16px',
         boxShadow: (theme) => theme.palette.mode === 'dark' 
           ? '0 4px 20px rgba(0,0,0,0.5)' 
@@ -230,10 +230,10 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
               sx={{ 
                 overflow: 'hidden', 
                 display: '-webkit-box',
-                WebkitLineClamp: 2,
+                WebkitLineClamp: 1,
                 WebkitBoxOrient: 'vertical',
                 lineHeight: 1.5,
-                minHeight: '3em'
+                minHeight: '1.5em'
               }}>
               {board?.description || 'No description provided'}
             </Typography>
