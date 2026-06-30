@@ -34,7 +34,13 @@ function Auth() {
       ).then(res => {
         if (!res.error) {
           toast.success('Logged in with GitHub successfully!')
-          navigate('/', { replace: true })
+          const pendingRedirect = localStorage.getItem('redirectAfterLogin')
+          if (pendingRedirect) {
+            localStorage.removeItem('redirectAfterLogin')
+            navigate(pendingRedirect, { replace: true })
+          } else {
+            navigate('/', { replace: true })
+          }
         }
       }).catch((error) => {
         toast.error(error?.message || 'GitHub login failed!')
@@ -47,6 +53,11 @@ function Auth() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (currentUser) {
+    const pendingRedirect = localStorage.getItem('redirectAfterLogin')
+    if (pendingRedirect) {
+      localStorage.removeItem('redirectAfterLogin')
+      return <Navigate to={pendingRedirect} replace={true} />
+    }
     return <Navigate to="/" replace={true} />
   }
 

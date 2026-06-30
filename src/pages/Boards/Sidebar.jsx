@@ -3,6 +3,7 @@ import ViewColumnIcon from '@mui/icons-material/ViewColumn'
 import ListAltIcon from '@mui/icons-material/ListAlt'
 import HomeIcon from '@mui/icons-material/Home'
 import { styled } from '@mui/material/styles'
+import AddIcon from '@mui/icons-material/Add'
 import { WorkspaceSidebarList } from './WorkspaceSidebarList'
 
 const SidebarItem = styled(Box)(({ theme }) => ({
@@ -30,7 +31,7 @@ const SidebarItem = styled(Box)(({ theme }) => ({
   }
 }))
 
-export const Sidebar = ({ currentView, handleViewChange, afterCreateNewBoard, workspaces, onOpenCreateWorkspace, onOpenDeleteWorkspace, onOpenRenameWorkspace }) => {
+export const Sidebar = ({ currentUser, currentView, handleViewChange, afterCreateNewBoard, workspaces, onOpenCreateWorkspace, onOpenDeleteWorkspace, onOpenRenameWorkspace }) => {
   return (
     <Box sx={{ 
       width: '280px', 
@@ -77,14 +78,23 @@ export const Sidebar = ({ currentView, handleViewChange, afterCreateNewBoard, wo
       <Divider sx={{ my: 1 }} />
 
       {/* KHU VỰC 3: WORKSPACES */}
-      <WorkspaceSidebarList 
-        workspaces={workspaces}
-        currentWorkspaceId={currentView.type === 'workspace' ? currentView.id : null}
-        onSelectWorkspace={(id, title) => handleViewChange({ type: 'workspace', id, title })}
-        onOpenCreateModal={onOpenCreateWorkspace}
-        onOpenRenameModal={onOpenRenameWorkspace}
-        onOpenDeleteModal={onOpenDeleteWorkspace}
-      />
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, pl: 1 }}>
+          <Typography variant="overline" sx={{ fontWeight: 600, color: 'text.secondary' }}>Workspaces</Typography>
+          <IconButton size="small" onClick={onOpenCreateWorkspace}>
+            <AddIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        <WorkspaceSidebarList 
+          currentUser={currentUser}
+          workspaces={workspaces}
+          currentWorkspaceId={currentView.type === 'workspace' ? currentView.id : null}
+          onSelectWorkspace={(id, title) => handleViewChange({ type: 'workspace', id, title })}
+          onOpenCreateModal={onOpenCreateWorkspace}
+          onOpenRenameModal={onOpenRenameWorkspace}
+          onOpenDeleteModal={onOpenDeleteWorkspace}
+        />
+      </Box>
 
     </Box>
   )

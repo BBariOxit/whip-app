@@ -12,8 +12,11 @@ import { CreateWorkspaceModal } from '~/components/Modal/CreateWorkspaceModal/Cr
 import { DeleteWorkspaceModal } from '~/components/Modal/DeleteWorkspaceModal/DeleteWorkspaceModal'
 import { RenameWorkspaceModal } from '~/components/Modal/RenameWorkspaceModal/RenameWorkspaceModal'
 import CreateBoardModal from './create'
+import { useSelector } from 'react-redux'
+import { selectCurrentUser } from '~/redux/user/userSlice'
 
 function Boards() {
+  const currentUser = useSelector(selectCurrentUser)
   // Pagination and Location
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -203,7 +206,7 @@ function Boards() {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
       {/* APP BAR HEADER */}
       <AppBar onOpenCreateBoard={() => setIsCreateBoardOpen(true)} />
       
@@ -212,6 +215,7 @@ function Boards() {
         
         {/* SIDEBAR */}
         <Sidebar 
+          currentUser={currentUser}
           currentView={currentView}
           handleViewChange={handleViewChange}
           afterCreateNewBoard={afterCreateNewBoard}
@@ -229,7 +233,9 @@ function Boards() {
 
         {/* MAIN CONTENT */}
         <MainContent 
+          currentUser={currentUser}
           currentView={currentView}
+          workspaces={workspaces}
           onOpenCreateBoard={() => setIsCreateBoardOpen(true)}
           boards={boards}
           isFetchingBoards={isFetchingBoards}

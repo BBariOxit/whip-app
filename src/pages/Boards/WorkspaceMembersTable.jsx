@@ -59,10 +59,11 @@ export const WorkspaceMembersTable = ({ workspaceId }) => {
 
   const handleKick = async () => {
     if (!selectedUser) return
+    const targetId = selectedUser.userId || selectedUser.email
     try {
-      await removeWorkspaceMemberAPI(workspaceId, selectedUser.userId)
+      await removeWorkspaceMemberAPI(workspaceId, targetId)
       // Remove from list locally
-      setMembers(prev => prev.filter(m => m.userId !== selectedUser.userId))
+      setMembers(prev => prev.filter(m => (m.userId || m.email) !== targetId))
     } catch (error) {
       // error handled
     } finally {
@@ -70,12 +71,12 @@ export const WorkspaceMembersTable = ({ workspaceId }) => {
     }
   }
 
-  const handleChangeRole = async (event, userId) => {
+  const handleChangeRole = async (event, targetId) => {
     const newRole = event.target.value
     try {
-      await updateWorkspaceMemberRoleAPI(workspaceId, userId, { role: newRole })
+      await updateWorkspaceMemberRoleAPI(workspaceId, targetId, { role: newRole })
       // Update locally
-      setMembers(prev => prev.map(m => m.userId === userId ? { ...m, role: newRole } : m))
+      setMembers(prev => prev.map(m => (m.userId || m.email) === targetId ? { ...m, role: newRole } : m))
     } catch (error) {
       // error handled
     }
@@ -119,17 +120,23 @@ export const WorkspaceMembersTable = ({ workspaceId }) => {
 
               return (
                 <TableRow
-                  key={row.userId}
+                  key={row.userId || row.email}
                   sx={{ 
                     '&:last-child td, &:last-child th': { border: 0 }, 
-                    '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)' } 
+                    '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)' },
+                    opacity: row.status === 'pending' ? 0.7 : 1
                   }}
                 >
                   <TableCell component="th" scope="row" sx={{ borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       <Avatar src={row.avatar} alt={row.displayName} sx={{ width: 40, height: 40 }} />
                       <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{row.displayName}</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{row.displayName}</Typography>
+                          {row.status === 'pending' && (
+                            <Chip label="Pending" size="small" sx={{ height: 20, fontSize: '11px', bgcolor: 'warning.dark', color: 'white' }} />
+                          )}
+                        </Box>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{row.email}</Typography>
                       </Box>
                     </Box>
@@ -137,10 +144,10 @@ export const WorkspaceMembersTable = ({ workspaceId }) => {
 
                   <TableCell sx={{ borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>
                     <Select
-                      value={row.role === 'owner' ? 'Owner' : row.role === 'admin' ? 'Admin' : 'Member'}
+                      value={row.role}
                       size="small"
-                      disabled={!canEditRole}
-                      onChange={(e) => handleChangeRole(e, row.userId)}
+                      disabled={!canEditRole || row.status === 'pending'}
+                      onChange={(e) => handleChangeRole(e, row.userId || row.email)}
                       sx={{
                         minWidth: 120,
                         height: 36,
@@ -152,7 +159,7 @@ export const WorkspaceMembersTable = ({ workspaceId }) => {
                         '&.Mui-disabled': { opacity: 0.7 }
                       }}
                     >
-                      {row.role === 'owner' && <MenuItem value="Owner">Owner</MenuItem>}
+                      {row.role === 'owner' && <MenuItem value="owner">Owner</MenuItem>}
                       {row.role !== 'owner' && <MenuItem value="admin">Admin</MenuItem>}
                       {row.role !== 'owner' && <MenuItem value="member">Member</MenuItem>}
                     </Select>

@@ -18,6 +18,8 @@ import { InviteWorkspaceMemberModal } from '~/components/Modal/InviteWorkspaceMe
 import { useDebounce } from '~/customHooks/useDebounce'
 
 export const MainContent = ({
+  currentUser,
+  workspaces,
   currentView,
   boards,
   isFetchingBoards,
@@ -52,58 +54,68 @@ export const MainContent = ({
     }
   }
 
+  const getUserRole = () => {
+    if (currentView.type !== 'workspace' || !currentUser) return 'owner'
+    const currentWorkspace = workspaces.find(w => w._id === currentView.id)
+    if (!currentWorkspace) return 'member'
+    const member = currentWorkspace.members?.find(m => m.userId === currentUser._id)
+    return member ? member.role : 'member'
+  }
+  const userRole = getUserRole()
+  const canManage = userRole === 'owner' || userRole === 'admin'
+
   return (
     <Box sx={{ flex: 1, p: 4, overflowY: 'auto' }}>
       {/* HEADER */}
       <Box sx={{ display: 'flex', gap: 2, mb: currentView.type === 'workspace' ? 1 : 3, alignItems: 'center' }}>
         <Typography variant="h4" sx={{ 
           fontWeight: 700, 
-          color: 'text.primary',
-          display: 'inline-block',
-          m: 0
+          letterSpacing: '-0.5px',
+          background: (theme) => theme.palette.mode === 'dark' 
+            ? 'linear-gradient(to right, #fff, #8b949e)' 
+            : 'linear-gradient(to right, #24292f, #57606a)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5
         }}>
           {getTitle()}
         </Typography>
       </Box>
 
-      {/* WORKSPACE TABS */}
+      {/* TABS (Chỉ hiển thị nếu là Workspace) */}
       {currentView.type === 'workspace' && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', borderBottom: 1, borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de', mb: 3 }}>
-          <Tabs 
-            value={activeTab} 
-            onChange={(e, newValue) => setActiveTab(newValue)}
-            textColor="inherit"
-            TabIndicatorProps={{ style: { backgroundColor: '#58a6ff' } }}
-            sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#8b949e' : 'text.secondary' }}
-          >
-            <Tab label="Boards" />
-            <Tab label="Members" />
-            <Tab label="Settings" />
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)} sx={{ minHeight: '40px' }}>
+            <Tab label="BOARDS" sx={{ fontWeight: 600, textTransform: 'none', fontSize: '14px', minHeight: '40px', py: 1 }} />
+            <Tab label="MEMBERS" sx={{ fontWeight: 600, textTransform: 'none', fontSize: '14px', minHeight: '40px', py: 1 }} />
+            <Tab label="SETTINGS" sx={{ fontWeight: 600, textTransform: 'none', fontSize: '14px', minHeight: '40px', py: 1 }} />
           </Tabs>
-
-          <Button 
-            startIcon={<PersonAddIcon fontSize="small" />} 
-            onClick={() => setIsInviteModalOpen(true)}
-            sx={{ 
-              textTransform: 'none', 
-              fontWeight: 500,
-              fontSize: '14px',
-              color: (theme) => theme.palette.mode === 'dark' ? '#8b949e' : 'text.secondary',
-              bgcolor: 'transparent',
-              border: 'none',
-              borderRadius: '4px',
-              px: 1.5,
-              height: '32px',
-              '&:hover': { 
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? '#334155' : 'rgba(0,0,0,0.05)'
-              }
-            }}
-          >
-            Invite
-          </Button>
+          {canManage && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<PersonAddIcon />}
+              onClick={() => setIsInviteModalOpen(true)}
+              sx={{ 
+                mb: 1,
+                color: 'text.primary',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#ffffff',
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'divider',
+                borderWidth: '2px',
+                '&:hover': { 
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)', 
+                  borderWidth: '2px',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#ffffff'
+                }
+              }}
+            >
+              Invite
+            </Button>
+          )}
         </Box>
       )}
-
 
       {/* BOARDS LIST (Personal or Workspace) */}
       {(currentView.type === 'personal' || (currentView.type === 'workspace' && activeTab === 0)) && (
@@ -172,7 +184,7 @@ export const MainContent = ({
                 <MenuItem value="z-a">Name Z-A</MenuItem>
               </Select>
 
-              {currentView.type !== 'templates' && currentView.type !== 'home' && boards?.length > 0 && (
+              {currentView.type !== 'templates' && currentView.type !== 'home' && boards?.length > 0 && canManage && (
                 <Button 
                   variant={isBulkMode ? "contained" : "outlined"} 
                   color={isBulkMode ? "error" : "primary"}
@@ -273,6 +285,8 @@ export const MainContent = ({
                       isBulkMode={isBulkMode}
                       isSelected={selectedIds.includes(b._id)}
                       onSelect={() => handleSelectCard(b._id)}
+                      canManage={canManage}
+                      currentUser={currentUser}
                     />
                   )}
                 </Box>

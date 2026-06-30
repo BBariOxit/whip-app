@@ -35,7 +35,7 @@ export const AcceptInvite = () => {
         await acceptWorkspaceInviteAPI({ token, workspaceId })
         setStatus('success')
         setTimeout(() => {
-          navigate(`/workspaces/${workspaceId}`)
+          navigate(`/boards?workspaceId=${workspaceId}`)
         }, 2000)
       } catch (error) {
         setStatus('error')
@@ -48,8 +48,8 @@ export const AcceptInvite = () => {
 
   const handleLoginRedirect = () => {
     // Redirect to login and save the invite URL to redirect back after login
-    const currentUrl = encodeURIComponent(window.location.pathname + window.location.search)
-    navigate(`/login?redirect=${currentUrl}`)
+    localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search)
+    navigate('/login')
   }
 
   return (
