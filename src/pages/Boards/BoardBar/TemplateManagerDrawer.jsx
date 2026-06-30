@@ -28,7 +28,7 @@ function TemplateManagerDrawer({ isOpen, onClose, boardId, currentUser }) {
   const board = useSelector(selectCurrentActive)
   const confirmAction = useConfirm()
 
-  const isAdmin = board?.ownerIds?.includes(currentUser?._id)
+  const isAdmin = board?.userAccessRole === 'admin'
 
   useEffect(() => {
     if (isOpen && boardId) {

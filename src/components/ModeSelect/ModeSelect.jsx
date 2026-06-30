@@ -48,15 +48,15 @@ function ModeSelect() {
             color: 'text.primary',
             '.MuiOutlinedInput-notchedOutline': {
               borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'divider',
-              borderWidth: '1px !important',
+              borderWidth: '2px !important',
               transition: 'none !important'
             },
             '&:hover .MuiOutlinedInput-notchedOutline': {
-              borderColor: 'primary.main',
+              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)',
               borderWidth: '2px !important'
             },
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: 'primary.main',
+              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)',
               borderWidth: '2px !important'
             },
             '.MuiSvgIcon-root': {

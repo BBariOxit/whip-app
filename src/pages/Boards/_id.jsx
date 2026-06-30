@@ -190,8 +190,8 @@ function Board() {
   }
 
   const currentUserId = currentUser?._id
-  const isOwner = currentUserId && board.ownerIds?.includes(currentUserId)
-  const isMember = currentUserId && board.memberIds?.includes(currentUserId)
+  const isOwner = board.userAccessRole === 'admin'
+  const isMember = board.userAccessRole === 'member'
   const isAuthorized = isOwner || isMember
 
   return (

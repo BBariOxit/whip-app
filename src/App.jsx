@@ -9,8 +9,7 @@ import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import Settings from '~/pages/Settings/Settings'
 import Boards from '~/pages/Boards/index'
-
-
+import { AcceptInvite } from '~/pages/Workspace/AcceptInvite'
 /**
  * Giải pháp Clean Code trong việc xác định các route nào cần đăng nhập tài khoản xong thì mới cho truy cập
  * Sử dụng <Outlet /> của react-router-dom để hiển thị các Child Route
@@ -52,6 +51,7 @@ function App() {
       <Route path="/login" element={<Auth />} />
       <Route path="/register" element={<Auth />} />
       <Route path='/account/verification' element={<AccountVerification />} />
+      <Route path="/accept-invite" element={<AcceptInvite />} />
 
       {/* Route 404 not found page  */}
       <Route path="*" element={<NotFound />} />

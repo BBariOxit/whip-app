@@ -120,10 +120,19 @@ const theme = extendTheme({
       styleOverrides: {
         root: {
           textTransform: 'none',
-          borderWidth: '0.5px',
           borderRadius: '10px',
           fontWeight: 600
-        }
+        },
+        outlined: ({ theme }) => ({
+          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : theme.palette.divider,
+          borderWidth: '2px !important',
+          color: theme.palette.text.primary,
+          '&:hover': {
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)',
+            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+            borderWidth: '2px !important'
+          }
+        })
       }
     },
     MuiInputLabel: {
@@ -152,17 +161,17 @@ const theme = extendTheme({
           fontSize: '0.875rem',
           borderRadius: '10px',
           '& .MuiOutlinedInput-notchedOutline': {
-            borderWidth: '1px !important',
-            borderColor: theme.palette.divider,
-            transition: 'border-color 0.2s ease'
+            borderWidth: '2px !important',
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : theme.palette.divider,
+            transition: 'none !important'
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
             borderWidth: '2px !important',
-            borderColor: theme.palette.primary.main
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)'
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
             borderWidth: '2px !important',
-            borderColor: theme.palette.primary.main
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)'
           }
         })
       }

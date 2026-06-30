@@ -5,7 +5,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 
-export const WorkspaceSidebarList = ({ workspaces, currentWorkspaceId, onSelectWorkspace, onOpenCreateModal, onOpenDeleteModal, onOpenRenameModal }) => {
+export const WorkspaceSidebarList = ({ currentUser, workspaces, currentWorkspaceId, onSelectWorkspace, onOpenCreateModal, onOpenDeleteModal, onOpenRenameModal }) => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [activeWorkspace, setActiveWorkspace] = useState(null)
 
@@ -28,6 +28,13 @@ export const WorkspaceSidebarList = ({ workspaces, currentWorkspaceId, onSelectW
     }
     handleCloseMenu()
   }
+
+  const getUserRole = (workspace) => {
+    if (!workspace || !currentUser) return null
+    const member = workspace.members?.find(m => m.userId === currentUser._id)
+    return member ? member.role : null
+  }
+
   // Hàm tạo màu random cho Avatar dựa vào tên
   const stringToColor = (string) => {
     let hash = 0
@@ -57,49 +64,54 @@ export const WorkspaceSidebarList = ({ workspaces, currentWorkspaceId, onSelectW
       {/* LIST CÁC WORKSPACE */}
       <List disablePadding>
         {workspaces.map((wsp) => {
-          const firstLetter = wsp.title.charAt(0).toUpperCase()
-          const isSelected = currentWorkspaceId === wsp._id
-
+          const isActive = wsp._id === currentWorkspaceId
+          const userRole = getUserRole(wsp)
+          const canManage = userRole === 'owner'
+          
           return (
-            <ListItemButton 
-              key={wsp._id} 
+            <ListItemButton
+              key={wsp._id}
+              selected={isActive}
               onClick={() => onSelectWorkspace(wsp._id, wsp.title)}
               sx={{
-                borderRadius: '12px',
-                px: 2,
-                py: '10px',
+                borderRadius: '6px',
                 mb: 0.5,
-                bgcolor: (theme) => isSelected ? (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)') : 'transparent',
-                '& .action-menu': { display: isSelected ? 'flex' : 'none' },
-                '&:hover .action-menu': { display: 'flex' },
-                '&:hover': { bgcolor: (theme) => isSelected 
-                  ? (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)') 
-                  : (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)') 
+                p: '6px 12px',
+                transition: 'all 0.2s',
+                '&.Mui-selected': {
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+                  '&:hover': {
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)'
+                  }
+                },
+                '&:hover': {
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                  '& .action-menu': { opacity: 1 }
                 }
               }}
             >
-              <ListItemIcon sx={{ minWidth: '40px' }}>
+              <ListItemIcon sx={{ minWidth: 32 }}>
                 <Avatar 
-                  variant="rounded" 
                   sx={{ 
-                    width: 28, 
-                    height: 28, 
-                    fontSize: '14px', 
+                    width: 20, 
+                    height: 20, 
+                    fontSize: '11px',
                     fontWeight: 'bold',
                     bgcolor: stringToColor(wsp.title),
+                    color: '#fff',
+                    borderRadius: '4px' // Làm avatar hơi vuông cho khác bọt
                   }}
                 >
-                  {firstLetter}
+                  {wsp.title.charAt(0).toUpperCase()}
                 </Avatar>
               </ListItemIcon>
               <ListItemText 
                 primary={wsp.title} 
                 primaryTypographyProps={{ 
-                  variant: 'body2', 
-                  fontWeight: isSelected ? 'bold' : 'normal',
-                  color: isSelected ? 'text.primary' : 'text.secondary',
+                  fontSize: '14px', 
+                  fontWeight: isActive ? 600 : 500,
+                  color: isActive ? 'text.primary' : '#c9d1d9',
                   sx: {
-                    display: 'block',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -108,22 +120,26 @@ export const WorkspaceSidebarList = ({ workspaces, currentWorkspaceId, onSelectW
                 }} 
               />
 
-              <IconButton 
-                className="action-menu"
-                size="small"
-                onClick={(e) => handleOpenMenu(e, wsp)}
-                sx={{ 
-                  color: '#8b949e',
-                  flexShrink: 0,
-                  width: '28px',
-                  height: '28px',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mr: -0.5 // slightly offset to the right but not flush
-                }}
-              >
-                <MoreVertIcon fontSize="small" />
-              </IconButton>
+              {canManage && (
+                <IconButton 
+                  className="action-menu"
+                  size="small"
+                  onClick={(e) => handleOpenMenu(e, wsp)}
+                  sx={{ 
+                    opacity: 0,
+                    transition: 'opacity 0.2s',
+                    color: '#8b949e',
+                    flexShrink: 0,
+                    width: '28px',
+                    height: '28px',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mr: -0.5 // slightly offset to the right but not flush
+                  }}
+                >
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
+              )}
             </ListItemButton>
           )
         })}

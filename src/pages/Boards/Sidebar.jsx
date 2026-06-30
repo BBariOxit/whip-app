@@ -3,6 +3,7 @@ import ViewColumnIcon from '@mui/icons-material/ViewColumn'
 import ListAltIcon from '@mui/icons-material/ListAlt'
 import HomeIcon from '@mui/icons-material/Home'
 import { styled } from '@mui/material/styles'
+import AddIcon from '@mui/icons-material/Add'
 import { WorkspaceSidebarList } from './WorkspaceSidebarList'
 
 const SidebarItem = styled(Box)(({ theme }) => ({
@@ -30,7 +31,7 @@ const SidebarItem = styled(Box)(({ theme }) => ({
   }
 }))
 
-export const Sidebar = ({ currentView, setCurrentView, afterCreateNewBoard, workspaces, onOpenCreateWorkspace, onOpenDeleteWorkspace, onOpenRenameWorkspace }) => {
+export const Sidebar = ({ currentUser, currentView, handleViewChange, afterCreateNewBoard, workspaces, onOpenCreateWorkspace, onOpenDeleteWorkspace, onOpenRenameWorkspace }) => {
   return (
     <Box sx={{ 
       width: '280px', 
@@ -47,14 +48,14 @@ export const Sidebar = ({ currentView, setCurrentView, afterCreateNewBoard, work
       <Stack direction="column" spacing={1}>
         <SidebarItem
           className={currentView.type === 'home' ? 'active' : ''}
-          onClick={() => setCurrentView({ type: 'home', id: null })}
+          onClick={() => handleViewChange({ type: 'home', id: null })}
         >
           <HomeIcon fontSize="small" />
           Home
         </SidebarItem>
         <SidebarItem
           className={currentView.type === 'templates' ? 'active' : ''}
-          onClick={() => setCurrentView({ type: 'templates', id: null })}
+          onClick={() => handleViewChange({ type: 'templates', id: null })}
         >
           <ListAltIcon fontSize="small" />
           Templates
@@ -67,7 +68,7 @@ export const Sidebar = ({ currentView, setCurrentView, afterCreateNewBoard, work
       <Stack direction="column" spacing={1}>
         <SidebarItem 
           className={currentView.type === 'personal' ? 'active' : ''}
-          onClick={() => setCurrentView({ type: 'personal', id: null, title: 'Your Personal Boards' })}
+          onClick={() => handleViewChange({ type: 'personal', id: null, title: 'Your Personal Boards' })}
         >
           <ViewColumnIcon fontSize="small" />
           Your Personal Boards
@@ -77,14 +78,23 @@ export const Sidebar = ({ currentView, setCurrentView, afterCreateNewBoard, work
       <Divider sx={{ my: 1 }} />
 
       {/* KHU VỰC 3: WORKSPACES */}
-      <WorkspaceSidebarList 
-        workspaces={workspaces}
-        currentWorkspaceId={currentView.type === 'workspace' ? currentView.id : null}
-        onSelectWorkspace={(id, title) => setCurrentView({ type: 'workspace', id, title })}
-        onOpenCreateModal={onOpenCreateWorkspace}
-        onOpenRenameModal={onOpenRenameWorkspace}
-        onOpenDeleteModal={onOpenDeleteWorkspace}
-      />
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, pl: 1 }}>
+          <Typography variant="overline" sx={{ fontWeight: 600, color: 'text.secondary' }}>Workspaces</Typography>
+          <IconButton size="small" onClick={onOpenCreateWorkspace}>
+            <AddIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        <WorkspaceSidebarList 
+          currentUser={currentUser}
+          workspaces={workspaces}
+          currentWorkspaceId={currentView.type === 'workspace' ? currentView.id : null}
+          onSelectWorkspace={(id, title) => handleViewChange({ type: 'workspace', id, title })}
+          onOpenCreateModal={onOpenCreateWorkspace}
+          onOpenRenameModal={onOpenRenameWorkspace}
+          onOpenDeleteModal={onOpenDeleteWorkspace}
+        />
+      </Box>
 
     </Box>
   )

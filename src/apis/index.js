@@ -327,4 +327,44 @@ export const deleteWorkspaceAPI = async (workspaceId) => {
   const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/workspaces/${workspaceId}`)
   toast.success('Workspace deleted successfully')
   return response.data
+}
+
+export const getWorkspaceDetailsAPI = async (workspaceId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces/${workspaceId}`)
+  return response.data
+}
+
+export const getWorkspaceMembersAPI = async (workspaceId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces/${workspaceId}/members`)
+  return response.data
+}
+
+export const inviteWorkspaceMemberAPI = async (workspaceId, data) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/workspaces/${workspaceId}/members`, data)
+  toast.success(response.data?.message || 'Invitation sent successfully!')
+  return response.data
+}
+
+export const removeWorkspaceMemberAPI = async (workspaceId, targetUserId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/workspaces/${workspaceId}/members/${targetUserId}`)
+  toast.success('Member removed from workspace successfully!')
+  return response.data
+}
+
+export const updateWorkspaceMemberRoleAPI = async (workspaceId, targetUserId, data) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/workspaces/${workspaceId}/members/${targetUserId}`, data)
+  toast.success('Member role updated successfully!')
+  return response.data
+}
+
+export const leaveWorkspaceAPI = async (workspaceId) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/workspaces/${workspaceId}/leave`)
+  toast.success('Left workspace successfully!')
+  return response.data
+}
+
+export const acceptWorkspaceInviteAPI = async (data) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/workspaces/accept-invite`, data)
+  toast.success(response.data?.message || 'Invitation accepted successfully!')
+  return response.data
 }

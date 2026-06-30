@@ -226,9 +226,7 @@ export const selectIsReadOnly = createSelector(
   [selectCurrentActive, selectCurrentUser],
   (board, currentUser) => {
     if (!board) return false
-    const isOwner = currentUser?._id && board.ownerIds?.includes(currentUser._id)
-    const isMember = currentUser?._id && board.memberIds?.includes(currentUser._id)
-    return board.type === 'public' && !(isOwner || isMember)
+    return board.userAccessRole === 'viewer' || board.userAccessRole === 'none'
   }
 )
 

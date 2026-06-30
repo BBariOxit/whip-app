@@ -20,7 +20,7 @@ const GRADIENTS = [
   'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)'
 ]
 
-export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulkMode, isSelected, onSelect }) => {
+export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulkMode, isSelected, onSelect, canManage = true, currentUser }) => {
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
   
@@ -80,7 +80,7 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
     <>
       <Card sx={{ 
         width: '100%',
-        height: '220px',
+        height: '180px',
         borderRadius: '16px',
         boxShadow: (theme) => theme.palette.mode === 'dark' 
           ? '0 4px 20px rgba(0,0,0,0.5)' 
@@ -103,24 +103,26 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
         }
       }}>
         {/* NÚT 3 CHẤM */}
-        <IconButton
-          className="more-options-btn"
-          onClick={handleOpenMenu}
-          sx={{
-            position: 'absolute',
-            top: '12px',
-            right: '12px',
-            opacity: 0,
-            transition: 'opacity 0.2s ease-in-out',
-            bgcolor: 'rgba(0, 0, 0, 0.3)',
-            color: '#fff',
-            zIndex: 10,
-            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.6)' }
-          }}
-          size="small"
-        >
-          <MoreHorizIcon fontSize="small" />
-        </IconButton>
+        {(canManage || (currentUser && board.ownerIds?.includes(currentUser._id))) && (
+          <IconButton
+            className="more-options-btn"
+            onClick={handleOpenMenu}
+            sx={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              opacity: 0,
+              transition: 'opacity 0.2s ease-in-out',
+              bgcolor: 'rgba(0, 0, 0, 0.3)',
+              color: '#fff',
+              zIndex: 10,
+              '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.6)' }
+            }}
+            size="small"
+          >
+            <MoreHorizIcon fontSize="small" />
+          </IconButton>
+        )}
 
         {/* DROP DOWN MENU */}
         <Menu
@@ -230,10 +232,10 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
               sx={{ 
                 overflow: 'hidden', 
                 display: '-webkit-box',
-                WebkitLineClamp: 2,
+                WebkitLineClamp: 1,
                 WebkitBoxOrient: 'vertical',
                 lineHeight: 1.5,
-                minHeight: '3em'
+                minHeight: '1.5em'
               }}>
               {board?.description || 'No description provided'}
             </Typography>

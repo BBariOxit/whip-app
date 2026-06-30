@@ -102,8 +102,8 @@ function ActiveCard() {
   const boardLabels = board?.labels || []
   const cardLabels = boardLabels.filter(label => activeCard?.labelIds?.includes(label._id))
 
-  const isOwner = currentUser?._id && board?.ownerIds?.includes(currentUser._id)
-  const isMember = currentUser?._id && board?.memberIds?.includes(currentUser._id)
+  const isOwner = board?.userAccessRole === 'admin'
+  const isMember = board?.userAccessRole === 'member'
   const isAuthorized = isOwner || isMember
   const isReadOnly = useSelector(selectIsReadOnly)
 

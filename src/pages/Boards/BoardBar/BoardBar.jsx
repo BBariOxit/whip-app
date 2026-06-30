@@ -148,8 +148,8 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
       dispatch(updateCurrentActiveBoard({ ...board, type: res.board?.type || newType }))
       toast.success(res.message)
     } catch (error) {
-      if (!error) return // Hủy confirm
-      toast.error('Failed to change board visibility!')
+      // Hủy confirm hoặc xử lý lỗi bổ sung nếu cần
+      // (toast error đã được handle ở authorizeAxios interceptor)
     }
   }
 
@@ -203,13 +203,13 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
           }}
           icon={board?.type === 'public' ? <PublicIcon /> : <LockIcon />}
           label={capitalizeFirstLetter(board?.type)}
-          clickable={!isReadOnly && isAuthorized && board.ownerIds?.includes(currentUser?._id)} // Chỉ cho phép chủ board toggle
+          clickable={!isReadOnly && isAuthorized && board?.userAccessRole === 'admin'} // Chỉ cho phép chủ board toggle
           onClick={(e) => {
-            if (!isReadOnly && isAuthorized && board.ownerIds?.includes(currentUser?._id)) {
+            if (!isReadOnly && isAuthorized && board?.userAccessRole === 'admin') {
               handleOpenVisibilityMenu(e)
             }
           }}
-          disabled={!isAuthorized || !board.ownerIds?.includes(currentUser?._id)} // Không phải owner thì chỉ nhìn
+          disabled={!isAuthorized || board?.userAccessRole !== 'admin'} // Không phải owner thì chỉ nhìn
         />
 
         <Menu
@@ -283,10 +283,10 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
           sx={MENU_STYLE}
           icon={<DriveFileMoveIcon />}
           label="Move Board"
-          clickable={!isReadOnly && isAuthorized && board.ownerIds?.includes(currentUser?._id)}
-          disabled={!isAuthorized || !board.ownerIds?.includes(currentUser?._id)}
+          clickable={!isReadOnly && isAuthorized && board?.userAccessRole === 'admin'}
+          disabled={!isAuthorized || board?.userAccessRole !== 'admin'}
           onClick={(e) => {
-            if (!isReadOnly && isAuthorized && board.ownerIds?.includes(currentUser?._id)) {
+            if (!isReadOnly && isAuthorized && board?.userAccessRole === 'admin') {
               handleOpenMoveMenu(e)
             }
           }}
