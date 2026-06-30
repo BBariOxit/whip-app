@@ -1,23 +1,52 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Box, Typography, Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Paper, Avatar, Select, MenuItem, Chip, 
-  IconButton, Menu, ListItemIcon, ListItemText 
+  IconButton, Menu, ListItemIcon, ListItemText, CircularProgress
 } from '@mui/material'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove'
-
-// TODO: Thay bằng dữ liệu thật từ API trả về sau này
-const MOCK_MEMBERS = [
-  { id: 1, name: 'Phan B', email: 'phanb@whip.com', role: 'Owner', status: 'Active', avatar: '' },
-  { id: 2, name: 'Alex Manager', email: 'alex@whip.com', role: 'Admin', status: 'Active', avatar: '' },
-  { id: 3, name: 'John Doe', email: 'john@whip.com', role: 'Member', status: 'Pending', avatar: '' },
-]
+import { useSelector } from 'react-redux'
+import { selectCurrentUser } from '~/redux/user/userSlice'
+import { 
+  getWorkspaceMembersAPI, 
+  removeWorkspaceMemberAPI, 
+  updateWorkspaceMemberRoleAPI,
+  getWorkspaceDetailsAPI
+} from '~/apis'
+import { getMyWorkspaceRole, canManageMember, canChangeRole } from '~/utils/workspaceRbac'
 
 export const WorkspaceMembersTable = ({ workspaceId }) => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [members, setMembers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [workspaceInfo, setWorkspaceInfo] = useState(null)
   
+  const currentUser = useSelector(selectCurrentUser)
+
+  const fetchMembers = async () => {
+    try {
+      setLoading(true)
+      // Fetch both details to get current user's role and members list
+      const wsDetails = await getWorkspaceDetailsAPI(workspaceId)
+      setWorkspaceInfo(wsDetails)
+      setMembers(wsDetails.members || [])
+    } catch (error) {
+      // error handled by interceptor
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (workspaceId) {
+      fetchMembers()
+    }
+  }, [workspaceId])
+
+  const myRole = getMyWorkspaceRole(workspaceInfo, currentUser?._id)
+
   const handleOpenMenu = (e, user) => {
     setAnchorEl(e.currentTarget)
     setSelectedUser(user)
@@ -28,15 +57,36 @@ export const WorkspaceMembersTable = ({ workspaceId }) => {
     setSelectedUser(null)
   }
 
-  const handleKick = () => {
-    // TODO: Gọi API kick user khỏi workspace
-    console.log('Kicking user: ', selectedUser?.name)
-    handleCloseMenu()
+  const handleKick = async () => {
+    if (!selectedUser) return
+    try {
+      await removeWorkspaceMemberAPI(workspaceId, selectedUser.userId)
+      // Remove from list locally
+      setMembers(prev => prev.filter(m => m.userId !== selectedUser.userId))
+    } catch (error) {
+      // error handled
+    } finally {
+      handleCloseMenu()
+    }
   }
 
-  const handleChangeRole = (event, userId) => {
-    // TODO: Gọi API đổi role
-    console.log('Changing role for user', userId, 'to', event.target.value)
+  const handleChangeRole = async (event, userId) => {
+    const newRole = event.target.value
+    try {
+      await updateWorkspaceMemberRoleAPI(workspaceId, userId, { role: newRole })
+      // Update locally
+      setMembers(prev => prev.map(m => m.userId === userId ? { ...m, role: newRole } : m))
+    } catch (error) {
+      // error handled
+    }
+  }
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <CircularProgress />
+      </Box>
+    )
   }
 
   return (
@@ -52,95 +102,84 @@ export const WorkspaceMembersTable = ({ workspaceId }) => {
         }}
       >
         <Table sx={{ minWidth: 650 }} aria-label="members table">
-          {/* TABLE HEADER */}
           <TableHead sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? '#21262d' : '#f6f8fa' }}>
             <TableRow>
               <TableCell sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid #30363d' }}>User</TableCell>
               <TableCell sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid #30363d' }}>Role</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid #30363d' }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid #30363d' }}>Joined At</TableCell>
               <TableCell align="right" sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid #30363d' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           
-          {/* TABLE BODY */}
           <TableBody>
-            {MOCK_MEMBERS.map((row) => (
-              <TableRow
-                key={row.id}
-                sx={{ 
-                  '&:last-child td, &:last-child th': { border: 0 }, 
-                  '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)' } 
-                }}
-              >
-                {/* CỘT USER */}
-                <TableCell component="th" scope="row" sx={{ borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar src={row.avatar} alt={row.name} sx={{ width: 40, height: 40 }} />
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{row.name}</Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>{row.email}</Typography>
+            {members.map((row) => {
+              // Using our RBAC helpers to determine what the current user can do to this row
+              const canEditRole = canChangeRole(myRole, row.role, currentUser._id, row.userId)
+              const canKick = canManageMember(myRole, row.role, currentUser._id, row.userId)
+
+              return (
+                <TableRow
+                  key={row.userId}
+                  sx={{ 
+                    '&:last-child td, &:last-child th': { border: 0 }, 
+                    '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)' } 
+                  }}
+                >
+                  <TableCell component="th" scope="row" sx={{ borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Avatar src={row.avatar} alt={row.displayName} sx={{ width: 40, height: 40 }} />
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{row.displayName}</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{row.email}</Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                </TableCell>
+                  </TableCell>
 
-                {/* CỘT ROLE */}
-                <TableCell sx={{ borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>
-                  <Select
-                    value={row.role}
-                    size="small"
-                    disabled={row.role === 'Owner'} // Không được tự sửa role của Owner
-                    onChange={(e) => handleChangeRole(e, row.id)}
-                    sx={{
-                      minWidth: 120,
-                      height: 36,
-                      borderRadius: 2,
-                      fontSize: '0.875rem',
-                      '.MuiOutlinedInput-notchedOutline': { borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' },
-                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#58a6ff' },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#58a6ff' },
-                      '&.Mui-disabled': { opacity: 0.7 }
-                    }}
-                  >
-                    {row.role === 'Owner' && <MenuItem value="Owner">Owner</MenuItem>}
-                    <MenuItem value="Admin">Admin</MenuItem>
-                    <MenuItem value="Member">Member</MenuItem>
-                  </Select>
-                </TableCell>
+                  <TableCell sx={{ borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>
+                    <Select
+                      value={row.role === 'owner' ? 'Owner' : row.role === 'admin' ? 'Admin' : 'Member'}
+                      size="small"
+                      disabled={!canEditRole}
+                      onChange={(e) => handleChangeRole(e, row.userId)}
+                      sx={{
+                        minWidth: 120,
+                        height: 36,
+                        borderRadius: 2,
+                        fontSize: '0.875rem',
+                        '.MuiOutlinedInput-notchedOutline': { borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' },
+                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#58a6ff' },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#58a6ff' },
+                        '&.Mui-disabled': { opacity: 0.7 }
+                      }}
+                    >
+                      {row.role === 'owner' && <MenuItem value="Owner">Owner</MenuItem>}
+                      {row.role !== 'owner' && <MenuItem value="admin">Admin</MenuItem>}
+                      {row.role !== 'owner' && <MenuItem value="member">Member</MenuItem>}
+                    </Select>
+                  </TableCell>
 
-                {/* CỘT STATUS */}
-                <TableCell sx={{ borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>
-                  <Chip 
-                    label={row.status} 
-                    size="small"
-                    sx={{ 
-                      bgcolor: row.status === 'Active' ? 'rgba(35, 134, 54, 0.15)' : 'rgba(210, 153, 34, 0.15)',
-                      color: row.status === 'Active' ? '#3fb950' : '#d29922',
-                      fontWeight: 600,
-                      borderRadius: '12px',
-                      height: 24,
-                      fontSize: '0.75rem'
-                    }} 
-                  />
-                </TableCell>
+                  <TableCell sx={{ borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de', color: 'text.secondary', fontSize: '0.875rem' }}>
+                    {new Date(row.joinedAt).toLocaleDateString()}
+                  </TableCell>
 
-                {/* CỘT ACTIONS */}
-                <TableCell align="right" sx={{ borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>
-                  <IconButton 
-                    size="small" 
-                    onClick={(e) => handleOpenMenu(e, row)}
-                    disabled={row.role === 'Owner'} // Không được kick Owner
-                    sx={{ color: 'text.secondary' }}
-                  >
-                    <MoreHorizIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+                  <TableCell align="right" sx={{ borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>
+                    {canKick && (
+                      <IconButton 
+                        size="small" 
+                        onClick={(e) => handleOpenMenu(e, row)}
+                        sx={{ color: 'text.secondary' }}
+                      >
+                        <MoreHorizIcon />
+                      </IconButton>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* ACTION MENU KHI BẤM 3 CHẤM */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -159,7 +198,7 @@ export const WorkspaceMembersTable = ({ workspaceId }) => {
         }}
       >
         <MenuItem onClick={handleKick} sx={{ color: 'error.main', '&:hover': { bgcolor: 'rgba(248, 81, 73, 0.1)' } }}>
-          <ListItemIcon sx={{ color: 'inherit' }}><PersonRemoveIcon fontSize="small" /></ListItemIcon>
+          <ListItemIcon sx={{ color: 'inherit' }}><PersonRemoveIcon fontSize="small" color="error" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: 500 }}>Remove from workspace</ListItemText>
         </MenuItem>
       </Menu>

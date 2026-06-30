@@ -14,6 +14,7 @@ import { TemplateCard } from './TemplateCard'
 import PageLoadingSpinner from '~/components/Loading/pageLoadingSpinner'
 import { DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
 import { WorkspaceMembersTable } from './WorkspaceMembersTable'
+import { InviteWorkspaceMemberModal } from '~/components/Modal/InviteWorkspaceMemberModal/InviteWorkspaceMemberModal'
 import { useDebounce } from '~/customHooks/useDebounce'
 
 export const MainContent = ({
@@ -36,6 +37,8 @@ export const MainContent = ({
   const [activeTab, setActiveTab] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('recent')
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+  const [refreshMembersKey, setRefreshMembersKey] = useState(0)
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
 
@@ -80,6 +83,7 @@ export const MainContent = ({
 
           <Button 
             startIcon={<PersonAddIcon fontSize="small" />} 
+            onClick={() => setIsInviteModalOpen(true)}
             sx={{ 
               textTransform: 'none', 
               fontWeight: 500,
@@ -312,7 +316,7 @@ export const MainContent = ({
 
       {/* MEMBERS LIST (Workspace Only) */}
       {currentView.type === 'workspace' && activeTab === 1 && (
-        <WorkspaceMembersTable workspaceId={currentView.id} />
+        <WorkspaceMembersTable key={`members-${refreshMembersKey}`} workspaceId={currentView.id} />
       )}
 
       {/* SETTINGS (Workspace Only) */}
@@ -358,6 +362,13 @@ export const MainContent = ({
           </Typography>
         </Box>
       )}
+
+      <InviteWorkspaceMemberModal
+        open={isInviteModalOpen}
+        handleClose={() => setIsInviteModalOpen(false)}
+        workspaceId={currentView.id}
+        onMemberInvited={() => setRefreshMembersKey(prev => prev + 1)}
+      />
     </Box>
   )
 }
