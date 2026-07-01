@@ -9,8 +9,8 @@ function PageLoadingSpinner({ caption }) {
       alignItems: 'center',
       justifyContent: 'center',
       gap: 2,
-      width: '100vw',
-      height: 'calc(100vh / 0.9)'
+      width: '100%',
+      height: '100%'
     }}>
       <CircularProgress />
       <Typography>{caption}</Typography>

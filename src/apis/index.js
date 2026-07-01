@@ -24,6 +24,11 @@ export const getArchivedItemsAPI = async (boardId) => {
   return response.data
 }
 
+export const joinBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/${boardId}/join`)
+  return response.data
+}
+
 export const updateBoardDetailAPI = async (boardId, updateData) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/boards/${boardId}`, updateData)
   return response.data

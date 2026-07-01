@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Box, Card, CardActionArea, CardContent, Typography, IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Checkbox } from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, Typography, IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Checkbox, Button } from '@mui/material'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Link } from 'react-router-dom'
 import { useConfirm } from 'material-ui-confirm'
-import { deleteBoardAPI, updateBoardDetailAPI } from '~/apis'
+import { deleteBoardAPI, updateBoardDetailAPI, joinBoardAPI } from '~/apis'
 import { toast } from 'sonner'
 import { BoardModalForm } from './create'
 
@@ -196,6 +196,7 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
               }}
             />
           )}
+
           <Box sx={{ 
             height: '100px', 
             background: board?.background ? 

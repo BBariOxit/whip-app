@@ -37,7 +37,7 @@ import BusinessIcon from '@mui/icons-material/Business'
 import PersonIcon from '@mui/icons-material/Person'
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove'
 import { useNavigate } from 'react-router-dom'
-import { updateBoardDetailAPI, fetchWorkspacesAPI } from '~/apis'
+import { updateBoardDetailAPI, fetchWorkspacesAPI, joinBoardAPI } from '~/apis'
 import Typography from '@mui/material/Typography'
 
 const MENU_STYLE = {
@@ -99,6 +99,26 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
   const [anchorElMove, setAnchorElMove] = useState(null)
   const [workspaces, setWorkspaces] = useState([])
   const navigate = useNavigate()
+
+  const isJoined = currentUser && (board.memberIds?.includes(currentUser._id) || board.ownerIds?.includes(currentUser._id))
+
+  const handleJoinInsideBoard = async () => {
+    try {
+      const res = await joinBoardAPI(board._id)
+      toast.success('Joined board successfully!')
+      
+      const newBoard = { 
+        ...board, 
+        memberIds: [...(board.memberIds || []), currentUser._id],
+        members: [...(board.members || []), res.newMember],
+        FE_allUser: [...(board.FE_allUser || []), res.newMember],
+        userAccessRole: 'member'
+      }
+      dispatch(updateCurrentActiveBoard(newBoard))
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to join board!')
+    }
+  }
 
   const handleOpenVisibilityMenu = (event) => setAnchorElVisibility(event.currentTarget)
   const handleCloseVisibilityMenu = () => setAnchorElVisibility(null)
@@ -342,17 +362,39 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        {/* Nút share Board */}
-        <Chip
-          sx={MENU_STYLE}
-          icon={<ShareIcon />}
-          label="Share"
-          clickable
-          onClick={() => setIsShareModalOpen(true)}
-        />
+        {!isJoined && currentUser && board.type !== 'private' ? (
+          <Button 
+            variant="outlined" 
+            onClick={handleJoinInsideBoard}
+            sx={{
+              color: 'text.primary',
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#ffffff',
+              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'divider',
+              borderWidth: '2px',
+              '&:hover': { 
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)', 
+                borderWidth: '2px',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#ffffff'
+              }
+            }}
+          >
+            Join Board
+          </Button>
+        ) : (
+          <>
+            {/* Nút share Board */}
+            <Chip
+              sx={MENU_STYLE}
+              icon={<ShareIcon />}
+              label="Share"
+              clickable
+              onClick={() => setIsShareModalOpen(true)}
+            />
 
-        {/* xử lý cho phép chủ sở hữu board mời thành viên khác vào board */}
-        {!isReadOnly && <InviteBoardUser boardId={board._id} boardMembers={board.memberIds} workspaceMembers={board.workspaceMembers} />}
+            {/* xử lý cho phép chủ sở hữu board mời thành viên khác vào board */}
+            {!isReadOnly && <InviteBoardUser boardId={board._id} boardMembers={board.memberIds} workspaceMembers={board.workspaceMembers} />}
+          </>
+        )}
 
         {/* xử lý hiển thị danh sách thành viên của board */}
         <BoardUserGroup boardUsers={board?.FE_allUser} />

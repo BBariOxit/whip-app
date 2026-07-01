@@ -71,11 +71,7 @@ export const MainContent = ({
         <Typography variant="h4" sx={{ 
           fontWeight: 700, 
           letterSpacing: '-0.5px',
-          background: (theme) => theme.palette.mode === 'dark' 
-            ? 'linear-gradient(to right, #fff, #8b949e)' 
-            : 'linear-gradient(to right, #24292f, #57606a)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
+          color: 'text.primary',
           display: 'flex',
           alignItems: 'center',
           gap: 1.5
@@ -95,7 +91,6 @@ export const MainContent = ({
           {canManage && (
             <Button
               variant="outlined"
-              size="small"
               startIcon={<PersonAddIcon />}
               onClick={() => setIsInviteModalOpen(true)}
               sx={{ 
@@ -119,7 +114,7 @@ export const MainContent = ({
 
       {/* BOARDS LIST (Personal or Workspace) */}
       {(currentView.type === 'personal' || (currentView.type === 'workspace' && activeTab === 0)) && (
-        <>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           {/* SUB-TOOLBAR (Search, Filter, Select) */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: currentView.type === 'workspace' ? 2 : 3 }}>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -325,7 +320,7 @@ export const MainContent = ({
               }
             </>
           )}
-        </>
+        </Box>
       )}
 
       {/* MEMBERS LIST (Workspace Only) */}
