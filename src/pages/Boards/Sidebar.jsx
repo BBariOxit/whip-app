@@ -4,6 +4,7 @@ import ListAltIcon from '@mui/icons-material/ListAlt'
 import HomeIcon from '@mui/icons-material/Home'
 import { styled } from '@mui/material/styles'
 import AddIcon from '@mui/icons-material/Add'
+import HandshakeIcon from '@mui/icons-material/Handshake'
 import { WorkspaceSidebarList } from './WorkspaceSidebarList'
 
 const SidebarItem = styled(Box)(({ theme }) => ({
@@ -72,6 +73,13 @@ export const Sidebar = ({ currentUser, currentView, handleViewChange, afterCreat
         >
           <ViewColumnIcon fontSize="small" />
           Your Personal Boards
+        </SidebarItem>
+        <SidebarItem 
+          className={currentView.type === 'guest' ? 'active' : ''}
+          onClick={() => handleViewChange({ type: 'guest', id: null, title: 'Shared With Me' })}
+        >
+          <HandshakeIcon fontSize="small" />
+          Shared With Me
         </SidebarItem>
       </Stack>
 

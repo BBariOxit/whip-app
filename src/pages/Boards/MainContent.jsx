@@ -55,6 +55,7 @@ export const MainContent = ({
   }
 
   const getUserRole = () => {
+    if (currentView.type === 'guest') return 'guest'
     if (currentView.type !== 'workspace' || !currentUser) return 'owner'
     const currentWorkspace = workspaces.find(w => w._id === currentView.id)
     if (!currentWorkspace) return 'member'
@@ -112,8 +113,8 @@ export const MainContent = ({
         </Box>
       )}
 
-      {/* BOARDS LIST (Personal or Workspace) */}
-      {(currentView.type === 'personal' || (currentView.type === 'workspace' && activeTab === 0)) && (
+      {/* BOARDS LIST (Personal, Workspace, or Guest) */}
+      {(currentView.type === 'personal' || currentView.type === 'guest' || (currentView.type === 'workspace' && activeTab === 0)) && (
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           {/* SUB-TOOLBAR (Search, Filter, Select) */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: currentView.type === 'workspace' ? 2 : 3 }}>
@@ -179,7 +180,7 @@ export const MainContent = ({
                 <MenuItem value="z-a">Name Z-A</MenuItem>
               </Select>
 
-              {currentView.type !== 'templates' && currentView.type !== 'home' && boards?.length > 0 && canManage && (
+              {currentView.type !== 'templates' && currentView.type !== 'home' && currentView.type !== 'guest' && boards?.length > 0 && canManage && (
                 <Button 
                   variant={isBulkMode ? "contained" : "outlined"} 
                   color={isBulkMode ? "error" : "primary"}
@@ -232,26 +233,37 @@ export const MainContent = ({
             </Box>
           )}
 
-          {isFetchingBoards ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}>
-               <PageLoadingSpinner caption="Loading Boards..." />
-            </Box>
-          ) : (
-            <>
-              {boards?.length === 0 &&
-                <Box sx={{ 
-                  textAlign: 'center', 
-                  py: 10, 
-                  px: 3,
-                  borderRadius: '16px',
-                  border: '1px dashed',
-                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                  bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'
-                }}>
-                  <InboxOutlinedIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>
-                    This workspace doesn't have any boards yet.
-                  </Typography>
+          <Box sx={{ position: 'relative', minHeight: '200px' }}>
+            {isFetchingBoards && (
+              <Box sx={{ 
+                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, 
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', 
+                zIndex: 10,
+                display: 'flex', justifyContent: 'center', pt: 8
+              }}>
+                <PageLoadingSpinner caption="Loading Boards..." />
+              </Box>
+            )}
+
+            {boards?.length === 0 && !isFetchingBoards && (
+              <Box sx={{ 
+                textAlign: 'center', 
+                py: 10, 
+                px: 3,
+                borderRadius: '16px',
+                border: '1px dashed',
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'
+              }}>
+                <InboxOutlinedIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>
+                  {currentView.type === 'guest' 
+                    ? "You don't have any boards shared with you as a guest yet." 
+                    : (currentView.type === 'personal' 
+                        ? "You don't have any personal boards yet." 
+                        : "This workspace doesn't have any boards yet.")}
+                </Typography>
+                {currentView.type !== 'guest' && (
                   <Button 
                     onClick={onOpenCreateBoard}
                     variant="contained" 
@@ -261,65 +273,70 @@ export const MainContent = ({
                   >
                     Create a new board
                   </Button>
-                </Box>
-              }
+                )}
+              </Box>
+            )}
 
-              {boards?.length > 0 &&
-                <Box sx={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(5, 1fr)', 
-                  gap: 2.5 
-                }}>
-                  {boards.map((b, index) =>
-                    <BoardCard 
-                      key={b._id} 
-                      board={b} 
-                      index={index}
-                      onBoardDeleted={onBoardDeleted}
-                      onBoardUpdated={onBoardUpdated}
-                      isBulkMode={isBulkMode}
-                      isSelected={selectedIds.includes(b._id)}
-                      onSelect={() => handleSelectCard(b._id)}
-                      canManage={canManage}
-                      currentUser={currentUser}
+            {boards?.length > 0 &&
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(5, 1fr)', 
+                gap: 2.5,
+                opacity: isFetchingBoards ? 0.5 : 1,
+                transition: 'opacity 0.2s',
+                pointerEvents: isFetchingBoards ? 'none' : 'auto'
+              }}>
+                {boards.map((b, index) =>
+                  <BoardCard 
+                    key={b._id} 
+                    board={b} 
+                    index={index}
+                    onBoardDeleted={onBoardDeleted}
+                    onBoardUpdated={onBoardUpdated}
+                    isBulkMode={isBulkMode}
+                    isSelected={selectedIds.includes(b._id)}
+                    onSelect={() => handleSelectCard(b._id)}
+                    canManage={canManage}
+                    currentUser={currentUser}
+                  />
+                )}
+              </Box>
+            }
+
+            {(totalBoards > 0) &&
+              <Box sx={{ 
+                mt: currentView.type === 'workspace' ? 3 : 6, 
+                mb: currentView.type === 'workspace' ? 4 : 6, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                opacity: isFetchingBoards ? 0.5 : 1,
+                pointerEvents: isFetchingBoards ? 'none' : 'auto'
+              }}>
+                <Pagination
+                  size="large"
+                  color="primary"
+                  showFirstButton
+                  showLastButton
+                  count={Math.ceil(totalBoards / DEFAULT_ITEMS_PER_PAGE)}
+                  page={page}
+                  renderItem={(item) => (
+                    <PaginationItem
+                      component={Link}
+                      to={`/boards?${new URLSearchParams({
+                        ...(item.page !== DEFAULT_PAGE && { page: item.page }),
+                        ...(currentView.type === 'workspace' && currentView.id && { workspaceId: currentView.id })
+                      }).toString()}`}
+                      {...item}
+                      sx={{
+                        borderRadius: '8px'
+                      }}
                     />
                   )}
-                </Box>
-              }
-
-              {(totalBoards > 0) &&
-                <Box sx={{ 
-                  mt: currentView.type === 'workspace' ? 3 : 6, 
-                  mb: currentView.type === 'workspace' ? 4 : 6, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
-                }}>
-                  <Pagination
-                    size="large"
-                    color="primary"
-                    showFirstButton
-                    showLastButton
-                    count={Math.ceil(totalBoards / DEFAULT_ITEMS_PER_PAGE)}
-                    page={page}
-                    renderItem={(item) => (
-                      <PaginationItem
-                        component={Link}
-                        to={`/boards?${new URLSearchParams({
-                          ...(item.page !== DEFAULT_PAGE && { page: item.page }),
-                          ...(currentView.type === 'workspace' && currentView.id && { workspaceId: currentView.id })
-                        }).toString()}`}
-                        {...item}
-                        sx={{
-                          borderRadius: '8px'
-                        }}
-                      />
-                    )}
-                  />
-                </Box>
-              }
-            </>
-          )}
+                />
+              </Box>
+            }
+          </Box>
         </Box>
       )}
 

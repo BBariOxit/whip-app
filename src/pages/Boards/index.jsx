@@ -25,8 +25,10 @@ function Boards() {
   // Fetch workspaces before determining currentView if we need title, but for now we initialize from URL
   const initWorkspaceId = query.get('workspaceId')
   const [currentView, setCurrentView] = useState(() => {
-    if (initWorkspaceId && initWorkspaceId !== 'null') {
+    if (initWorkspaceId && initWorkspaceId !== 'null' && initWorkspaceId !== 'guest') {
       return { type: 'workspace', id: initWorkspaceId, title: 'Workspace Boards' }
+    } else if (initWorkspaceId === 'guest') {
+      return { type: 'guest', id: null, title: 'Shared With Me' }
     }
     return { type: 'personal', id: null, title: 'Your Personal Boards' }
   })
@@ -70,13 +72,15 @@ function Boards() {
 
   // Fetch Boards when switching to personal or workspace or changing page
   useEffect(() => {
-    if (currentView.type === 'personal' || currentView.type === 'workspace') {
+    if (currentView.type === 'personal' || currentView.type === 'workspace' || currentView.type === 'guest') {
       const searchParams = new URLSearchParams()
       if (page && page > 1) searchParams.set('page', page)
       if (currentView.type === 'workspace' && currentView.id) {
         searchParams.set('workspaceId', currentView.id)
       } else if (currentView.type === 'personal') {
         searchParams.set('workspaceId', 'null')
+      } else if (currentView.type === 'guest') {
+        searchParams.set('workspaceId', 'guest')
       }
       
       setIsFetchingBoards(true)
@@ -98,13 +102,15 @@ function Boards() {
   }, [currentView, templates])
 
   const afterCreateNewBoard = () => {
-    if (currentView.type === 'personal' || currentView.type === 'workspace') {
+    if (currentView.type === 'personal' || currentView.type === 'workspace' || currentView.type === 'guest') {
       const searchParams = new URLSearchParams()
       if (page && page > 1) searchParams.set('page', page)
       if (currentView.type === 'workspace' && currentView.id) {
         searchParams.set('workspaceId', currentView.id)
       } else if (currentView.type === 'personal') {
         searchParams.set('workspaceId', 'null')
+      } else if (currentView.type === 'guest') {
+        searchParams.set('workspaceId', 'guest')
       }
       fetchBoardsAPI(`?${searchParams.toString()}`).then(updateStateData)
     } else {
@@ -150,6 +156,8 @@ function Boards() {
     } else if (currentView.type === 'workspace' && updatedBoard.workspaceId !== currentView.id) {
       setBoards(prev => prev.filter(b => b._id !== updatedBoard._id))
       setTotalBoards(prev => prev - 1)
+    } else if (currentView.type === 'guest') {
+      setBoards(prev => prev.map(b => b._id === updatedBoard._id ? updatedBoard : b))
     } else {
       setBoards(prev => prev.map(b => b._id === updatedBoard._id ? updatedBoard : b))
     }
@@ -197,6 +205,9 @@ function Boards() {
     } else if (newView.type === 'personal') {
       newParams.set('workspaceId', 'null')
       newParams.set('page', '1') // CŨNG PHẢI RESET PAGE!
+    } else if (newView.type === 'guest') {
+      newParams.set('workspaceId', 'guest')
+      newParams.set('page', '1')
     } else if (newView.type === 'home' || newView.type === 'templates') {
       newParams.delete('workspaceId')
       newParams.delete('page')
