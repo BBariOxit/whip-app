@@ -1,4 +1,5 @@
 import Container from '@mui/material/Container'
+import { Box, CircularProgress, Typography } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import AppBar from '~/components/AppBar/AppBar'
@@ -19,7 +20,6 @@ import {
   updateBoardDetailAPI,
   updateColumnDetailAPI
 } from '~/apis'
-import PageLoadingSpinner from '~/components/Loading/pageLoadingSpinner'
 import ActiveCard from '~/components/Modal/ActiveCard/ActiveCard'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { updateCurrentActiveCard } from '~/redux/activeCard/activeCardSlice'
@@ -186,7 +186,22 @@ function Board() {
   }
 
   if (!board) {
-    return <PageLoadingSpinner caption="Loading board..." />
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        gap: 2, 
+        width: '100vw', 
+        height: '100vh', 
+        bgcolor: (theme) => theme.palette.mode === 'dark' ? '#121212' : '#f4f5f7' 
+      }}>
+        <CircularProgress size={40} thickness={4} />
+        <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+          Loading Board...
+        </Typography>
+      </Box>
+    )
   }
 
   const currentUserId = currentUser?._id

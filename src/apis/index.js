@@ -24,6 +24,11 @@ export const getArchivedItemsAPI = async (boardId) => {
   return response.data
 }
 
+export const joinBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/${boardId}/join`)
+  return response.data
+}
+
 export const updateBoardDetailAPI = async (boardId, updateData) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/boards/${boardId}`, updateData)
   return response.data
@@ -358,8 +363,12 @@ export const updateWorkspaceMemberRoleAPI = async (workspaceId, targetUserId, da
 }
 
 export const leaveWorkspaceAPI = async (workspaceId) => {
-  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/workspaces/${workspaceId}/leave`)
-  toast.success('Left workspace successfully!')
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/workspaces/${workspaceId}/leave`)
+  return response.data
+}
+
+export const leaveBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/${boardId}/leave`)
   return response.data
 }
 

@@ -92,12 +92,10 @@ const theme = extendTheme({
         body: {
           fontFamily: 'Inter, sans-serif',
           ...(theme.palette.mode === 'light' && {
-            backgroundImage: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-            backgroundAttachment: 'fixed'
+            backgroundColor: '#f8fafc'
           }),
           ...(theme.palette.mode === 'dark' && {
-            backgroundImage: 'radial-gradient(circle at top left, rgba(59,130,246,0.12), transparent 30%), linear-gradient(to bottom, #0f1117, #0f1117)',
-            backgroundAttachment: 'fixed'
+            backgroundColor: '#0f1117'
           }),
           '*::-webkit-scrollbar': {
             width: '8px',

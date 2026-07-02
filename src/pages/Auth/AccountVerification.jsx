@@ -1,6 +1,6 @@
 import { useSearchParams, Navigate } from "react-router-dom"
 import { useState, useEffect } from "react"
-import PageLoadingSpinner from "~/components/Loading/pageLoadingSpinner"
+import { Box, CircularProgress, Typography } from "@mui/material"
 import { verifyUserAPI } from "~/apis"
 
 function AccountVerification() {
@@ -28,9 +28,13 @@ function AccountVerification() {
     return <Navigate to="/404" />
   }
 
-  // Nếu chưa verify xong thì hiện loading
   if (!verified) {
-    return <PageLoadingSpinner caption="Verifying your account..." />
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 2 }}>
+        <CircularProgress />
+        <Typography variant="body1" sx={{ color: 'text.secondary' }}>Verifying your account...</Typography>
+      </Box>
+    )
   }
 
   // Cuối cùng nếu không gặp vấn đề gì + với verify thành công thì điều hướng về trang 

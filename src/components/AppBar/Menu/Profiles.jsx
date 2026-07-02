@@ -54,9 +54,11 @@ function Profiles() {
         >
           <Avatar
             sx={{ width: 34, height: 34, border: '3px solid white' }}
-            alt='phan bao'
+            alt={currentUser?.displayName}
             src={currentUser?.avatar}
-          />
+          >
+            {currentUser?.displayName?.charAt(0)?.toUpperCase()}
+          </Avatar>
         </IconButton>
       </Tooltip>
       <Menu
@@ -90,7 +92,9 @@ function Profiles() {
           to='/settings/account' 
           sx={{ color: 'inherit', mb: 1, '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' } }}
         >
-          <Avatar src={currentUser?.avatar} sx={{ width: 32, height: 32, mr: 1.5 }} />
+          <Avatar src={currentUser?.avatar} sx={{ width: 32, height: 32, mr: 1.5 }}>
+            {currentUser?.displayName?.charAt(0)?.toUpperCase()}
+          </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ fontWeight: 600, fontSize: '14px' }}>{currentUser?.displayName || 'Profile'}</Box>
             {currentUser?.username && <Box sx={{ fontSize: '12px', color: '#768390' }}>@{currentUser?.username}</Box>}

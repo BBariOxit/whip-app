@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Box, Typography, Button, Pagination, PaginationItem, Tabs, Tab, TextField, Select, MenuItem, InputAdornment } from '@mui/material'
+import { useState, useEffect, useRef } from 'react'
+import { Box, Typography, Button, Pagination, PaginationItem, Tabs, Tab, TextField, Select, MenuItem, InputAdornment, Skeleton } from '@mui/material'
 import ChecklistIcon from '@mui/icons-material/Checklist'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ViewColumnIcon from '@mui/icons-material/ViewColumn'
@@ -11,11 +11,13 @@ import CloseIcon from '@mui/icons-material/Close'
 import { Link } from 'react-router-dom'
 import { BoardCard } from './BoardCard'
 import { TemplateCard } from './TemplateCard'
-import PageLoadingSpinner from '~/components/Loading/pageLoadingSpinner'
 import { DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
 import { WorkspaceMembersTable } from './WorkspaceMembersTable'
 import { InviteWorkspaceMemberModal } from '~/components/Modal/InviteWorkspaceMemberModal/InviteWorkspaceMemberModal'
 import { useDebounce } from '~/customHooks/useDebounce'
+import { useConfirm } from 'material-ui-confirm'
+import { leaveWorkspaceAPI } from '~/apis'
+import { toast } from 'sonner'
 
 export const MainContent = ({
   currentUser,
@@ -34,7 +36,9 @@ export const MainContent = ({
   handleBulkDelete,
   onBoardDeleted,
   onBoardUpdated,
-  onOpenCreateBoard
+  onOpenCreateBoard,
+  onOpenDeleteWorkspace,
+  onLeaveWorkspace
 }) => {
   const [activeTab, setActiveTab] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
@@ -42,6 +46,12 @@ export const MainContent = ({
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [refreshMembersKey, setRefreshMembersKey] = useState(0)
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
+  const confirm = useConfirm()
+  const scrollContainerRef = useRef(null)
+
+  useEffect(() => {
+    setActiveTab(0)
+  }, [currentView.id])
 
 
   const getTitle = () => {
@@ -55,6 +65,7 @@ export const MainContent = ({
   }
 
   const getUserRole = () => {
+    if (currentView.type === 'guest') return 'guest'
     if (currentView.type !== 'workspace' || !currentUser) return 'owner'
     const currentWorkspace = workspaces.find(w => w._id === currentView.id)
     if (!currentWorkspace) return 'member'
@@ -63,19 +74,54 @@ export const MainContent = ({
   }
   const userRole = getUserRole()
   const canManage = userRole === 'owner' || userRole === 'admin'
+  const currentWorkspace = workspaces.find(w => w._id === currentView.id)
+
+  const handleLeaveWorkspace = () => {
+    confirm({
+      title: 'Leave Workspace',
+      description: `You are about to leave the workspace "${currentWorkspace?.title}". Type "LEAVE ${currentWorkspace?.title}" to confirm.`,
+      confirmationText: 'Confirm Leave',
+      cancellationText: 'Cancel',
+      confirmationKeyword: `LEAVE ${currentWorkspace?.title}`,
+      buttonOrder: ['confirm', 'cancel'],
+      confirmationButtonProps: { color: 'error', variant: 'contained' },
+      dialogProps: { maxWidth: 'xs' },
+      confirmationKeywordTextFieldProps: {
+        autoFocus: true,
+        variant: 'outlined',
+        size: 'small',
+        placeholder: `LEAVE ${currentWorkspace?.title}`,
+        sx: { 
+          mt: 2,
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
+            },
+            '&:hover fieldset': {
+              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }
+      }
+    }).then(async () => {
+      try {
+        await leaveWorkspaceAPI(currentWorkspace._id)
+        toast.success('Left workspace successfully!')
+        onLeaveWorkspace(currentWorkspace._id)
+      } catch (error) {
+        toast.error('Failed to leave workspace!')
+      }
+    }).catch(() => {})
+  }
 
   return (
-    <Box sx={{ flex: 1, p: 4, overflowY: 'auto' }}>
+    <Box ref={scrollContainerRef} sx={{ flex: 1, p: 4, overflowY: 'auto', scrollBehavior: 'smooth' }}>
       {/* HEADER */}
       <Box sx={{ display: 'flex', gap: 2, mb: currentView.type === 'workspace' ? 1 : 3, alignItems: 'center' }}>
         <Typography variant="h4" sx={{ 
           fontWeight: 700, 
           letterSpacing: '-0.5px',
-          background: (theme) => theme.palette.mode === 'dark' 
-            ? 'linear-gradient(to right, #fff, #8b949e)' 
-            : 'linear-gradient(to right, #24292f, #57606a)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
+          color: 'text.primary',
           display: 'flex',
           alignItems: 'center',
           gap: 1.5
@@ -95,7 +141,6 @@ export const MainContent = ({
           {canManage && (
             <Button
               variant="outlined"
-              size="small"
               startIcon={<PersonAddIcon />}
               onClick={() => setIsInviteModalOpen(true)}
               sx={{ 
@@ -117,9 +162,9 @@ export const MainContent = ({
         </Box>
       )}
 
-      {/* BOARDS LIST (Personal or Workspace) */}
-      {(currentView.type === 'personal' || (currentView.type === 'workspace' && activeTab === 0)) && (
-        <>
+      {/* BOARDS LIST (Personal, Workspace, or Guest) */}
+      {(currentView.type === 'personal' || currentView.type === 'guest' || (currentView.type === 'workspace' && activeTab === 0)) && (
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           {/* SUB-TOOLBAR (Search, Filter, Select) */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: currentView.type === 'workspace' ? 2 : 3 }}>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -184,7 +229,7 @@ export const MainContent = ({
                 <MenuItem value="z-a">Name Z-A</MenuItem>
               </Select>
 
-              {currentView.type !== 'templates' && currentView.type !== 'home' && boards?.length > 0 && canManage && (
+              {currentView.type !== 'templates' && currentView.type !== 'home' && currentView.type !== 'guest' && boards?.length > 0 && canManage && (
                 <Button 
                   variant={isBulkMode ? "contained" : "outlined"} 
                   color={isBulkMode ? "error" : "primary"}
@@ -237,26 +282,36 @@ export const MainContent = ({
             </Box>
           )}
 
-          {isFetchingBoards ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}>
-               <PageLoadingSpinner caption="Loading Boards..." />
-            </Box>
-          ) : (
-            <>
-              {boards?.length === 0 &&
-                <Box sx={{ 
-                  textAlign: 'center', 
-                  py: 10, 
-                  px: 3,
-                  borderRadius: '16px',
-                  border: '1px dashed',
-                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                  bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'
-                }}>
-                  <InboxOutlinedIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>
-                    This workspace doesn't have any boards yet.
-                  </Typography>
+          <Box sx={{ position: 'relative', minHeight: '200px' }}>
+            {isFetchingBoards && (
+              boards?.length === 0 ? null : (
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 2.5 }}>
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} variant="rectangular" height={180} sx={{ borderRadius: '16px', bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }} />
+                  ))}
+                </Box>
+              )
+            )}
+
+            {boards?.length === 0 && !isFetchingBoards && (
+              <Box sx={{ 
+                textAlign: 'center', 
+                py: 10, 
+                px: 3,
+                borderRadius: '16px',
+                border: '1px dashed',
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'
+              }}>
+                <InboxOutlinedIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>
+                  {currentView.type === 'guest' 
+                    ? "You don't have any boards shared with you as a guest yet." 
+                    : (currentView.type === 'personal' 
+                        ? "You don't have any personal boards yet." 
+                        : "This workspace doesn't have any boards yet.")}
+                </Typography>
+                {currentView.type !== 'guest' && (
                   <Button 
                     onClick={onOpenCreateBoard}
                     variant="contained" 
@@ -266,66 +321,68 @@ export const MainContent = ({
                   >
                     Create a new board
                   </Button>
-                </Box>
-              }
+                )}
+              </Box>
+            )}
 
-              {boards?.length > 0 &&
-                <Box sx={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(5, 1fr)', 
-                  gap: 2.5 
-                }}>
-                  {boards.map((b, index) =>
-                    <BoardCard 
-                      key={b._id} 
-                      board={b} 
-                      index={index}
-                      onBoardDeleted={onBoardDeleted}
-                      onBoardUpdated={onBoardUpdated}
-                      isBulkMode={isBulkMode}
-                      isSelected={selectedIds.includes(b._id)}
-                      onSelect={() => handleSelectCard(b._id)}
-                      canManage={canManage}
-                      currentUser={currentUser}
+            {boards?.length > 0 && !isFetchingBoards &&
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(5, 1fr)', 
+                gap: 2.5
+              }}>
+                {boards.map((b, index) =>
+                  <BoardCard 
+                    key={b._id} 
+                    board={b} 
+                    index={index}
+                    onBoardDeleted={onBoardDeleted}
+                    onBoardUpdated={onBoardUpdated}
+                    isBulkMode={isBulkMode}
+                    isSelected={selectedIds.includes(b._id)}
+                    onSelect={() => handleSelectCard(b._id)}
+                    canManage={canManage}
+                    currentUser={currentUser}
+                  />
+                )}
+              </Box>
+            }
+
+            {(totalBoards > 0) && !isFetchingBoards &&
+              <Box sx={{ 
+                mt: currentView.type === 'workspace' ? 3 : 6, 
+                mb: currentView.type === 'workspace' ? 4 : 6, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                opacity: isFetchingBoards ? 0.5 : 1,
+                pointerEvents: isFetchingBoards ? 'none' : 'auto'
+              }}>
+                <Pagination
+                  size="large"
+                  color="primary"
+                  showFirstButton
+                  showLastButton
+                  count={Math.ceil(totalBoards / DEFAULT_ITEMS_PER_PAGE)}
+                  page={page}
+                  renderItem={(item) => (
+                    <PaginationItem
+                      component={Link}
+                      to={`/boards?${new URLSearchParams({
+                        ...(item.page !== DEFAULT_PAGE && { page: item.page }),
+                        ...(currentView.type === 'workspace' && currentView.id && { workspaceId: currentView.id })
+                      }).toString()}`}
+                      {...item}
+                      sx={{
+                        borderRadius: '8px'
+                      }}
                     />
                   )}
-                </Box>
-              }
-
-              {(totalBoards > 0) &&
-                <Box sx={{ 
-                  mt: currentView.type === 'workspace' ? 3 : 6, 
-                  mb: currentView.type === 'workspace' ? 4 : 6, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
-                }}>
-                  <Pagination
-                    size="large"
-                    color="primary"
-                    showFirstButton
-                    showLastButton
-                    count={Math.ceil(totalBoards / DEFAULT_ITEMS_PER_PAGE)}
-                    page={page}
-                    renderItem={(item) => (
-                      <PaginationItem
-                        component={Link}
-                        to={`/boards?${new URLSearchParams({
-                          ...(item.page !== DEFAULT_PAGE && { page: item.page }),
-                          ...(currentView.type === 'workspace' && currentView.id && { workspaceId: currentView.id })
-                        }).toString()}`}
-                        {...item}
-                        sx={{
-                          borderRadius: '8px'
-                        }}
-                      />
-                    )}
-                  />
-                </Box>
-              }
-            </>
-          )}
-        </>
+                />
+              </Box>
+            }
+          </Box>
+        </Box>
       )}
 
       {/* MEMBERS LIST (Workspace Only) */}
@@ -335,9 +392,296 @@ export const MainContent = ({
 
       {/* SETTINGS (Workspace Only) */}
       {currentView.type === 'workspace' && activeTab === 2 && (
-        <Box sx={{ p: 4, textAlign: 'center', borderRadius: 2, border: '1px dashed', borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
-          <Typography variant="h6" color="text.primary">Workspace Settings</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Update name, upload logo, or delete workspace.</Typography>
+        <Box sx={{ display: 'flex', gap: 4, width: '100%', scrollBehavior: 'smooth' }}>
+          {/* Settings Content */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
+
+          {/* ═══════════ 1. GENERAL ═══════════ */}
+          <Box id="settings-general" sx={{ 
+            p: 3, borderRadius: 2, border: '1px solid', 
+            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#fff'
+          }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: 'text.primary' }}>General</Typography>
+            <Box sx={{ display: 'flex', gap: 4 }}>
+              {/* Left: Form inputs */}
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary' }}>Workspace Name</Typography>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    defaultValue={currentWorkspace?.title || ''}
+                    placeholder="My Workspace"
+                    disabled={!canManage}
+                    sx={{
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
+                    }}
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary' }}>Description</Typography>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    multiline
+                    rows={3}
+                    defaultValue={currentWorkspace?.description || ''}
+                    placeholder="Describe what this workspace is for..."
+                    disabled={!canManage}
+                    sx={{
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
+                    }}
+                  />
+                </Box>
+                {canManage && (
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button variant="contained" size="small" sx={{ px: 3, boxShadow: 'none', '&:hover': { boxShadow: 'none' } }}>
+                      Save Changes
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+              {/* Right: Logo/Avatar Upload */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5, minWidth: '140px' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>Logo</Typography>
+                <Box sx={{
+                  width: 100, height: 100, borderRadius: '16px',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#21262d' : '#e2e8f0',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: '2px dashed',
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)',
+                  cursor: canManage ? 'pointer' : 'default',
+                  transition: 'all 0.2s',
+                  '&:hover': canManage ? {
+                    borderColor: 'primary.main',
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.05)',
+                  } : {},
+                  overflow: 'hidden'
+                }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.secondary', userSelect: 'none' }}>
+                    {currentWorkspace?.title?.charAt(0)?.toUpperCase() || 'W'}
+                  </Typography>
+                </Box>
+                {canManage && (
+                  <Button variant="outlined" size="small" sx={{ fontSize: '12px', px: 2 }}>
+                    Upload
+                  </Button>
+                )}
+              </Box>
+            </Box>
+          </Box>
+
+          {/* ═══════════ 2. ACCESS & SECURITY ═══════════ */}
+          <Box id="settings-access" sx={{ 
+            p: 3, borderRadius: 2, border: '1px solid', 
+            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#fff'
+          }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: 'text.primary' }}>Access & Security</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* Workspace Visibility */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2.5, borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>Workspace Visibility</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+                    Control whether this workspace can be discovered by others.
+                  </Typography>
+                </Box>
+                <Select
+                  size="small"
+                  defaultValue="private"
+                  disabled={!canManage}
+                  sx={{ 
+                    minWidth: 150, 
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
+                  }}
+                >
+                  <MenuItem value="private">Private</MenuItem>
+                  <MenuItem value="public">Public</MenuItem>
+                </Select>
+              </Box>
+              {/* Invite Permissions */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>Invite Permissions</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+                    Choose who can invite new members to this workspace.
+                  </Typography>
+                </Box>
+                <Select
+                  size="small"
+                  defaultValue="admin"
+                  disabled={!canManage}
+                  sx={{ 
+                    minWidth: 200,
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
+                  }}
+                >
+                  <MenuItem value="admin">Owner & Admin only</MenuItem>
+                  <MenuItem value="all">All members</MenuItem>
+                </Select>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* ═══════════ 3. BILLING & PLAN ═══════════ */}
+          <Box id="settings-billing" sx={{ 
+            p: 3, borderRadius: 2, border: '1px solid', 
+            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#fff'
+          }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: 'text.primary' }}>Billing & Plan</Typography>
+            <Box sx={{ 
+              p: 3, borderRadius: 2,
+              border: '1px solid',
+              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 700, color: 'text.primary' }}>Free Plan</Typography>
+                  <Box sx={{ 
+                    px: 1, py: 0.25, borderRadius: '6px', fontSize: '11px', fontWeight: 700,
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)',
+                    color: 'primary.main',
+                    textTransform: 'uppercase', letterSpacing: '0.5px'
+                  }}>
+                    Current
+                  </Box>
+                </Box>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  Up to 10 boards · 5 members · 100MB storage
+                </Typography>
+              </Box>
+              <Button 
+                variant="contained" 
+                sx={{ 
+                  px: 3, fontWeight: 700, boxShadow: 'none', 
+                  bgcolor: '#3b82f6',
+                  '&:hover': { bgcolor: '#2563eb', boxShadow: 'none' }
+                }}
+              >
+                Upgrade to PRO
+              </Button>
+            </Box>
+            <Typography variant="body2" sx={{ color: 'text.disabled', mt: 1.5, fontStyle: 'italic', textAlign: 'center' }}>
+              Pro plan with unlimited boards, members, and advanced features — Coming Soon
+            </Typography>
+          </Box>
+
+          {/* ═══════════ 4. DATA MANAGEMENT ═══════════ */}
+          <Box id="settings-data" sx={{ 
+            p: 3, borderRadius: 2, border: '1px solid', 
+            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#fff'
+          }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: 'text.primary' }}>Data Management</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box>
+                <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>Export Workspace Data</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+                  Download all boards, cards, and members as a JSON file for backup or migration.
+                </Typography>
+              </Box>
+              <Button 
+                variant="outlined" 
+                size="small"
+                disabled={!canManage}
+                sx={{ px: 3, fontWeight: 600 }}
+              >
+                Export Data
+              </Button>
+            </Box>
+          </Box>
+
+          {/* ═══════════ 5. DANGER ZONE ═══════════ */}
+          <Box id="settings-danger" sx={{ 
+            p: 3, borderRadius: 2, border: '1px solid', 
+            borderColor: '#f85149',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(248, 81, 73, 0.05)' : '#fff8f8',
+            display: 'flex', flexDirection: 'column', gap: 2
+          }}>
+            <Typography variant="h6" sx={{ color: '#f85149', fontWeight: 'bold' }}>Danger Zone</Typography>
+            
+            {/* Leave Workspace */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2, borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+              <Box>
+                <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>Leave this workspace</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {userRole === 'owner' ? 'You cannot leave the workspace because you are the owner.' : 'You will lose access to all boards in this workspace.'}
+                </Typography>
+              </Box>
+              <Button 
+                variant="outlined" 
+                color="error" 
+                onClick={handleLeaveWorkspace}
+                disabled={userRole === 'owner'}
+                sx={{ fontWeight: 'bold' }}
+              >
+                Leave Workspace
+              </Button>
+            </Box>
+
+            {/* Delete Workspace */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1 }}>
+              <Box>
+                <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>Delete this workspace</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {userRole === 'owner' ? 'Once you delete a workspace, there is no going back. Please be certain.' : 'Only the owner can delete this workspace.'}
+                </Typography>
+              </Box>
+              <Button 
+                variant="outlined" 
+                color="error" 
+                onClick={() => onOpenDeleteWorkspace(currentWorkspace)}
+                disabled={userRole !== 'owner'}
+                sx={{ fontWeight: 'bold' }}
+              >
+                Delete Workspace
+              </Button>
+            </Box>
+          </Box>
+          </Box>
+
+          {/* Navigation Menu */}
+          <Box sx={{ 
+            width: '180px', flexShrink: 0, 
+            position: 'sticky', top: '0rem', alignSelf: 'flex-start',
+            display: 'flex', flexDirection: 'column', gap: 0.5,
+          }}>
+            {[
+              { id: 'settings-general', label: 'General' },
+              { id: 'settings-access', label: 'Access & Security' },
+              { id: 'settings-billing', label: 'Billing & Plan' },
+              { id: 'settings-data', label: 'Data Management' },
+              { id: 'settings-danger', label: 'Danger Zone' }
+            ].map((item) => (
+              <Box
+                key={item.id}
+                component="a"
+                href={`#${item.id}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+                sx={{
+                  px: 1.5, py: 0.75, borderRadius: '6px', cursor: 'pointer',
+                  textDecoration: 'none',
+                  fontSize: '13px', fontWeight: 500,
+                  color: item.id === 'settings-danger' ? '#f85149' : 'text.secondary',
+                  transition: 'all 0.15s',
+                  '&:hover': {
+                    color: item.id === 'settings-danger' ? '#f85149' : 'text.primary',
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                  }
+                }}
+              >
+                {item.label}
+              </Box>
+            ))}
+          </Box>
         </Box>
       )}
 
@@ -345,8 +689,10 @@ export const MainContent = ({
       {currentView.type === 'templates' && (
         <>
           {!templates ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-               <PageLoadingSpinner caption="Loading Templates..." />
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 2.5 }}>
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} variant="rectangular" height={180} sx={{ borderRadius: '16px', bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }} />
+              ))}
             </Box>
           ) : templates.length === 0 ? (
             <Typography>No templates available.</Typography>
