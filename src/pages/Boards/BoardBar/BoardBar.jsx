@@ -37,8 +37,9 @@ import BusinessIcon from '@mui/icons-material/Business'
 import PersonIcon from '@mui/icons-material/Person'
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove'
 import { useNavigate } from 'react-router-dom'
-import { updateBoardDetailAPI, fetchWorkspacesAPI, joinBoardAPI } from '~/apis'
+import { updateBoardDetailAPI, fetchWorkspacesAPI, joinBoardAPI, leaveBoardAPI, deleteBoardAPI } from '~/apis'
 import Typography from '@mui/material/Typography'
+import DeleteIcon from '@mui/icons-material/Delete'
 
 const MENU_STYLE = {
   color: 'text.primary',
@@ -57,7 +58,7 @@ const MENU_STYLE = {
   }
 }
 
-export const BoardTitleIndicator = ({ board }) => {
+export const BoardTitleIndicator = ({ board, onClickTitle }) => {
   const isPersonal = !board.workspaceId
   const workspaceName = board.workspace?.title || 'Personal'
 
@@ -77,12 +78,59 @@ export const BoardTitleIndicator = ({ board }) => {
       
       <Typography sx={{ color: 'text.secondary', fontSize: '1.2rem', userSelect: 'none' }}>/</Typography>
       
-      <Tooltip title={board?.title} arrow>
-        <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary', cursor: 'pointer' }}>
-          {board.title}
-        </Typography>
+      <Tooltip title="Board options" arrow>
+        <Box 
+          onClick={onClickTitle}
+          sx={{ 
+            display: 'flex', alignItems: 'center', cursor: 'pointer', p: 0.5, borderRadius: 1, 
+            '&:hover': { bgcolor: 'action.hover' } 
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+            {board.title}
+          </Typography>
+        </Box>
       </Tooltip>
     </Box>
+  )
+}
+
+export const BoardTitleMenu = ({ board, currentUser, anchorEl, handleClose, onLeave, onDelete }) => {
+  const isOwner = board.ownerIds?.includes(currentUser?._id)
+  const isMember = board.memberIds?.includes(currentUser?._id)
+
+  if (!isOwner && !isMember) return null // Hide menu entirely if guest/viewer
+
+  return (
+    <Menu
+      anchorEl={anchorEl}
+      open={Boolean(anchorEl)}
+      onClose={handleClose}
+      MenuListProps={{ sx: { py: 1 } }}
+      PaperProps={{ sx: { minWidth: 200, borderRadius: '8px' } }}
+    >
+      <Box sx={{ px: 2, pt: 0.5, pb: 1, textAlign: 'center' }}>
+        <Typography variant="body2" sx={{ fontWeight: '600', color: 'text.secondary', fontSize: '12px', textTransform: 'uppercase' }}>
+          Board Actions
+        </Typography>
+      </Box>
+
+      <MenuItem onClick={() => { handleClose(); onLeave() }} disabled={isOwner} sx={{ gap: 1.5, px: 2, py: 1, color: isOwner ? 'text.disabled' : 'error.main' }}>
+        <Box sx={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <PersonIcon fontSize="small" sx={{ color: isOwner ? 'text.disabled' : 'error.main' }} />
+        </Box>
+        <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>Leave Board</ListItemText>
+      </MenuItem>
+
+      {isOwner && (
+        <MenuItem onClick={() => { handleClose(); onDelete() }} sx={{ gap: 1.5, px: 2, py: 1, color: 'error.main' }}>
+          <Box sx={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <DeleteIcon fontSize="small" sx={{ color: 'error.main' }} /> 
+          </Box>
+          <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>Delete Board</ListItemText>
+        </MenuItem>
+      )}
+    </Menu>
   )
 }
 
@@ -97,6 +145,7 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
   const [anchorElVisibility, setAnchorElVisibility] = useState(null)
   const [anchorElFilters, setAnchorElFilters] = useState(null)
   const [anchorElMove, setAnchorElMove] = useState(null)
+  const [anchorElTitleMenu, setAnchorElTitleMenu] = useState(null)
   const [workspaces, setWorkspaces] = useState([])
   const navigate = useNavigate()
 
@@ -194,6 +243,74 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
     }
   }
 
+  const handleLeaveBoard = () => {
+    confirm({
+      title: 'Leave Board',
+      description: `You are about to leave the board "${board.title}". Type "LEAVE ${board.title}" to confirm.`,
+      confirmationText: 'Confirm Leave',
+      cancellationText: 'Cancel',
+      confirmationKeyword: `LEAVE ${board.title}`,
+      buttonOrder: ['confirm', 'cancel'],
+      confirmationButtonProps: { color: 'error', variant: 'contained' },
+      dialogProps: { maxWidth: 'xs' },
+      confirmationKeywordTextFieldProps: {
+        autoFocus: true,
+        variant: 'outlined',
+        size: 'small',
+        placeholder: `LEAVE ${board.title}`,
+        sx: { 
+          mt: 2,
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': { borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)' },
+            '&:hover fieldset': { borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)' }
+          }
+        }
+      }
+    }).then(async () => {
+      try {
+        await leaveBoardAPI(board._id)
+        toast.success('Left board successfully!')
+        navigate('/boards')
+      } catch (error) {
+        toast.error('Failed to leave board')
+      }
+    }).catch(() => {})
+  }
+
+  const handleDeleteBoard = () => {
+    confirm({
+      title: 'Delete Board',
+      description: `You are about to permanently delete the board "${board.title}". Type "DELETE ${board.title}" to confirm.`,
+      confirmationText: 'Delete',
+      cancellationText: 'Cancel',
+      confirmationKeyword: `DELETE ${board.title}`,
+      buttonOrder: ['confirm', 'cancel'],
+      confirmationButtonProps: { color: 'error', variant: 'contained' },
+      dialogProps: { maxWidth: 'xs' },
+      confirmationKeywordTextFieldProps: {
+        autoFocus: true,
+        variant: 'outlined',
+        size: 'small',
+        placeholder: `DELETE ${board.title}`,
+        sx: { 
+          mt: 2,
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': { borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)' },
+            '&:hover fieldset': { borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)' }
+          }
+        }
+      }
+    }).then(async () => {
+      try {
+        await deleteBoardAPI(board._id)
+        toast.success('Board deleted successfully!')
+        navigate('/boards')
+      } catch (error) {
+        toast.error('Failed to delete board')
+      }
+    }).catch(() => {})
+  }
+
   return (
     <Box px={2} sx={{
       width: '100%',
@@ -211,7 +328,15 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box sx={{ px: 1, py: 0.5 }}>
-          <BoardTitleIndicator board={board} />
+          <BoardTitleIndicator board={board} onClickTitle={(e) => setAnchorElTitleMenu(e.currentTarget)} />
+          <BoardTitleMenu 
+            board={board} 
+            currentUser={currentUser} 
+            anchorEl={anchorElTitleMenu} 
+            handleClose={() => setAnchorElTitleMenu(null)}
+            onLeave={handleLeaveBoard}
+            onDelete={handleDeleteBoard}
+          />
         </Box>
         
         {/* Toggle Public / Private */}

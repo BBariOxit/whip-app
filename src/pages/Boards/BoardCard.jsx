@@ -45,11 +45,27 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
   const handleDelete = () => {
     handleCloseMenu()
     confirmDelete({
-      title: 'Delete this board?',
-      description: 'This action will permanently delete this board and all of its columns, cards, and data! Are you sure?',
+      title: 'Delete Board',
+      description: `You are about to permanently delete the board "${board.title}". Type "DELETE ${board.title}" to confirm.`,
       confirmationText: 'Delete',
+      cancellationText: 'Cancel',
+      confirmationKeyword: `DELETE ${board.title}`,
+      buttonOrder: ['confirm', 'cancel'],
       confirmationButtonProps: { color: 'error', variant: 'contained' },
-      cancellationText: 'Cancel'
+      dialogProps: { maxWidth: 'xs' },
+      confirmationKeywordTextFieldProps: {
+        autoFocus: true,
+        variant: 'outlined',
+        size: 'small',
+        placeholder: `DELETE ${board.title}`,
+        sx: { 
+          mt: 2,
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': { borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)' },
+            '&:hover fieldset': { borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)' }
+          }
+        }
+      }
     }).then(async () => {
       // Call API
       await deleteBoardAPI(board._id)

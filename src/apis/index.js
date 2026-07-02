@@ -363,8 +363,12 @@ export const updateWorkspaceMemberRoleAPI = async (workspaceId, targetUserId, da
 }
 
 export const leaveWorkspaceAPI = async (workspaceId) => {
-  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/workspaces/${workspaceId}/leave`)
-  toast.success('Left workspace successfully!')
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/workspaces/${workspaceId}/leave`)
+  return response.data
+}
+
+export const leaveBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/${boardId}/leave`)
   return response.data
 }
 
