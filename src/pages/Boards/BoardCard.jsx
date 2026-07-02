@@ -57,7 +57,6 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
         autoFocus: true,
         variant: 'outlined',
         size: 'small',
-        placeholder: `DELETE ${board.title}`,
         sx: { 
           mt: 2,
           '& .MuiOutlinedInput-root': {

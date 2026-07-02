@@ -133,7 +133,6 @@ function Boards() {
         autoFocus: true,
         variant: 'outlined',
         size: 'small',
-        placeholder: `DELETE ${workspace.title}`,
         sx: { 
           mt: 2,
           '& .MuiOutlinedInput-root': {
