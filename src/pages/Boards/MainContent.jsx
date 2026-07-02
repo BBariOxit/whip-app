@@ -18,6 +18,7 @@ import { useDebounce } from '~/customHooks/useDebounce'
 import { useConfirm } from 'material-ui-confirm'
 import { leaveWorkspaceAPI } from '~/apis'
 import { toast } from 'sonner'
+import { LeaveWorkspaceModal } from '~/components/Modal/LeaveWorkspaceModal/LeaveWorkspaceModal'
 
 export const MainContent = ({
   currentUser,
@@ -44,6 +45,7 @@ export const MainContent = ({
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('recent')
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+  const [isLeaveModalOpen, setLeaveModalOpen] = useState(false)
   const [refreshMembersKey, setRefreshMembersKey] = useState(0)
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const confirm = useConfirm()
@@ -77,41 +79,18 @@ export const MainContent = ({
   const currentWorkspace = workspaces.find(w => w._id === currentView.id)
 
   const handleLeaveWorkspace = () => {
-    confirm({
-      title: 'Leave Workspace',
-      description: `You are about to leave the workspace "${currentWorkspace?.title}". Type "LEAVE ${currentWorkspace?.title}" to confirm.`,
-      confirmationText: 'Confirm Leave',
-      cancellationText: 'Cancel',
-      confirmationKeyword: `LEAVE ${currentWorkspace?.title}`,
-      buttonOrder: ['confirm', 'cancel'],
-      confirmationButtonProps: { color: 'error', variant: 'contained' },
-      dialogProps: { maxWidth: 'xs' },
-      confirmationKeywordTextFieldProps: {
-        autoFocus: true,
-        variant: 'outlined',
-        size: 'small',
-        placeholder: `LEAVE ${currentWorkspace?.title}`,
-        sx: { 
-          mt: 2,
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
-            },
-            '&:hover fieldset': {
-              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)'
-            }
-          }
-        }
-      }
-    }).then(async () => {
-      try {
-        await leaveWorkspaceAPI(currentWorkspace._id)
-        toast.success('Left workspace successfully!')
-        onLeaveWorkspace(currentWorkspace._id)
-      } catch (error) {
-        toast.error('Failed to leave workspace!')
-      }
-    }).catch(() => {})
+    setLeaveModalOpen(true)
+  }
+
+  const handleLeaveWorkspaceSubmit = async () => {
+    try {
+      await leaveWorkspaceAPI(currentWorkspace._id)
+      toast.success('Left workspace successfully!')
+      setLeaveModalOpen(false)
+      onLeaveWorkspace(currentWorkspace._id)
+    } catch (error) {
+      toast.error('Failed to leave workspace!')
+    }
   }
 
   return (
@@ -587,9 +566,8 @@ export const MainContent = ({
               </Box>
               <Button 
                 variant="outlined" 
-                size="small"
                 disabled={!canManage}
-                sx={{ px: 3, fontWeight: 600 }}
+                sx={{ px: 3, fontWeight: 'bold' }}
               >
                 Export Data
               </Button>
@@ -728,6 +706,12 @@ export const MainContent = ({
         handleClose={() => setIsInviteModalOpen(false)}
         workspaceId={currentView.id}
         onMemberInvited={() => setRefreshMembersKey(prev => prev + 1)}
+      />
+      <LeaveWorkspaceModal
+        isOpen={isLeaveModalOpen}
+        onClose={() => setLeaveModalOpen(false)}
+        workspaceName={currentWorkspace?.title}
+        onConfirm={handleLeaveWorkspaceSubmit}
       />
     </Box>
   )

@@ -291,7 +291,6 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
         autoFocus: true,
         variant: 'outlined',
         size: 'small',
-        placeholder: `DELETE ${board.title}`,
         sx: { 
           mt: 2,
           '& .MuiOutlinedInput-root': {
