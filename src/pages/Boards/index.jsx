@@ -22,7 +22,12 @@ function Boards() {
 
   // Fetch workspaces before determining currentView if we need title, but for now we initialize from URL
   const initWorkspaceId = query.get('workspaceId')
+  const initView = query.get('view')
   const [currentView, setCurrentView] = useState(() => {
+    // Cho phép deep-link tới gallery templates (dùng bởi shortcut Templates trên navbar + giữ được khi refresh)
+    if (initView === 'templates') {
+      return { type: 'templates', id: null, title: 'Templates' }
+    }
     if (initWorkspaceId && initWorkspaceId !== 'null' && initWorkspaceId !== 'guest') {
       return { type: 'workspace', id: initWorkspaceId, title: 'Workspace Boards' }
     } else if (initWorkspaceId === 'guest') {
@@ -89,6 +94,14 @@ function Boards() {
         })
     }
   }, [page, currentView.type, currentView.id])
+
+  // Đồng bộ view từ URL: khi điều hướng tới /boards?view=templates từ nơi khác (vd shortcut Templates
+  // trên navbar) mà trang Boards đã mount sẵn, React Router không remount nên phải tự chuyển view.
+  useEffect(() => {
+    if (query.get('view') === 'templates' && currentView.type !== 'templates') {
+      setCurrentView({ type: 'templates', id: null, title: 'Templates' })
+    }
+  }, [location.search, currentView.type])
 
   // Fetch Templates when switching to templates view
   useEffect(() => {
@@ -229,15 +242,23 @@ function Boards() {
     if (newView.type === 'workspace') {
       newParams.set('workspaceId', newView.id)
       newParams.set('page', '1') // RESET PAGE NÈ ĐM!
+      newParams.delete('view')
     } else if (newView.type === 'personal') {
       newParams.set('workspaceId', 'null')
       newParams.set('page', '1') // CŨNG PHẢI RESET PAGE!
+      newParams.delete('view')
     } else if (newView.type === 'guest') {
       newParams.set('workspaceId', 'guest')
       newParams.set('page', '1')
-    } else if (newView.type === 'home' || newView.type === 'templates') {
+      newParams.delete('view')
+    } else if (newView.type === 'templates') {
       newParams.delete('workspaceId')
       newParams.delete('page')
+      newParams.set('view', 'templates')
+    } else if (newView.type === 'home') {
+      newParams.delete('workspaceId')
+      newParams.delete('page')
+      newParams.delete('view')
     }
 
     setSearchParams(newParams)
@@ -246,7 +267,10 @@ function Boards() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
       {/* APP BAR HEADER */}
-      <AppBar onOpenCreateBoard={() => setIsCreateBoardOpen(true)} />
+      <AppBar
+        onOpenCreateBoard={() => setIsCreateBoardOpen(true)}
+        onOpenCreateWorkspace={() => setIsCreateWorkspaceOpen(true)}
+      />
       
       {/* APP SHELL LAYOUT */}
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
