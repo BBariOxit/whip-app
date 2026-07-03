@@ -56,6 +56,18 @@ export const moveCarDifferentColumnlAPI = async (updateData) => {
   return response.data
 }
 
+// Starred boards
+export const getStarredBoardsAPI = async () => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/starred`)
+  return response.data
+}
+
+// Toggle gắn/gỡ sao 1 board, BE trả về { boardId, starred }
+export const toggleStarBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/boards/${boardId}/star`)
+  return response.data
+}
+
 // Move Card bằng nút bấm (không kéo thả) - dùng lại endpoint moving_card
 export const moveCardAPI = async ({ cardId, prevColumnId, prevCardOrderIds, nextColumnId, nextCardOrderIds }) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/boards/supports/moving_card`, {

@@ -33,11 +33,14 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Button from '@mui/material/Button'
 import ShareIcon from '@mui/icons-material/Share'
+import StarIcon from '@mui/icons-material/Star'
+import StarBorderIcon from '@mui/icons-material/StarBorder'
 import BusinessIcon from '@mui/icons-material/Business'
 import PersonIcon from '@mui/icons-material/Person'
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove'
+import IconButton from '@mui/material/IconButton'
 import { useNavigate } from 'react-router-dom'
-import { updateBoardDetailAPI, fetchWorkspacesAPI, joinBoardAPI, leaveBoardAPI, deleteBoardAPI } from '~/apis'
+import { updateBoardDetailAPI, fetchWorkspacesAPI, joinBoardAPI, leaveBoardAPI, deleteBoardAPI, toggleStarBoardAPI } from '~/apis'
 import Typography from '@mui/material/Typography'
 import DeleteIcon from '@mui/icons-material/Delete'
 
@@ -150,6 +153,26 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
   const navigate = useNavigate()
 
   const isJoined = currentUser && (board.memberIds?.includes(currentUser._id) || board.ownerIds?.includes(currentUser._id))
+
+  // Gắn/gỡ sao là hành động cá nhân của từng user nên chỉ cần đã đăng nhập (không phụ thuộc quyền ghi board)
+  const isStarred = Boolean(currentUser && board.starredBy?.includes(currentUser._id))
+
+  const handleToggleStar = async () => {
+    if (!currentUser) return
+
+    const newStarredBy = isStarred
+      ? (board.starredBy || []).filter(id => id !== currentUser._id)
+      : [...(board.starredBy || []), currentUser._id]
+
+    // Optimistic update, rollback về board gốc nếu API lỗi
+    dispatch(updateCurrentActiveBoard({ ...board, starredBy: newStarredBy }))
+    try {
+      await toggleStarBoardAPI(board._id)
+    } catch (error) {
+      dispatch(updateCurrentActiveBoard(board))
+      toast.error('Failed to update star!')
+    }
+  }
 
   const handleJoinInsideBoard = async () => {
     try {
@@ -328,16 +351,29 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box sx={{ px: 1, py: 0.5 }}>
           <BoardTitleIndicator board={board} onClickTitle={(e) => setAnchorElTitleMenu(e.currentTarget)} />
-          <BoardTitleMenu 
-            board={board} 
-            currentUser={currentUser} 
-            anchorEl={anchorElTitleMenu} 
+          <BoardTitleMenu
+            board={board}
+            currentUser={currentUser}
+            anchorEl={anchorElTitleMenu}
             handleClose={() => setAnchorElTitleMenu(null)}
             onLeave={handleLeaveBoard}
             onDelete={handleDeleteBoard}
           />
         </Box>
-        
+
+        {/* Gắn/gỡ sao board (hiển thị khi đã đăng nhập) */}
+        {currentUser && (
+          <Tooltip title={isStarred ? 'Remove from starred' : 'Add to starred'} arrow>
+            <IconButton
+              size="small"
+              onClick={handleToggleStar}
+              sx={{ color: isStarred ? '#e3b341' : 'text.secondary' }}
+            >
+              {isStarred ? <StarIcon fontSize="small" /> : <StarBorderIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
+        )}
+
         {/* Toggle Public / Private */}
         <Chip
           sx={{

@@ -19,7 +19,6 @@ function BoardContent({
 }) {
   const {
     orderedColumns,
-    setOrderedColumns,
     dndProps,
     activeDragItemId,
     activeDragItemType,
@@ -30,11 +29,6 @@ function BoardContent({
     onMoveCardSameColumn: moveCardSameColumn,
     onMoveCardDifferentColumn: moveCardifferentColumn
   })
-
-  useEffect(() => {
-    // column đã được sắp xếp ở comp cha cao nhất
-    setOrderedColumns(board.columns)
-  }, [board, setOrderedColumns])
 
   const dispatch = useDispatch()
   const clipboard = useSelector(selectClipboard)

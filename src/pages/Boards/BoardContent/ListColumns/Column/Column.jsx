@@ -59,7 +59,9 @@ function Column({ column }) {
     // Nếu sử dụng CSS.Transform như docs sẽ lỗi kiểu stretch
     // https://github.com/clauderic/dnd-kit/issues/117
     transform: CSS.Translate.toString(transform),
-    transition: transition || (isDragging ? undefined : 'transform 250ms ease'),
+    // Chỉ dùng transition do dnd-kit cấp: lúc nó trả undefined là lúc nó cần snap không animation
+    // (drag end / clear transform), tự chế fallback sẽ gây hiệu ứng rubber-band thừa sau khi thả
+    transition,
     height: '100%',
     // Chiều cao phải luôn max 100% vì nếu không sẽ lỗi lúc kéo column ngắn qua một cái column dài thì phải kéo
     // ở khu vực giữa giữa rất khó chịu . Lưu ý lúc này phải kết hợp với {...listeners}

@@ -16,6 +16,9 @@ function ListCard({ cards }) {
         gap: 1,
         overflowX: 'hidden',
         overflowY: 'auto',
+        // Chừa sẵn chỗ cho scrollbar: khi kéo card làm content tràn maxHeight, scrollbar hiện ra
+        // sẽ không co bề ngang cards lại gây giật layout
+        scrollbarGutter: 'stable',
         maxHeight: (theme) => `calc(
         ${theme.trello.boardContentHeight} -
         ${theme.spacing(5)} -

@@ -16,6 +16,8 @@ function SandboxListCards({ cards }) {
         gap: 1,
         overflowX: 'hidden',
         overflowY: 'auto',
+        // Chừa sẵn chỗ cho scrollbar để lúc kéo card không bị giật layout khi scrollbar hiện ra
+        scrollbarGutter: 'stable',
         maxHeight: 'calc(100vh - 166px)',
         '&::-webkit-scrollbar-thumb': {
           backgroundColor: (theme) => (theme.palette.mode === 'dark' ? '#475569' : '#cbd5e1'),

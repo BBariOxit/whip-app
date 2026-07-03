@@ -14,7 +14,7 @@ function SandboxColumn({ column }) {
   })
   const dndKitColumnStyles = {
     transform: CSS.Translate.toString(transform),
-    transition: transition || (isDragging ? undefined : 'transform 250ms ease'),
+    transition,
     height: '100%',
     opacity: isDragging ? 0.5 : undefined
   }
