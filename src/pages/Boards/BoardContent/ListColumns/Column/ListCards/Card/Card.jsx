@@ -39,6 +39,7 @@ import { cloneDeep } from 'lodash-es'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useSelector, useDispatch } from 'react-redux'
+import { store } from '~/redux/store'
 import { updateCurrentActiveCard, showModalActiveCard } from '~/redux/activeCard/activeCardSlice'
 import { selectCurrentActive, setHoveredItem, setClipboard, selectClipboard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import Box from '@mui/material/Box'
@@ -53,15 +54,28 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { useConfirm } from 'material-ui-confirm'
 import { toast } from 'sonner'
 
+// Mảng rỗng dùng chung làm fallback cho selector labels: nếu tạo [] mới mỗi lần selector chạy,
+// useSelector (so sánh ===) sẽ thấy "giá trị mới" và bắt mọi Card re-render sau MỖI dispatch bất kỳ
+const EMPTY_LABELS = []
+
+// Wrapper cho CardMoveDialog: chỉ được mount khi dialog thực sự mở (xem chỗ render bên dưới),
+// nên subscription "cả board" chỉ tồn tại trong lúc dialog mở thay vì nằm thường trực ở mọi Card
+function CardMoveDialogWithBoard(props) {
+  const board = useSelector(selectCurrentActive)
+  return <CardMoveDialog {...props} board={board} />
+}
+
 function Card({ card }) {
   const dispatch = useDispatch()
   const confirm = useConfirm()
-  const boardLabels = useSelector((state) => selectCurrentActive(state)?.labels || [])
+  // Perf: chỉ subscribe các lát dữ liệu hẹp mà phần render của Card thật sự cần,
+  // KHÔNG subscribe cả board (selectCurrentActive) — board đổi liên tục sẽ kéo mọi Card re-render theo
+  const boardLabels = useSelector((state) => selectCurrentActive(state)?.labels || EMPTY_LABELS)
   const cardLabels = useMemo(
     () => boardLabels.filter(label => card?.labelIds?.includes(label._id)),
     [boardLabels, card?.labelIds]
   )
-  const board = useSelector(selectCurrentActive)
+  const boardCustomFields = useSelector((state) => selectCurrentActive(state)?.customFields)
   const isReadOnly = useSelector(selectIsReadOnly)
   const clipboard = useSelector(selectClipboard)
 
@@ -252,7 +266,10 @@ function Card({ card }) {
         targetColumnId: card.columnId
       })
 
-      const newBoard = cloneDeep(board)
+      // Đọc board tại thời điểm sự kiện từ store (event handler chạy hiếm) —
+      // tránh phải useSelector cả board trong render chỉ để phục vụ hành động paste
+      const currentBoard = selectCurrentActive(store.getState())
+      const newBoard = cloneDeep(currentBoard)
       const targetColumn = newBoard.columns.find(c => c._id === card.columnId)
       if (targetColumn) {
         if (targetColumn.cards.some(c => c.FE_PlaceholderCard)) {
@@ -329,8 +346,9 @@ function Card({ card }) {
         </IconButton>
       )}
 
-      {/* Menu thả xuống của Card */}
-      <Menu
+      {/* Menu thả xuống của Card — chỉ mount khi đang mở.
+          Perf: render sẵn cả cây Menu (dù đóng) ở MỌI card là chi phí lớn nhất mỗi lần re-render khi kéo thả */}
+      {open && <Menu
         id="basic-menu-card"
         anchorEl={anchorEl}
         open={open}
@@ -442,9 +460,10 @@ function Card({ card }) {
           <ListItemIcon sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Delete</ListItemText>
         </MenuItem>
-      </Menu>
+      </Menu>}
 
-      <Box onClick={(e) => e.stopPropagation()}>
+      {/* Popover chọn layout — chỉ mount khi có anchor */}
+      {Boolean(layoutAnchorEl) && <Box onClick={(e) => e.stopPropagation()}>
         <CardLayoutPopover
           anchorEl={layoutAnchorEl}
           handleClose={handleCloseLayoutMenu}
@@ -453,15 +472,14 @@ function Card({ card }) {
           transformOrigin={{ vertical: 'top', horizontal: 'left' }}
           sxProps={{ mt: -1, ml: 1 }}
         />
-      </Box>
+      </Box>}
 
-      {/* Move Card Dialog */}
-      <CardMoveDialog
+      {/* Move Card Dialog — chỉ mount khi mở; board được subscribe bên trong wrapper */}
+      {moveModalOpen && <CardMoveDialogWithBoard
         isOpen={moveModalOpen}
         onClose={() => setMoveModalOpen(false)}
         card={card}
-        board={board}
-      />
+      />}
 
 
       {layout === 'detailed' && card?.cover &&
@@ -562,7 +580,7 @@ function Card({ card }) {
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, width: '100%' }}>
               {card.customFieldValues.map(cfv => {
                 if (!cfv.value && typeof cfv.value !== 'boolean') return null
-                const fieldDef = board?.customFields?.find(f => f._id === cfv.customFieldId)
+                const fieldDef = boardCustomFields?.find(f => f._id === cfv.customFieldId)
                 if (!fieldDef || !fieldDef.showOnFront) return null
 
                 let displayValue = cfv.value

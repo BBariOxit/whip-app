@@ -1,14 +1,12 @@
 import AppsIcon from '@mui/icons-material/Apps'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
-import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
 import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import SvgIcon from '@mui/material/SvgIcon'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { Link } from 'react-router-dom'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import ModeSelect from '~/components/ModeSelect/ModeSelect'
+import CreateMenu from './Menu/CreateMenu'
 import Profiles from './Menu/Profiles'
 import Recent from './Menu/Recent'
 import Starred from './Menu/Starred'
@@ -17,7 +15,7 @@ import Workspaces from './Menu/Workspaces'
 import Notifications from './Notifications/Notifications'
 import AutoCompleteSearchBoard from './SearchBoards/AutoCompleteSearchBoard'
 
-function AppBar({ onOpenCreateBoard }) {
+function AppBar({ onOpenCreateBoard, onOpenCreateWorkspace }) {
   return (
     <Box sx={{
       width: '100%',
@@ -63,16 +61,10 @@ function AppBar({ onOpenCreateBoard }) {
           <Recent />
           <Starred />
           <Templates />
-          <Button
-            onClick={onOpenCreateBoard}
-            sx={{
-              color: 'text.secondary',
-              border: 'none',
-              '&:hover': { border:'none' }
-            }}
-            variant="outlined"
-            startIcon={<LibraryAddIcon />}>
-          Create</Button>
+          <CreateMenu
+            onCreateBoard={onOpenCreateBoard}
+            onCreateWorkspace={onOpenCreateWorkspace}
+          />
         </Box>
 
       </Box>

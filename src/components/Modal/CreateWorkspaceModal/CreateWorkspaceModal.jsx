@@ -10,11 +10,13 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
-  bgcolor: 'background.paper',
-  boxShadow: 24,
-  p: 4,
-  borderRadius: '8px'
+  width: 440,
+  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#22272e' : '#fff',
+  border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? '#30363d' : '#e1e4e8'}`,
+  boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
+  p: 3.5,
+  borderRadius: '14px',
+  outline: 'none'
 }
 
 export const CreateWorkspaceModal = ({ open, handleClose, onWorkspaceCreated }) => {
@@ -50,15 +52,32 @@ export const CreateWorkspaceModal = ({ open, handleClose, onWorkspaceCreated }) 
       aria-labelledby="create-workspace-modal-title"
     >
       <Box sx={style}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography id="create-workspace-modal-title" variant="h6" component="h2" sx={{ fontWeight: 'bold' }}>
-            Create Workspace
-          </Typography>
-          <IconButton onClick={handleClose}>
-            <CloseIcon />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+          <Box>
+            <Typography id="create-workspace-modal-title" variant="h6" component="h2" sx={{ fontWeight: 700 }}>
+              Create Workspace
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+              Group your boards and invite members to collaborate.
+            </Typography>
+          </Box>
+          <IconButton
+            onClick={handleClose}
+            size="small"
+            sx={{
+              color: 'text.secondary',
+              mt: '-4px',
+              mr: '-4px',
+              '&:hover': {
+                color: 'text.primary',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'
+              }
+            }}
+          >
+            <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
-        
+
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
@@ -80,26 +99,34 @@ export const CreateWorkspaceModal = ({ open, handleClose, onWorkspaceCreated }) 
             rows={3}
             sx={{ mb: 3 }}
           />
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            <Button 
-              onClick={handleClose} 
-              variant="outlined" 
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, mt: 1 }}>
+            <Button
+              onClick={handleClose}
+              variant="outlined"
               color="inherit"
-              sx={{ 
+              sx={{
+                px: 2.5,
                 borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#d0d7de',
-                '&:hover': { 
+                '&:hover': {
                   borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
                   boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 0 0 1px rgba(255,255,255,0.3)' : '0 0 0 1px rgba(0,0,0,0.3)'
-                } 
+                }
               }}
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              variant="contained" 
+            <Button
+              type="submit"
+              variant="contained"
               disabled={loading || !title.trim()}
-              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+              startIcon={loading ? <CircularProgress size={18} color="inherit" /> : null}
+              sx={{
+                px: 3,
+                fontWeight: 600,
+                boxShadow: 'none',
+                bgcolor: '#3b82f6',
+                '&:hover': { bgcolor: '#2563eb', boxShadow: 'none' }
+              }}
             >
               Create
             </Button>

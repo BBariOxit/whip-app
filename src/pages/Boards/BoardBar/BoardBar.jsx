@@ -23,6 +23,7 @@ import TemplateManagerDrawer from './TemplateManagerDrawer'
 import BoardFiltersPopover from './BoardFiltersPopover'
 import DashboardCustomizeOutlinedIcon from '@mui/icons-material/DashboardCustomizeOutlined'
 import ShareModal from '~/components/Modal/ShareModal/ShareModal'
+import PremiumFeatureModal from '~/components/Modal/PremiumFeatureModal/PremiumFeatureModal'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
@@ -67,7 +68,7 @@ export const BoardTitleIndicator = ({ board, onClickTitle }) => {
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      <Tooltip title={isPersonal ? "Personal Workspace" : workspaceName} arrow>
+      <Tooltip title={isPersonal ? 'Personal Workspace' : workspaceName} arrow>
         <Box sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', p: 0.5, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}>
           {isPersonal ? (
             <PersonIcon sx={{ color: 'text.secondary' }} />
@@ -150,6 +151,8 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
   const [anchorElMove, setAnchorElMove] = useState(null)
   const [anchorElTitleMenu, setAnchorElTitleMenu] = useState(null)
   const [workspaces, setWorkspaces] = useState([])
+  // Tên tính năng Pro đang được "gạ" nâng cấp (null = đóng modal)
+  const [premiumFeature, setPremiumFeature] = useState(null)
   const navigate = useNavigate()
 
   const isJoined = currentUser && (board.memberIds?.includes(currentUser._id) || board.ownerIds?.includes(currentUser._id))
@@ -425,12 +428,14 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
           icon={<AddToDriveIcon />}
           label="Drive"
           clickable
+          onClick={() => setPremiumFeature('Drive')}
         />
         <Chip
           sx={MENU_STYLE}
           icon={<BoltIcon />}
           label="Automation"
           clickable
+          onClick={() => setPremiumFeature('Automation')}
         />
         <Chip
           sx={MENU_STYLE}
@@ -560,12 +565,19 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
         <BoardUserGroup boardUsers={board?.FE_allUser} />
       </Box>
 
-      <ShareModal 
+      <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         shareUrl={window.location.href}
         title={board?.title}
         type="Board"
+      />
+
+      {/* Placeholder cho các tính năng Pro chưa mở (Drive, Automation) */}
+      <PremiumFeatureModal
+        isOpen={Boolean(premiumFeature)}
+        onClose={() => setPremiumFeature(null)}
+        featureName={premiumFeature || ''}
       />
 
       <ArchivedItemsDrawer

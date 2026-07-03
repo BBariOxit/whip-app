@@ -55,6 +55,7 @@ import CardCustomFieldsPopover from './CardCustomFieldsPopover'
 import CardCustomFieldsSection from './CardCustomFieldsSection'
 import CardLayoutPopover from './CardLayoutPopover'
 import CardMoveDialog from './CardMoveDialog'
+import PremiumFeatureModal from '~/components/Modal/PremiumFeatureModal/PremiumFeatureModal'
 import ShareModal from '~/components/Modal/ShareModal/ShareModal'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
@@ -98,6 +99,8 @@ function ActiveCard() {
   const [anchorElCardLayout, setAnchorElCardLayout] = useState(null)
   const [moveModalOpen, setMoveModalOpen] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  // Tên tính năng Pro đang được "gạ" nâng cấp (null = đóng modal)
+  const [premiumFeature, setPremiumFeature] = useState(null)
   
   const boardLabels = board?.labels || []
   const cardLabels = boardLabels.filter(label => activeCard?.labelIds?.includes(label._id))
@@ -540,8 +543,12 @@ function ActiveCard() {
                 handleClose={() => setAnchorElCardLayout(null)}
                 onUpdateCardLayout={onUpdateCardLayout}
               />
-              <SidebarItem><AddToDriveOutlinedIcon fontSize="small" />Google Drive</SidebarItem>
-              <SidebarItem><AddOutlinedIcon fontSize="small" />Add Power-Ups</SidebarItem>
+              <SidebarItem onClick={() => setPremiumFeature('Google Drive')}>
+                <AddToDriveOutlinedIcon fontSize="small" />Google Drive
+              </SidebarItem>
+              <SidebarItem onClick={() => setPremiumFeature('Power-Ups')}>
+                <AddOutlinedIcon fontSize="small" />Add Power-Ups
+              </SidebarItem>
             </Stack>
 
             <Divider sx={{ my: 2 }} />
@@ -574,6 +581,13 @@ function ActiveCard() {
         card={activeCard}
         board={board}
         isActiveCardModal={true}
+      />
+
+      {/* Placeholder cho các tính năng Pro chưa mở (Google Drive, Power-Ups) */}
+      <PremiumFeatureModal
+        isOpen={Boolean(premiumFeature)}
+        onClose={() => setPremiumFeature(null)}
+        featureName={premiumFeature || ''}
       />
     </>
   )

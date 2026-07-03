@@ -14,7 +14,10 @@ import BoardContent from './BoardContent/BoardContent'
 
 // import { mockData } from '~/apis/mock-data'
 import { cloneDeep } from 'lodash-es'
-import { useParams, useLocation } from 'react-router-dom'
+import { useParams, useLocation, useNavigate } from 'react-router-dom'
+import CreateBoardModal from './create'
+import { CreateWorkspaceModal } from '~/components/Modal/CreateWorkspaceModal/CreateWorkspaceModal'
+import { addRecentBoard } from '~/utils/recentBoards'
 import {
   moveCarDifferentColumnlAPI,
   updateBoardDetailAPI,
@@ -33,6 +36,11 @@ function Board() {
   const isReadOnly = useSelector(selectIsReadOnly)
   const { boardId } = useParams()
   const location = useLocation()
+  const navigate = useNavigate()
+
+  // State cho nút Create trên navbar (tạo board / tạo workspace ngay khi đang ở trong 1 board)
+  const [isCreateBoardOpen, setIsCreateBoardOpen] = useState(false)
+  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false)
 
   // State lưu trữ các điều kiện lọc
   const [filters, setFilters] = useState({
@@ -77,6 +85,15 @@ function Board() {
     // call api
     dispatch(fetchBoardDetailAPI(boardId))
   }, [dispatch, boardId])
+
+  // Ghi nhận board vừa mở vào danh sách "Recent" (localStorage, theo user) cho dropdown Recent trên navbar.
+  useEffect(() => {
+    if (board?._id && currentUser?._id) {
+      addRecentBoard(currentUser._id, board)
+    }
+    // Chỉ lưu khi ĐỔI board (đổi _id), không chạy lại mỗi lần board bị update (kéo thả, comment...)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [board?._id, currentUser?._id])
 
   // Xử lý Deep Link khi có ?cardId=... trên URL
   useEffect(() => {
@@ -215,8 +232,26 @@ function Board() {
       <ActiveCard />
 
       {/* các thành phần còn lại của board details*/}
-      <AppBar />
-      <BoardBar 
+      <AppBar
+        onOpenCreateBoard={() => setIsCreateBoardOpen(true)}
+        onOpenCreateWorkspace={() => setIsCreateWorkspaceOpen(true)}
+      />
+
+      {/* Modal tạo Board/Workspace từ nút Create. Đang ở trong board nên hậu-tạo điều hướng thẳng tới
+          board mới / danh sách board của workspace mới (đều là mount mới nên hiển thị chuẩn) */}
+      <CreateBoardModal
+        isOpen={isCreateBoardOpen}
+        handleClose={() => setIsCreateBoardOpen(false)}
+        afterCreateNewBoard={(newBoard) => newBoard?._id && navigate(`/boards/${newBoard._id}`)}
+        currentWorkspaceId={null}
+      />
+      <CreateWorkspaceModal
+        open={isCreateWorkspaceOpen}
+        handleClose={() => setIsCreateWorkspaceOpen(false)}
+        onWorkspaceCreated={(newWorkspace) => newWorkspace?._id && navigate(`/boards?workspaceId=${newWorkspace._id}`)}
+      />
+
+      <BoardBar
         board={board} 
         isAuthorized={isAuthorized} 
         filters={filters}

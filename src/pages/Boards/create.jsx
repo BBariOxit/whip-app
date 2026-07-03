@@ -363,9 +363,10 @@ export function CreateBoardModal({ isOpen, handleClose, afterCreateNewBoard, cur
   const submitCreateNewBoard = (data) => {
     // Thêm workspaceId vào data nếu có
     const finalData = { ...data, workspaceId: currentWorkspaceId }
-    createNewBoardAPI(finalData).then(() => {
+    createNewBoardAPI(finalData).then((newBoard) => {
       handleClose()
-      afterCreateNewBoard()
+      // Truyền board vừa tạo ra ngoài để nơi gọi tự quyết định (refresh list tại chỗ / navigate vào board)
+      afterCreateNewBoard(newBoard)
     })
   }
 

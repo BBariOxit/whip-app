@@ -34,6 +34,16 @@ export const getCardActionGridStyles = (hasDueDate) => {
   }
 }
 
+// Dựng giá trị CSS background cho ô thumbnail nhỏ của board từ cấu trúc background ({ type, color1, color2 }).
+// Dùng chung cho các dropdown Starred / Recent / Templates để tránh lặp code.
+export const getBoardThumbnailBackground = (background) => {
+  if (!background) return '#30363d'
+  if (background.type === 'gradient') {
+    return `linear-gradient(135deg, ${background.color1} 0%, ${background.color2 || background.color1} 100%)`
+  }
+  return background.color1 || '#30363d'
+}
+
 // Kỹ thuật dùng css pointer-event để chặn user spam click tại bất kỳ chỗ nào có hành động click gọi api
 // Đây là một kỹ thuật rất hay tận dụng Axios Interceptors và CSS Pointer-events để chỉ phải viết code xử lý một lần cho toàn bộ dự án
 // Cách sử dụng: Với tất cả các link hoặc button mà có hành động gọi api thì thêm class "interceptor-loading" cho nó là xong.

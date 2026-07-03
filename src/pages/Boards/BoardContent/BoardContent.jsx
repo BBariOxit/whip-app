@@ -2,8 +2,7 @@ import { DndContext, DragOverlay } from '@dnd-kit/core'
 import Box from '@mui/material/Box'
 import { useEffect, useRef } from 'react'
 import { useBoardDnd, ACTIVE_DRAG_ITEM_TYPE } from '~/customHooks/useBoardDnd'
-import Column from './ListColumns/Column/Column'
-import Card from './ListColumns/Column/ListCards/Card/Card'
+import { CardDragPreview, ColumnDragPreview } from './DragPreviews'
 import ListColumns from './ListColumns/ListColumns'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectClipboard, selectHoveredItem, setClipboard, updateCurrentActiveBoard, selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
@@ -181,10 +180,12 @@ function BoardContent({
           p: '10px 0'
         }}>
         <ListColumns columns={orderedColumns} />
+        {/* Overlay bám con trỏ dùng preview thuần hiển thị (DragPreviews) thay vì <Card>/<Column> thật:
+            nhẹ hơn hẳn khi kéo và không đăng ký useSortable trùng id với item gốc */}
         <DragOverlay dropAnimation={customDropAnimation}>
           {!activeDragItemType && null}
-          {(activeDragItemId && activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) && <Column column={activeDragItemData}/>}
-          {(activeDragItemId && activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.CARD) && <Card card={activeDragItemData}/>}
+          {(activeDragItemId && activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) && <ColumnDragPreview column={activeDragItemData}/>}
+          {(activeDragItemId && activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.CARD) && <CardDragPreview card={activeDragItemData} dragging />}
         </DragOverlay>
       </Box>
     </DndContext>

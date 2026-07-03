@@ -10,7 +10,6 @@ import { useForm } from 'react-hook-form'
 import { EMAIL_RULE, FIELD_REQUIRED_MESSAGE, EMAIL_RULE_MESSAGE } from '~/utils/validators'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import { inviteUserToBoardAPI } from '~/apis'
-import { socketIoInstance } from '~/socketClient'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { toast } from 'sonner'
@@ -43,11 +42,11 @@ function InviteBoardUser({ boardId, boardMembers = [], workspaceMembers = [] }) 
       return
     }
     // console.log('inviteeEmail:', inviteeEmail)
-    // gọi api mời người dùng nào đó vào làm thành viên của board
-    inviteUserToBoardAPI({ inviteeEmail, boardId }).then(invitation => {
+    // gọi api mời người dùng nào đó vào làm thành viên của board.
+    // BE sẽ tự emit realtime tới đúng người được mời (không cần FE emit nữa)
+    inviteUserToBoardAPI({ inviteeEmail, boardId }).then(() => {
       setValue('inviteeEmail', null)
       setAnchorPopoverElement(null)
-      socketIoInstance.emit('FE_USER_INVITED_TO_BOARD', invitation)
     })
   }
 
