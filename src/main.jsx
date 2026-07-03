@@ -28,12 +28,8 @@ const persistor = persistStore(store)
 // Kỹ thuật inject store vào file authorizeAxios
 import { injectStore } from '~/utils/authorizeAxios'
 injectStore(store)
- 
-// Cấu hình Socket-io phía client tại đây và export ra biến socketIoInstance
-// https://socket.io/how-to-use-with-react
-import { io } from 'socket.io-client'
-import { API_ROOT } from '~/utils/constants'
-export const socketIoInstance = io(API_ROOT)
+
+// Socket-io client được cấu hình tập trung ở ~/socketClient (dùng chung 1 instance duy nhất)
 
 function Root() {
   const { mode, systemMode } = useColorScheme()
