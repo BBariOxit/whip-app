@@ -17,6 +17,7 @@ import { cloneDeep } from 'lodash-es'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import CreateBoardModal from './create'
 import { CreateWorkspaceModal } from '~/components/Modal/CreateWorkspaceModal/CreateWorkspaceModal'
+import { addRecentBoard } from '~/utils/recentBoards'
 import {
   moveCarDifferentColumnlAPI,
   updateBoardDetailAPI,
@@ -84,6 +85,15 @@ function Board() {
     // call api
     dispatch(fetchBoardDetailAPI(boardId))
   }, [dispatch, boardId])
+
+  // Ghi nhận board vừa mở vào danh sách "Recent" (localStorage, theo user) cho dropdown Recent trên navbar.
+  useEffect(() => {
+    if (board?._id && currentUser?._id) {
+      addRecentBoard(currentUser._id, board)
+    }
+    // Chỉ lưu khi ĐỔI board (đổi _id), không chạy lại mỗi lần board bị update (kéo thả, comment...)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [board?._id, currentUser?._id])
 
   // Xử lý Deep Link khi có ?cardId=... trên URL
   useEffect(() => {

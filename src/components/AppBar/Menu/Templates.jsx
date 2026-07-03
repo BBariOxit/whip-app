@@ -11,15 +11,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { fetchTemplatesAPI, cloneTemplateAPI } from '~/apis'
-
-// Dựng nền thumbnail từ background của template ({ type, color1, color2 }) — đồng bộ với TemplateCard/BoardCard
-const getThumbnailBackground = (background) => {
-  if (!background) return '#30363d'
-  if (background.type === 'gradient') {
-    return `linear-gradient(135deg, ${background.color1} 0%, ${background.color2 || background.color1} 100%)`
-  }
-  return background.color1 || '#30363d'
-}
+import { getBoardThumbnailBackground } from '~/utils/formatters'
 
 function Templates() {
   const [anchorEl, setAnchorEl] = React.useState(null)
@@ -122,7 +114,7 @@ function Templates() {
                   height: 32,
                   borderRadius: 1,
                   flexShrink: 0,
-                  background: getThumbnailBackground(template.background)
+                  background: getBoardThumbnailBackground(template.background)
                 }} />
 
                 {/* Tên + mô tả */}
