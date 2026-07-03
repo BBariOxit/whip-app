@@ -36,7 +36,9 @@ const persistedReducers = persistReducer(rootPersistConfig, reducers)
 
 export const store = configureStore({
   reducer: persistedReducers,
-  
-  // Fix warning error when implement redux-persist
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false })
+
+  // serializableCheck: false — fix warning khi dùng redux-persist
+  // immutableCheck: false — middleware dev này deep-walk TOÀN BỘ state (board rất lớn) 2 lần cho mỗi dispatch,
+  // gây khựng rõ rệt ở dev đúng lúc thả card/column (dispatch updateCurrentActiveBoard). Prod vốn không có.
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false, immutableCheck: false })
 })

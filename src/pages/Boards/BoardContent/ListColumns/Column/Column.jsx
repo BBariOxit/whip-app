@@ -38,7 +38,7 @@ import { cloneDeep } from 'lodash-es'
 import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 import { useDispatch, useSelector } from 'react-redux'
 import { createNewCardAPI, deleteColumnDetailAPI, updateColumnDetailAPI, clearAllCardsInColumnAPI, updateColumnCardsLayoutAPI, archiveColumnAPI, getCardTemplatesAPI, useCardTemplateAPI, deleteCardTemplateAPI, saveColumnAsTemplateAPI } from '~/apis'
-import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI, selectClipboard, setHoveredItem, selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
+import { selectCurrentActive, updateCurrentActiveBoard, clearCardsInColumnOptimistic, fetchBoardDetailAPI, selectClipboard, setClipboard, setHoveredItem, selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
 import CardLayoutPopover from '~/components/Modal/ActiveCard/CardLayoutPopover'
 import ColumnMoveDialog from './ColumnMoveDialog'
 import { duplicateCardAPI, duplicateColumnAPI } from '~/apis'
@@ -463,7 +463,9 @@ function Column({ column }) {
                 sx={{ color: 'text.primary', cursor: 'pointer' }}
               />
             </Tooltip>
-            <Menu
+            {/* Perf: menu/submenu/dialog bên dưới chỉ mount khi thực sự mở —
+                trước đây luôn render sẵn ở mọi Column khiến mỗi lần re-render lúc kéo thả rất nặng */}
+            {open && <Menu
               id="basic-menu-column-dropdown"
               anchorEl={anchorEl}
               open={open}
@@ -588,20 +590,20 @@ function Column({ column }) {
                 <ListItemIcon><DashboardCustomizeOutlinedIcon fontSize="small" sx={{ color: 'inherit' }} /></ListItemIcon>
                 <ListItemText>Save as Template</ListItemText>
               </MenuItem>
-            </Menu>
+            </Menu>}
 
-            {/* Submenu for Layout Selection */}
-            <CardLayoutPopover
+            {/* Submenu for Layout Selection — chỉ mount khi có anchor */}
+            {Boolean(subMenuAnchorEl) && <CardLayoutPopover
               anchorEl={subMenuAnchorEl}
               handleClose={handleCloseSubMenu}
               onUpdateCardLayout={handleUpdateColumnCardsLayout}
               anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
               transformOrigin={{ vertical: 'top', horizontal: 'left' }}
               sxProps={{ ml: 1, minWidth: 200 }}
-            />
+            />}
 
-            {/* Submenu for Add from Template */}
-            <Menu
+            {/* Submenu for Add from Template — chỉ mount khi mở */}
+            {templateSubMenuOpen && <Menu
               anchorEl={templateSubMenuAnchorEl}
               open={templateSubMenuOpen}
               onClose={handleCloseTemplateSubMenu}
@@ -650,14 +652,15 @@ function Column({ column }) {
                   </MenuItem>
                 ))
               )}
-            </Menu>
+            </Menu>}
 
-            <ColumnMoveDialog
+            {/* Dialog di chuyển Column — chỉ mount khi mở */}
+            {moveColumnModalOpen && <ColumnMoveDialog
               isOpen={moveColumnModalOpen}
               onClose={() => setMoveColumnModalOpen(false)}
               column={column}
               board={board}
-            />
+            />}
 
           </Box>
           )}
@@ -697,8 +700,8 @@ function Column({ column }) {
                 </Tooltip>
               </Box>
 
-              {/* Template Menu */}
-              <Menu
+              {/* Template Menu — chỉ mount khi mở */}
+              {templateMenuOpen && <Menu
                 anchorEl={templateAnchorEl}
                 open={templateMenuOpen}
                 onClose={handleCloseTemplateMenu}
@@ -746,7 +749,7 @@ function Column({ column }) {
                     </MenuItem>
                   ))
                 )}
-              </Menu>
+              </Menu>}
             </Box>
             : <ClickAwayListener onClickAway={() => setOpenNewCardForm(false)}>
               <Box sx={{
@@ -825,4 +828,6 @@ function Column({ column }) {
   )
 }
 
-export default Column
+// React.memo: chặn re-render cả cây Column (component nặng nhất board) khi props không đổi.
+// Hiệu quả nhất lúc kéo thả: các column không bị ảnh hưởng giữ nguyên tham chiếu `column` nên được bỏ qua.
+export default React.memo(Column)

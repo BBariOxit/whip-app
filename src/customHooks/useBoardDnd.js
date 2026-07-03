@@ -17,6 +17,11 @@ export const ACTIVE_DRAG_ITEM_TYPE = {
   CARD: 'ACTIVE_DRAG_ITEM_TYPE_CARD'
 }
 
+// Class đánh dấu "đang kéo thả" gắn lên <body>. CSS ở ListCard dựa vào class này để làm
+// thumb scrollbar trong suốt lúc kéo — transform của dnd-kit làm nội dung tràn overflow
+// khiến scrollbar của column chớp hiện/tắt rất xấu. Toggle bằng classList nên không tốn re-render nào.
+export const DND_DRAGGING_BODY_CLASS = 'is-dnd-dragging'
+
 export const useBoardDnd = (initialColumns, {
   onMoveColumn = () => {},
   onMoveCardSameColumn = () => {},
@@ -100,11 +105,18 @@ export const useBoardDnd = (initialColumns, {
     setOldColumnWhenDraggingCard(null)
     isDraggingRef.current = false
     columnsBeforeDragRef.current = null
+    document.body.classList.remove(DND_DRAGGING_BODY_CLASS)
   }
+
+  // Phòng hờ unmount giữa chừng khi đang kéo (chuyển trang...) thì gỡ class khỏi body
+  useEffect(() => {
+    return () => document.body.classList.remove(DND_DRAGGING_BODY_CLASS)
+  }, [])
 
   const handleDragStart = (e) => {
     isDraggingRef.current = true
     columnsBeforeDragRef.current = orderedColumns
+    document.body.classList.add(DND_DRAGGING_BODY_CLASS)
 
     setActiveDragItemId(e?.active?.id)
     setActiveDragItemType(e?.active?.data?.current?.columnId ? ACTIVE_DRAG_ITEM_TYPE.CARD : ACTIVE_DRAG_ITEM_TYPE.COLUMN)
