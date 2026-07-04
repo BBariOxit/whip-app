@@ -389,6 +389,11 @@ export const updateWorkspaceLogoAPI = async (workspaceId, formData) => {
   return response.data
 }
 
+export const updateWorkspaceNotificationsAPI = async (workspaceId, prefs) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/workspaces/${workspaceId}/notifications`, prefs)
+  return response.data
+}
+
 export const leaveBoardAPI = async (boardId) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/${boardId}/leave`)
   return response.data

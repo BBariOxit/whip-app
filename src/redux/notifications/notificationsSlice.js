@@ -4,7 +4,10 @@ import { API_ROOT } from '~/utils/constants'
 
 // Khởi tạo State ban đầu cho kho chứa Notifications
 const initialState = {
-  currentNotifications: null
+  currentNotifications: null,
+  // Thông báo chung (không phải lời mời): board activity, mentions, member joins...
+  inAppNotifications: [],
+  unreadCount: 0
 }
 
 // API lấy danh sách lời mời (Invitations)
@@ -13,6 +16,33 @@ export const fetchInvitationsAPI = createAsyncThunk(
   async () => {
     const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/invitations`)
     return response.data
+  }
+)
+
+// API lấy danh sách thông báo chung + số chưa đọc
+export const fetchNotificationsAPI = createAsyncThunk(
+  'notifications/fetchNotificationsAPI',
+  async () => {
+    const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/notifications`)
+    return response.data // { notifications, unreadCount }
+  }
+)
+
+// Đánh dấu đã đọc 1 thông báo
+export const markNotificationReadAPI = createAsyncThunk(
+  'notifications/markNotificationReadAPI',
+  async (notificationId) => {
+    const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/notifications/${notificationId}/read`)
+    return response.data
+  }
+)
+
+// Đánh dấu đã đọc tất cả
+export const markAllNotificationsReadAPI = createAsyncThunk(
+  'notifications/markAllNotificationsReadAPI',
+  async () => {
+    await authorizedAxiosInstance.put(`${API_ROOT}/v1/notifications/read-all`)
+    return true
   }
 )
 
@@ -40,6 +70,11 @@ export const notificationsSlice = createSlice({
     addNotification: (state, action) => {
       const incomingInvitation = action.payload
       state.currentNotifications.unshift(incomingInvitation)
+    },
+    // thêm 1 thông báo chung real-time (từ socket) vào đầu danh sách
+    addInAppNotification: (state, action) => {
+      state.inAppNotifications.unshift(action.payload)
+      if (!action.payload.isRead) state.unreadCount += 1
     }
   },
   // ExtraReducers: Xử lý dữ liệu bất đồng bộ từ các API Thunk phía trên
@@ -58,6 +93,25 @@ export const notificationsSlice = createSlice({
         getInvitation.boardInvitation = incomingInvitation.boardInvitation
       }
     })
+
+    builder.addCase(fetchNotificationsAPI.fulfilled, (state, action) => {
+      state.inAppNotifications = action.payload?.notifications || []
+      state.unreadCount = action.payload?.unreadCount || 0
+    })
+
+    builder.addCase(markNotificationReadAPI.fulfilled, (state, action) => {
+      const updated = action.payload
+      const target = state.inAppNotifications.find(n => n._id === updated?._id)
+      if (target && !target.isRead) {
+        target.isRead = true
+        state.unreadCount = Math.max(0, state.unreadCount - 1)
+      }
+    })
+
+    builder.addCase(markAllNotificationsReadAPI.fulfilled, (state) => {
+      state.inAppNotifications.forEach(n => { n.isRead = true })
+      state.unreadCount = 0
+    })
   }
 })
 
@@ -67,11 +121,14 @@ export const notificationsSlice = createSlice({
 export const {
   clearCurrentNotifications,
   updateCurrentNotifications,
-  addNotification
+  addNotification,
+  addInAppNotification
 } = notificationsSlice.actions
 
 // Selectors: Là nơi dành cho các components bên dưới gọi bằng hook useSelector() để lấy dữ liệu từ trong kho redux store ra sử dụng
 export const selectCurrentNotifications = state => state.notifications.currentNotifications
+export const selectInAppNotifications = state => state.notifications.inAppNotifications
+export const selectUnreadCount = state => state.notifications.unreadCount
 
 // Cái file này tên là notificationsSlice NHƯNG chúng ta sẽ export một thứ tên là Reducer, mọi người lưu ý :D
 // export default notificationsSlice.reducer

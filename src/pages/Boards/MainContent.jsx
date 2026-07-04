@@ -19,7 +19,7 @@ import { WorkspaceMembersTable } from './WorkspaceMembersTable'
 import { InviteWorkspaceMemberModal } from '~/components/Modal/InviteWorkspaceMemberModal/InviteWorkspaceMemberModal'
 import { useDebounce } from '~/customHooks/useDebounce'
 import { useConfirm } from 'material-ui-confirm'
-import { leaveWorkspaceAPI, updateWorkspaceAPI, transferWorkspaceOwnershipAPI, updateWorkspaceLogoAPI } from '~/apis'
+import { leaveWorkspaceAPI, updateWorkspaceAPI, transferWorkspaceOwnershipAPI, updateWorkspaceLogoAPI, updateWorkspaceNotificationsAPI } from '~/apis'
 import { toast } from 'sonner'
 import { LeaveWorkspaceModal } from '~/components/Modal/LeaveWorkspaceModal/LeaveWorkspaceModal'
 
@@ -30,6 +30,15 @@ const ACTIVITY_META = {
   invite: { icon: PersonAddIcon, color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
   settings: { icon: SettingsOutlinedIcon, color: '#a371f7', bg: 'rgba(163,113,247,0.15)' },
   leave: { icon: LogoutIcon, color: '#d29922', bg: 'rgba(210,153,34,0.15)' }
+}
+
+// Tuỳ chọn thông báo mặc định (khớp default backend) — dùng khi member chưa có prefs
+const DEFAULT_NOTIF_PREFS = {
+  memberJoins: true,
+  boardChanges: true,
+  weeklyDigest: false,
+  mentions: true,
+  boardActivity: false
 }
 
 // Dữ liệu mẫu để dựng giao diện — sẽ thay bằng API sau
@@ -73,15 +82,8 @@ export const MainContent = ({
   const confirm = useConfirm()
   const scrollContainerRef = useRef(null)
 
-  // Notification preferences (UI-only) — tuỳ chọn cá nhân cho workspace
-  const [notifPrefs, setNotifPrefs] = useState({
-    memberJoins: true,
-    boardChanges: true,
-    weeklyDigest: false,
-    mentions: true,
-    boardActivity: false
-  })
-  const toggleNotif = (key) => setNotifPrefs(prev => ({ ...prev, [key]: !prev[key] }))
+  // Notification preferences — tuỳ chọn cá nhân của user trong workspace này
+  const [notifPrefs, setNotifPrefs] = useState(DEFAULT_NOTIF_PREFS)
 
   // Transfer ownership
   const [newOwnerId, setNewOwnerId] = useState('')
@@ -169,6 +171,31 @@ export const MainContent = ({
     } catch (error) {
       toast.error('Error: ' + (error?.message || 'Failed to update settings'))
       onWorkspaceUpdated?.({ _id: currentWorkspace._id, [field]: prevValue })
+    }
+  }
+
+  // Nạp notification prefs của chính user từ bản ghi member (khi đổi workspace / dữ liệu load xong)
+  const myNotificationPrefs = currentWorkspace?.members?.find(m => m.userId === currentUser?._id)?.notificationPrefs
+  const myNotificationPrefsKey = JSON.stringify(myNotificationPrefs || null)
+  useEffect(() => {
+    setNotifPrefs({ ...DEFAULT_NOTIF_PREFS, ...(myNotificationPrefs || {}) })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentView.id, myNotificationPrefsKey])
+
+  // Bật/tắt 1 tuỳ chọn thông báo: cập nhật ngay (optimistic) + lưu backend + đồng bộ state cha
+  const handleToggleNotif = async (key) => {
+    const prev = notifPrefs
+    const next = { ...notifPrefs, [key]: !notifPrefs[key] }
+    setNotifPrefs(next)
+    try {
+      await updateWorkspaceNotificationsAPI(currentWorkspace._id, next)
+      const newMembers = (currentWorkspace.members || []).map(m =>
+        m.userId === currentUser?._id ? { ...m, notificationPrefs: next } : m
+      )
+      onWorkspaceUpdated?.({ _id: currentWorkspace._id, members: newMembers })
+    } catch (error) {
+      setNotifPrefs(prev)
+      toast.error('Error: ' + (error?.message || 'Failed to update notifications'))
     }
   }
 
@@ -771,7 +798,7 @@ export const MainContent = ({
                     <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{item.label}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
                   </Box>
-                  <Switch checked={notifPrefs[item.key]} onChange={() => toggleNotif(item.key)} />
+                  <Switch checked={notifPrefs[item.key]} onChange={() => handleToggleNotif(item.key)} />
                 </Box>
               ))}
             </Box>
@@ -794,7 +821,7 @@ export const MainContent = ({
                     <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{item.label}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
                   </Box>
-                  <Switch checked={notifPrefs[item.key]} onChange={() => toggleNotif(item.key)} />
+                  <Switch checked={notifPrefs[item.key]} onChange={() => handleToggleNotif(item.key)} />
                 </Box>
               ))}
             </Box>
