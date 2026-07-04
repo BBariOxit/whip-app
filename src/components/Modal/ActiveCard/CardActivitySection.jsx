@@ -284,6 +284,7 @@ function CardActivitySection({ cardId }) {
           type="text"
           variant="outlined"
           multiline
+          inputProps={{ maxLength: 5000 }}
           onKeyDown={handleAddCardComment}
         />
       </Box>}

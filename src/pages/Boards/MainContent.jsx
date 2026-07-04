@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Box, Typography, Button, Pagination, PaginationItem, Tabs, Tab, TextField, Select, MenuItem, InputAdornment, Skeleton, Switch } from '@mui/material'
+import { Box, Typography, Button, Pagination, PaginationItem, Tabs, Tab, TextField, Select, MenuItem, InputAdornment, Skeleton, Switch, CircularProgress } from '@mui/material'
 import ChecklistIcon from '@mui/icons-material/Checklist'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ViewColumnIcon from '@mui/icons-material/ViewColumn'
@@ -19,7 +19,7 @@ import { WorkspaceMembersTable } from './WorkspaceMembersTable'
 import { InviteWorkspaceMemberModal } from '~/components/Modal/InviteWorkspaceMemberModal/InviteWorkspaceMemberModal'
 import { useDebounce } from '~/customHooks/useDebounce'
 import { useConfirm } from 'material-ui-confirm'
-import { leaveWorkspaceAPI, updateWorkspaceAPI } from '~/apis'
+import { leaveWorkspaceAPI, updateWorkspaceAPI, transferWorkspaceOwnershipAPI, updateWorkspaceLogoAPI } from '~/apis'
 import { toast } from 'sonner'
 import { LeaveWorkspaceModal } from '~/components/Modal/LeaveWorkspaceModal/LeaveWorkspaceModal'
 
@@ -83,8 +83,13 @@ export const MainContent = ({
   })
   const toggleNotif = (key) => setNotifPrefs(prev => ({ ...prev, [key]: !prev[key] }))
 
-  // Transfer ownership (UI-only)
+  // Transfer ownership
   const [newOwnerId, setNewOwnerId] = useState('')
+  const [isTransferring, setIsTransferring] = useState(false)
+
+  // Logo upload
+  const logoInputRef = useRef(null)
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
 
   // General form (title + description) — controlled để lưu được xuống backend
   const [generalForm, setGeneralForm] = useState({ title: '', description: '' })
@@ -164,6 +169,59 @@ export const MainContent = ({
     } catch (error) {
       toast.error('Error: ' + (error?.message || 'Failed to update settings'))
       onWorkspaceUpdated?.({ _id: currentWorkspace._id, [field]: prevValue })
+    }
+  }
+
+  // Transfer ownership (có confirm vì hành động không thể tự hoàn tác)
+  const handleTransferOwnership = () => {
+    if (!newOwnerId) return
+    const target = transferableMembers.find(m => (m.userId || m.email) === newOwnerId)
+    const targetName = target?.displayName || target?.email || 'this member'
+    confirm({
+      title: 'Transfer Ownership',
+      description: `Are you sure you want to make "${targetName}" the new owner? You will be demoted to Admin and lose owner privileges. This cannot be undone by you.`,
+      confirmationText: 'Transfer',
+      cancellationText: 'Cancel',
+      confirmationButtonProps: { color: 'error', variant: 'contained' },
+      buttonOrder: ['confirm', 'cancel']
+    }).then(async () => {
+      setIsTransferring(true)
+      try {
+        await transferWorkspaceOwnershipAPI(currentWorkspace._id, newOwnerId)
+        toast.success('Ownership transferred successfully!')
+        // Cập nhật role trong state: mình -> admin, target -> owner
+        const newMembers = (currentWorkspace.members || []).map(m => {
+          if (m.userId === currentUser?._id) return { ...m, role: 'admin' }
+          if (m.userId === newOwnerId) return { ...m, role: 'owner' }
+          return m
+        })
+        onWorkspaceUpdated?.({ _id: currentWorkspace._id, members: newMembers })
+        setNewOwnerId('')
+      } catch (error) {
+        toast.error('Error: ' + (error?.message || 'Failed to transfer ownership'))
+      } finally {
+        setIsTransferring(false)
+      }
+    }).catch(() => {})
+  }
+
+  // Logo upload
+  const handleLogoSelect = async (e) => {
+    const file = e.target?.files?.[0]
+    if (!file) return
+    const formData = new FormData()
+    formData.append('logo', file)
+    setIsUploadingLogo(true)
+    try {
+      const updated = await updateWorkspaceLogoAPI(currentWorkspace._id, formData)
+      const logoUrl = updated?.logo || updated?.value?.logo
+      toast.success('Logo updated successfully!')
+      onWorkspaceUpdated?.({ _id: currentWorkspace._id, logo: logoUrl })
+    } catch (error) {
+      toast.error('Error: ' + (error?.message || 'Failed to upload logo'))
+    } finally {
+      setIsUploadingLogo(false)
+      if (logoInputRef.current) logoInputRef.current.value = ''
     }
   }
 
@@ -523,27 +581,61 @@ export const MainContent = ({
               {/* Right: Logo/Avatar Upload */}
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5, minWidth: '140px' }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>Logo</Typography>
-                <Box sx={{
-                  width: 100, height: 100, borderRadius: '16px',
-                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#21262d' : '#e2e8f0',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: '2px dashed',
-                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)',
-                  cursor: canManage ? 'pointer' : 'default',
-                  transition: 'all 0.2s',
-                  '&:hover': canManage ? {
-                    borderColor: 'primary.main',
-                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.05)',
-                  } : {},
-                  overflow: 'hidden'
-                }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.secondary', userSelect: 'none' }}>
-                    {currentWorkspace?.title?.charAt(0)?.toUpperCase() || 'W'}
-                  </Typography>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg"
+                  hidden
+                  onChange={handleLogoSelect}
+                />
+                <Box
+                  onClick={() => { if (isOwner && !isUploadingLogo) logoInputRef.current?.click() }}
+                  sx={{
+                    position: 'relative',
+                    width: 100, height: 100, borderRadius: '16px',
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#21262d' : '#e2e8f0',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: '2px dashed',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)',
+                    cursor: isOwner && !isUploadingLogo ? 'pointer' : 'default',
+                    transition: 'all 0.2s',
+                    '&:hover': isOwner ? {
+                      borderColor: 'primary.main',
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.05)',
+                    } : {},
+                    overflow: 'hidden'
+                  }}
+                >
+                  {currentWorkspace?.logo ? (
+                    <Box
+                      component="img"
+                      src={currentWorkspace.logo}
+                      alt="Workspace logo"
+                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.secondary', userSelect: 'none' }}>
+                      {currentWorkspace?.title?.charAt(0)?.toUpperCase() || 'W'}
+                    </Typography>
+                  )}
+                  {isUploadingLogo && (
+                    <Box sx={{
+                      position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      bgcolor: 'rgba(0,0,0,0.45)'
+                    }}>
+                      <CircularProgress size={26} sx={{ color: '#fff' }} />
+                    </Box>
+                  )}
                 </Box>
-                {canManage && (
-                  <Button variant="outlined" size="small" sx={{ fontSize: '12px', px: 2 }}>
-                    Upload
+                {isOwner && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={isUploadingLogo}
+                    sx={{ fontSize: '12px', px: 2 }}
+                  >
+                    {isUploadingLogo ? 'Uploading...' : 'Upload'}
                   </Button>
                 )}
               </Box>
@@ -847,7 +939,7 @@ export const MainContent = ({
                   displayEmpty
                   value={newOwnerId}
                   onChange={(e) => setNewOwnerId(e.target.value)}
-                  disabled={userRole !== 'owner' || transferableMembers.length === 0}
+                  disabled={userRole !== 'owner' || transferableMembers.length === 0 || isTransferring}
                   renderValue={(selected) => {
                     if (!selected) return <Box component="span" sx={{ color: 'text.secondary' }}>Select a member</Box>
                     const m = transferableMembers.find(mem => (mem.userId || mem.email) === selected)
@@ -871,10 +963,11 @@ export const MainContent = ({
                   variant="outlined"
                   color="error"
                   startIcon={<SwapHorizIcon />}
-                  disabled={userRole !== 'owner' || !newOwnerId}
+                  onClick={handleTransferOwnership}
+                  disabled={userRole !== 'owner' || !newOwnerId || isTransferring}
                   sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}
                 >
-                  Transfer
+                  {isTransferring ? 'Transferring...' : 'Transfer'}
                 </Button>
               </Box>
             </Box>

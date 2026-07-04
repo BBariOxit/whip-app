@@ -161,8 +161,9 @@ function CardCustomFieldsPopover({ anchorEl, handleClose }) {
               fullWidth
               size="small"
               value={name}
+              inputProps={{ maxLength: 50 }}
               onChange={(e) => setName(e.target.value)}
-              sx={{ 
+              sx={{
                 mb: 2,
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': { 
@@ -214,6 +215,7 @@ function CardCustomFieldsPopover({ anchorEl, handleClose }) {
                         size="small"
                         placeholder={`Option ${index + 1}`}
                         value={opt.text}
+                        inputProps={{ maxLength: 50 }}
                         onChange={(e) => handleOptionChange(opt._id, e.target.value)}
                         sx={{
                           '& .MuiOutlinedInput-root': {

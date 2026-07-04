@@ -247,6 +247,7 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
                 value={editContent}
                 onChange={e => setEditContent(e.target.value)}
                 disabled={isSaving}
+                inputProps={{ maxLength: 5000 }}
               />
               <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                 <Button variant="contained" size="small" onClick={() => handleEditSave(rootComment._id, true)} disabled={isSaving || !editContent.trim()}>Lưu</Button>
@@ -370,6 +371,7 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
                       value={editContent}
                       onChange={e => setEditContent(e.target.value)}
                       disabled={isSaving}
+                      inputProps={{ maxLength: 5000 }}
                     />
                     <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                       <Button variant="contained" size="small" onClick={() => handleEditSave(reply._id, false)} disabled={isSaving || !editContent.trim()}>Lưu</Button>
@@ -437,10 +439,11 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
                fullWidth 
                autoFocus
                placeholder={targetUser ? `Trả lời ${targetUser}...` : `Trả lời ${rootComment.userDisplayName}...`}
-               value={replyText} 
+               value={replyText}
                onChange={e => setReplyText(e.target.value)}
                multiline
                disabled={isSending}
+               inputProps={{ maxLength: 5000 }}
                onKeyDown={(e) => {
                  if (e.key === 'Enter' && !e.shiftKey) {
                    e.preventDefault()

@@ -71,6 +71,7 @@ export const InviteWorkspaceMemberModal = ({ open, handleClose, workspaceId, onM
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            inputProps={{ maxLength: 254 }}
             sx={{ mb: 2 }}
             autoFocus
           />

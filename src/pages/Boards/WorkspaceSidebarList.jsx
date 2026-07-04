@@ -92,6 +92,8 @@ export const WorkspaceSidebarList = ({ currentUser, workspaces, currentWorkspace
             >
               <ListItemIcon sx={{ minWidth: 32 }}>
                 <Avatar
+                  src={wsp.logo || undefined}
+                  variant="rounded"
                   sx={{
                     width: 20,
                     height: 20,
@@ -102,7 +104,7 @@ export const WorkspaceSidebarList = ({ currentUser, workspaces, currentWorkspace
                     borderRadius: '4px' // Làm avatar hơi vuông cho khác bọt
                   }}
                 >
-                  {/* Chữ hoa hay bị lệch lên trong ô nhỏ do metric font -> nhích xuống ~1px cho cân theo chiều dọc */}
+                  {/* Fallback khi chưa có logo: chữ cái đầu. Chữ hoa hay bị lệch lên trong ô nhỏ do metric font -> nhích xuống ~1px cho cân theo chiều dọc */}
                   <Box component="span" sx={{ lineHeight: 1, transform: 'translateY(1px)' }}>
                     {wsp.title.charAt(0).toUpperCase()}
                   </Box>

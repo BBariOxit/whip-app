@@ -379,6 +379,16 @@ export const leaveWorkspaceAPI = async (workspaceId) => {
   return response.data
 }
 
+export const transferWorkspaceOwnershipAPI = async (workspaceId, targetUserId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/workspaces/${workspaceId}/transfer-ownership`, { targetUserId })
+  return response.data
+}
+
+export const updateWorkspaceLogoAPI = async (workspaceId, formData) => {
+  const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/workspaces/${workspaceId}/logo`, formData)
+  return response.data
+}
+
 export const leaveBoardAPI = async (boardId) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/${boardId}/leave`)
   return response.data

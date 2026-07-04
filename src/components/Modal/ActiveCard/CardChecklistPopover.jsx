@@ -55,6 +55,7 @@ function CardChecklistPopover({ anchorEl, handleClose, onAddChecklist }) {
           fullWidth
           size="small"
           value={title}
+          inputProps={{ maxLength: 100 }}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={handleKeyDown}
           autoFocus
