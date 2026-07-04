@@ -172,13 +172,21 @@ function Boards() {
   }
 
   const handleRenameSuccess = (newTitle, workspaceId) => {
-    const updatedWorkspaces = workspaces.map(w => 
+    const updatedWorkspaces = workspaces.map(w =>
       w._id === workspaceId ? { ...w, title: newTitle } : w
     )
     setWorkspaces(updatedWorkspaces)
 
     if (currentView.type === 'workspace' && currentView.id === workspaceId) {
       setCurrentView({ ...currentView, title: newTitle })
+    }
+  }
+
+  // Cập nhật workspace sau khi lưu ở tab Settings (title/description/...)
+  const handleWorkspaceUpdated = (updated) => {
+    setWorkspaces(prev => prev.map(w => w._id === updated._id ? { ...w, ...updated } : w))
+    if (currentView.type === 'workspace' && currentView.id === updated._id && updated.title) {
+      setCurrentView(prev => ({ ...prev, title: updated.title }))
     }
   }
 
@@ -311,6 +319,7 @@ function Boards() {
           onBoardUpdated={onBoardUpdated}
           onOpenDeleteWorkspace={handleConfirmDeleteWorkspace}
           onLeaveWorkspace={handleLeaveWorkspace}
+          onWorkspaceUpdated={handleWorkspaceUpdated}
         />
       </Box>
 

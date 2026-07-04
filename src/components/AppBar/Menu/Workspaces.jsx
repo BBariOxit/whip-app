@@ -93,12 +93,13 @@ function Workspaces() {
           const firstLetter = wsp.title.charAt(0).toUpperCase()
           return (
             <MenuItem key={wsp._id} onClick={() => handleGoToWorkspace(wsp._id)} sx={{ gap: 1.5, px: 2, py: 1 }}>
-              <Avatar 
-                variant="rounded" 
-                sx={{ 
-                  width: 28, 
-                  height: 28, 
-                  fontSize: '14px', 
+              <Avatar
+                src={wsp.logo || undefined}
+                variant="rounded"
+                sx={{
+                  width: 28,
+                  height: 28,
+                  fontSize: '14px',
                   fontWeight: 'bold',
                   bgcolor: stringToColor(wsp.title),
                   borderRadius: '6px'

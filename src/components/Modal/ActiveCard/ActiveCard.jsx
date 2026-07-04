@@ -331,6 +331,7 @@ function ActiveCard() {
             <ToggleFocusInput
               inputFontSize='22px'
               value={activeCard?.title}
+              inputProps={{ maxLength: 50 }}
               onChangedValue={onUpdateCardTitle} />
           )}
         </Box>

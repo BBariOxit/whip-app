@@ -139,6 +139,7 @@ function CardChecklistSection({ checklists = [], onUpdateChecklists }) {
                   <TextField
                     size="small"
                     value={editingChecklistTitle}
+                    inputProps={{ maxLength: 100 }}
                     onChange={(e) => setEditingChecklistTitle(e.target.value)}
                     onBlur={() => handleSaveChecklistTitle(checklist._id)}
                     onKeyDown={(e) => {
@@ -247,6 +248,7 @@ function CardChecklistSection({ checklists = [], onUpdateChecklists }) {
                     <TextField
                       size="small"
                       value={editingItemTitle}
+                      inputProps={{ maxLength: 500 }}
                       onChange={(e) => setEditingItemTitle(e.target.value)}
                       onBlur={() => handleSaveItemTitle(checklist._id, item._id)}
                       onKeyDown={(e) => {
@@ -308,6 +310,7 @@ function CardChecklistSection({ checklists = [], onUpdateChecklists }) {
                     size="small"
                     placeholder="Add an item"
                     value={newItemTitle}
+                    inputProps={{ maxLength: 500 }}
                     onChange={(e) => setNewItemTitle(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {

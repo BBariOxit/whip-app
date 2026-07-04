@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Box, Typography, Button, Pagination, PaginationItem, Tabs, Tab, TextField, Select, MenuItem, InputAdornment, Skeleton } from '@mui/material'
+import { Box, Typography, Button, Pagination, PaginationItem, Tabs, Tab, TextField, Select, MenuItem, InputAdornment, Skeleton, Switch, CircularProgress } from '@mui/material'
 import ChecklistIcon from '@mui/icons-material/Checklist'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ViewColumnIcon from '@mui/icons-material/ViewColumn'
@@ -8,6 +8,9 @@ import AddIcon from '@mui/icons-material/Add'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
+import LogoutIcon from '@mui/icons-material/Logout'
 import { Link } from 'react-router-dom'
 import { BoardCard } from './BoardCard'
 import { TemplateCard } from './TemplateCard'
@@ -16,9 +19,36 @@ import { WorkspaceMembersTable } from './WorkspaceMembersTable'
 import { InviteWorkspaceMemberModal } from '~/components/Modal/InviteWorkspaceMemberModal/InviteWorkspaceMemberModal'
 import { useDebounce } from '~/customHooks/useDebounce'
 import { useConfirm } from 'material-ui-confirm'
-import { leaveWorkspaceAPI } from '~/apis'
+import { leaveWorkspaceAPI, updateWorkspaceAPI, transferWorkspaceOwnershipAPI, updateWorkspaceLogoAPI, updateWorkspaceNotificationsAPI } from '~/apis'
 import { toast } from 'sonner'
 import { LeaveWorkspaceModal } from '~/components/Modal/LeaveWorkspaceModal/LeaveWorkspaceModal'
+
+// Icon + màu cho từng loại activity (UI-only, chưa nối backend)
+const ACTIVITY_META = {
+  create: { icon: ViewColumnIcon, color: '#2ea043', bg: 'rgba(46,160,67,0.15)' },
+  delete: { icon: DeleteIcon, color: '#f85149', bg: 'rgba(248,81,73,0.15)' },
+  invite: { icon: PersonAddIcon, color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
+  settings: { icon: SettingsOutlinedIcon, color: '#a371f7', bg: 'rgba(163,113,247,0.15)' },
+  leave: { icon: LogoutIcon, color: '#d29922', bg: 'rgba(210,153,34,0.15)' }
+}
+
+// Tuỳ chọn thông báo mặc định (khớp default backend) — dùng khi member chưa có prefs
+const DEFAULT_NOTIF_PREFS = {
+  memberJoins: true,
+  boardChanges: true,
+  weeklyDigest: false,
+  mentions: true,
+  boardActivity: false
+}
+
+// Dữ liệu mẫu để dựng giao diện — sẽ thay bằng API sau
+const SAMPLE_ACTIVITY = [
+  { id: 'a1', type: 'create', user: 'You', action: 'created board', target: 'Marketing Plan', time: '2 hours ago' },
+  { id: 'a2', type: 'invite', user: 'alooooo', action: 'invited', target: 'nam@example.com', time: 'Yesterday at 4:12 PM' },
+  { id: 'a3', type: 'settings', user: 'You', action: 'changed workspace visibility to', target: 'Private', time: '2 days ago' },
+  { id: 'a4', type: 'delete', user: 'ânn', action: 'deleted board', target: 'Old Sprint Q1', time: '4 days ago' },
+  { id: 'a5', type: 'leave', user: 'guest_user', action: 'left the workspace', target: '', time: 'Last week' }
+]
 
 export const MainContent = ({
   currentUser,
@@ -39,7 +69,8 @@ export const MainContent = ({
   onBoardUpdated,
   onOpenCreateBoard,
   onOpenDeleteWorkspace,
-  onLeaveWorkspace
+  onLeaveWorkspace,
+  onWorkspaceUpdated
 }) => {
   const [activeTab, setActiveTab] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
@@ -50,6 +81,21 @@ export const MainContent = ({
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const confirm = useConfirm()
   const scrollContainerRef = useRef(null)
+
+  // Notification preferences — tuỳ chọn cá nhân của user trong workspace này
+  const [notifPrefs, setNotifPrefs] = useState(DEFAULT_NOTIF_PREFS)
+
+  // Transfer ownership
+  const [newOwnerId, setNewOwnerId] = useState('')
+  const [isTransferring, setIsTransferring] = useState(false)
+
+  // Logo upload
+  const logoInputRef = useRef(null)
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+
+  // General form (title + description) — controlled để lưu được xuống backend
+  const [generalForm, setGeneralForm] = useState({ title: '', description: '' })
+  const [isSavingGeneral, setIsSavingGeneral] = useState(false)
 
   useEffect(() => {
     setActiveTab(0)
@@ -76,7 +122,135 @@ export const MainContent = ({
   }
   const userRole = getUserRole()
   const canManage = userRole === 'owner' || userRole === 'admin'
+  const isOwner = userRole === 'owner'
   const currentWorkspace = workspaces.find(w => w._id === currentView.id)
+
+  // Ứng viên nhận quyền sở hữu: mọi member trừ owner hiện tại và lời mời đang chờ
+  const transferableMembers = (currentWorkspace?.members || []).filter(
+    m => m.role !== 'owner' && m.userId !== currentUser?._id && m.status !== 'pending'
+  )
+
+  // Nạp giá trị workspace hiện tại vào form General mỗi khi đổi workspace / dữ liệu thay đổi
+  useEffect(() => {
+    setGeneralForm({
+      title: currentWorkspace?.title || '',
+      description: currentWorkspace?.description || ''
+    })
+  }, [currentWorkspace?._id, currentWorkspace?.title, currentWorkspace?.description])
+
+  const trimmedTitle = generalForm.title.trim()
+  const trimmedDesc = generalForm.description.trim()
+  const isGeneralDirty =
+    trimmedTitle !== (currentWorkspace?.title || '') ||
+    trimmedDesc !== (currentWorkspace?.description || '')
+
+  const handleSaveGeneral = async () => {
+    if (trimmedTitle.length < 3) {
+      toast.error('Workspace name must be at least 3 characters.')
+      return
+    }
+    setIsSavingGeneral(true)
+    try {
+      await updateWorkspaceAPI(currentWorkspace._id, { title: trimmedTitle, description: trimmedDesc })
+      toast.success('Workspace updated successfully!')
+      onWorkspaceUpdated?.({ _id: currentWorkspace._id, title: trimmedTitle, description: trimmedDesc })
+    } catch (error) {
+      toast.error('Error: ' + (error?.message || 'Failed to update workspace'))
+    } finally {
+      setIsSavingGeneral(false)
+    }
+  }
+
+  // Access & Security: lưu ngay khi đổi Select (optimistic, revert nếu lỗi)
+  const handleAccessChange = async (field, value) => {
+    const prevValue = currentWorkspace?.[field]
+    onWorkspaceUpdated?.({ _id: currentWorkspace._id, [field]: value })
+    try {
+      await updateWorkspaceAPI(currentWorkspace._id, { [field]: value })
+      toast.success('Settings updated!')
+    } catch (error) {
+      toast.error('Error: ' + (error?.message || 'Failed to update settings'))
+      onWorkspaceUpdated?.({ _id: currentWorkspace._id, [field]: prevValue })
+    }
+  }
+
+  // Nạp notification prefs của chính user từ bản ghi member (khi đổi workspace / dữ liệu load xong)
+  const myNotificationPrefs = currentWorkspace?.members?.find(m => m.userId === currentUser?._id)?.notificationPrefs
+  const myNotificationPrefsKey = JSON.stringify(myNotificationPrefs || null)
+  useEffect(() => {
+    setNotifPrefs({ ...DEFAULT_NOTIF_PREFS, ...(myNotificationPrefs || {}) })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentView.id, myNotificationPrefsKey])
+
+  // Bật/tắt 1 tuỳ chọn thông báo: cập nhật ngay (optimistic) + lưu backend + đồng bộ state cha
+  const handleToggleNotif = async (key) => {
+    const prev = notifPrefs
+    const next = { ...notifPrefs, [key]: !notifPrefs[key] }
+    setNotifPrefs(next)
+    try {
+      await updateWorkspaceNotificationsAPI(currentWorkspace._id, next)
+      const newMembers = (currentWorkspace.members || []).map(m =>
+        m.userId === currentUser?._id ? { ...m, notificationPrefs: next } : m
+      )
+      onWorkspaceUpdated?.({ _id: currentWorkspace._id, members: newMembers })
+    } catch (error) {
+      setNotifPrefs(prev)
+      toast.error('Error: ' + (error?.message || 'Failed to update notifications'))
+    }
+  }
+
+  // Transfer ownership (có confirm vì hành động không thể tự hoàn tác)
+  const handleTransferOwnership = () => {
+    if (!newOwnerId) return
+    const target = transferableMembers.find(m => (m.userId || m.email) === newOwnerId)
+    const targetName = target?.displayName || target?.email || 'this member'
+    confirm({
+      title: 'Transfer Ownership',
+      description: `Are you sure you want to make "${targetName}" the new owner? You will be demoted to Admin and lose owner privileges. This cannot be undone by you.`,
+      confirmationText: 'Transfer',
+      cancellationText: 'Cancel',
+      confirmationButtonProps: { color: 'error', variant: 'contained' },
+      buttonOrder: ['confirm', 'cancel']
+    }).then(async () => {
+      setIsTransferring(true)
+      try {
+        await transferWorkspaceOwnershipAPI(currentWorkspace._id, newOwnerId)
+        toast.success('Ownership transferred successfully!')
+        // Cập nhật role trong state: mình -> admin, target -> owner
+        const newMembers = (currentWorkspace.members || []).map(m => {
+          if (m.userId === currentUser?._id) return { ...m, role: 'admin' }
+          if (m.userId === newOwnerId) return { ...m, role: 'owner' }
+          return m
+        })
+        onWorkspaceUpdated?.({ _id: currentWorkspace._id, members: newMembers })
+        setNewOwnerId('')
+      } catch (error) {
+        toast.error('Error: ' + (error?.message || 'Failed to transfer ownership'))
+      } finally {
+        setIsTransferring(false)
+      }
+    }).catch(() => {})
+  }
+
+  // Logo upload
+  const handleLogoSelect = async (e) => {
+    const file = e.target?.files?.[0]
+    if (!file) return
+    const formData = new FormData()
+    formData.append('logo', file)
+    setIsUploadingLogo(true)
+    try {
+      const updated = await updateWorkspaceLogoAPI(currentWorkspace._id, formData)
+      const logoUrl = updated?.logo || updated?.value?.logo
+      toast.success('Logo updated successfully!')
+      onWorkspaceUpdated?.({ _id: currentWorkspace._id, logo: logoUrl })
+    } catch (error) {
+      toast.error('Error: ' + (error?.message || 'Failed to upload logo'))
+    } finally {
+      setIsUploadingLogo(false)
+      if (logoInputRef.current) logoInputRef.current.value = ''
+    }
+  }
 
   const handleLeaveWorkspace = () => {
     setLeaveModalOpen(true)
@@ -390,9 +564,11 @@ export const MainContent = ({
                   <TextField
                     fullWidth
                     size="small"
-                    defaultValue={currentWorkspace?.title || ''}
+                    value={generalForm.title}
+                    onChange={(e) => setGeneralForm(prev => ({ ...prev, title: e.target.value }))}
                     placeholder="My Workspace"
-                    disabled={!canManage}
+                    disabled={!isOwner || isSavingGeneral}
+                    inputProps={{ maxLength: 30 }}
                     sx={{
                       bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
                     }}
@@ -405,18 +581,26 @@ export const MainContent = ({
                     size="small"
                     multiline
                     rows={3}
-                    defaultValue={currentWorkspace?.description || ''}
+                    value={generalForm.description}
+                    onChange={(e) => setGeneralForm(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Describe what this workspace is for..."
-                    disabled={!canManage}
+                    disabled={!isOwner || isSavingGeneral}
+                    inputProps={{ maxLength: 255 }}
                     sx={{
                       bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
                     }}
                   />
                 </Box>
-                {canManage && (
+                {isOwner && (
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button variant="contained" size="small" sx={{ px: 3, boxShadow: 'none', '&:hover': { boxShadow: 'none' } }}>
-                      Save Changes
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={handleSaveGeneral}
+                      disabled={!isGeneralDirty || isSavingGeneral}
+                      sx={{ px: 3, boxShadow: 'none', '&:hover': { boxShadow: 'none' } }}
+                    >
+                      {isSavingGeneral ? 'Saving...' : 'Save Changes'}
                     </Button>
                   </Box>
                 )}
@@ -424,27 +608,61 @@ export const MainContent = ({
               {/* Right: Logo/Avatar Upload */}
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5, minWidth: '140px' }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>Logo</Typography>
-                <Box sx={{
-                  width: 100, height: 100, borderRadius: '16px',
-                  bgcolor: (theme) => theme.palette.mode === 'dark' ? '#21262d' : '#e2e8f0',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: '2px dashed',
-                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)',
-                  cursor: canManage ? 'pointer' : 'default',
-                  transition: 'all 0.2s',
-                  '&:hover': canManage ? {
-                    borderColor: 'primary.main',
-                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.05)',
-                  } : {},
-                  overflow: 'hidden'
-                }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.secondary', userSelect: 'none' }}>
-                    {currentWorkspace?.title?.charAt(0)?.toUpperCase() || 'W'}
-                  </Typography>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg"
+                  hidden
+                  onChange={handleLogoSelect}
+                />
+                <Box
+                  onClick={() => { if (isOwner && !isUploadingLogo) logoInputRef.current?.click() }}
+                  sx={{
+                    position: 'relative',
+                    width: 100, height: 100, borderRadius: '16px',
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#21262d' : '#e2e8f0',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: '2px dashed',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)',
+                    cursor: isOwner && !isUploadingLogo ? 'pointer' : 'default',
+                    transition: 'all 0.2s',
+                    '&:hover': isOwner ? {
+                      borderColor: 'primary.main',
+                      bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.05)',
+                    } : {},
+                    overflow: 'hidden'
+                  }}
+                >
+                  {currentWorkspace?.logo ? (
+                    <Box
+                      component="img"
+                      src={currentWorkspace.logo}
+                      alt="Workspace logo"
+                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.secondary', userSelect: 'none' }}>
+                      {currentWorkspace?.title?.charAt(0)?.toUpperCase() || 'W'}
+                    </Typography>
+                  )}
+                  {isUploadingLogo && (
+                    <Box sx={{
+                      position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      bgcolor: 'rgba(0,0,0,0.45)'
+                    }}>
+                      <CircularProgress size={26} sx={{ color: '#fff' }} />
+                    </Box>
+                  )}
                 </Box>
-                {canManage && (
-                  <Button variant="outlined" size="small" sx={{ fontSize: '12px', px: 2 }}>
-                    Upload
+                {isOwner && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={isUploadingLogo}
+                    sx={{ fontSize: '12px', px: 2 }}
+                  >
+                    {isUploadingLogo ? 'Uploading...' : 'Upload'}
                   </Button>
                 )}
               </Box>
@@ -469,10 +687,11 @@ export const MainContent = ({
                 </Box>
                 <Select
                   size="small"
-                  defaultValue="private"
-                  disabled={!canManage}
-                  sx={{ 
-                    minWidth: 150, 
+                  value={currentWorkspace?.visibility || 'private'}
+                  onChange={(e) => handleAccessChange('visibility', e.target.value)}
+                  disabled={!isOwner}
+                  sx={{
+                    minWidth: 150,
                     bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
                   }}
                 >
@@ -481,7 +700,7 @@ export const MainContent = ({
                 </Select>
               </Box>
               {/* Invite Permissions */}
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2.5, borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
                 <Box>
                   <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>Invite Permissions</Typography>
                   <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
@@ -490,9 +709,54 @@ export const MainContent = ({
                 </Box>
                 <Select
                   size="small"
-                  defaultValue="admin"
-                  disabled={!canManage}
-                  sx={{ 
+                  value={currentWorkspace?.invitePermission || 'admin'}
+                  onChange={(e) => handleAccessChange('invitePermission', e.target.value)}
+                  disabled={!isOwner}
+                  sx={{
+                    minWidth: 200,
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
+                  }}
+                >
+                  <MenuItem value="admin">Owner & Admin only</MenuItem>
+                  <MenuItem value="all">All members</MenuItem>
+                </Select>
+              </Box>
+              {/* Board Creation */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2.5, borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>Board Creation</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+                    Choose who can create new boards in this workspace.
+                  </Typography>
+                </Box>
+                <Select
+                  size="small"
+                  value={currentWorkspace?.boardCreation || 'all'}
+                  onChange={(e) => handleAccessChange('boardCreation', e.target.value)}
+                  disabled={!isOwner}
+                  sx={{
+                    minWidth: 200,
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
+                  }}
+                >
+                  <MenuItem value="all">All members</MenuItem>
+                  <MenuItem value="admin">Owner & Admin only</MenuItem>
+                </Select>
+              </Box>
+              {/* Board Deletion */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>Board Deletion</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+                    Choose who can permanently delete boards in this workspace.
+                  </Typography>
+                </Box>
+                <Select
+                  size="small"
+                  value={currentWorkspace?.boardDeletion || 'admin'}
+                  onChange={(e) => handleAccessChange('boardDeletion', e.target.value)}
+                  disabled={!isOwner}
+                  sx={{
                     minWidth: 200,
                     bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
                   }}
@@ -504,7 +768,110 @@ export const MainContent = ({
             </Box>
           </Box>
 
-          {/* ═══════════ 3. BILLING & PLAN ═══════════ */}
+          {/* ═══════════ 3. NOTIFICATIONS ═══════════ */}
+          <Box id="settings-notifications" sx={{
+            p: 3, borderRadius: 2, border: '1px solid',
+            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#fff'
+          }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: 'text.primary' }}>Notifications</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
+              Choose which updates from this workspace you want to be notified about.
+            </Typography>
+
+            {/* Email group */}
+            <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Email
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', mt: 0.5, mb: 3 }}>
+              {[
+                { key: 'memberJoins', label: 'New member joins', desc: 'When someone accepts an invite to this workspace.' },
+                { key: 'boardChanges', label: 'Board created or deleted', desc: 'When a board is added to or removed from the workspace.' },
+                { key: 'weeklyDigest', label: 'Weekly activity digest', desc: 'A summary of workspace activity every Monday.' }
+              ].map((item, idx, arr) => (
+                <Box key={item.key} sx={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5,
+                  borderBottom: idx < arr.length - 1 ? '1px solid' : 'none',
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+                }}>
+                  <Box sx={{ pr: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{item.label}</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
+                  </Box>
+                  <Switch checked={notifPrefs[item.key]} onChange={() => handleToggleNotif(item.key)} />
+                </Box>
+              ))}
+            </Box>
+
+            {/* In-app group */}
+            <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              In-app
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', mt: 0.5 }}>
+              {[
+                { key: 'mentions', label: 'Mentions', desc: 'When someone @mentions you in a card or comment.' },
+                { key: 'boardActivity', label: 'Board activity', desc: 'Updates on boards you are a member of.' }
+              ].map((item, idx, arr) => (
+                <Box key={item.key} sx={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5,
+                  borderBottom: idx < arr.length - 1 ? '1px solid' : 'none',
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+                }}>
+                  <Box sx={{ pr: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{item.label}</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
+                  </Box>
+                  <Switch checked={notifPrefs[item.key]} onChange={() => handleToggleNotif(item.key)} />
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          {/* ═══════════ 4. ACTIVITY LOG ═══════════ */}
+          <Box id="settings-activity" sx={{
+            p: 3, borderRadius: 2, border: '1px solid',
+            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#fff'
+          }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>Activity Log</Typography>
+              <Button size="small" sx={{ textTransform: 'none', fontWeight: 600 }}>View all</Button>
+            </Box>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+              Recent actions taken by members in this workspace.
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              {SAMPLE_ACTIVITY.map((act, idx) => {
+                const meta = ACTIVITY_META[act.type]
+                const ActIcon = meta.icon
+                return (
+                  <Box key={act.id} sx={{
+                    display: 'flex', gap: 2, alignItems: 'flex-start', py: 1.75,
+                    borderBottom: idx < SAMPLE_ACTIVITY.length - 1 ? '1px solid' : 'none',
+                    borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+                  }}>
+                    <Box sx={{
+                      width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      bgcolor: meta.bg, color: meta.color
+                    }}>
+                      <ActIcon sx={{ fontSize: 18 }} />
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                        <Box component="span" sx={{ fontWeight: 700 }}>{act.user}</Box>
+                        {' '}{act.action}{act.target ? ' ' : ''}
+                        {act.target && <Box component="span" sx={{ fontWeight: 600 }}>{act.target}</Box>}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>{act.time}</Typography>
+                    </Box>
+                  </Box>
+                )
+              })}
+            </Box>
+          </Box>
+
+          {/* ═══════════ 5. BILLING & PLAN ═══════════ */}
           <Box id="settings-billing" sx={{ 
             p: 3, borderRadius: 2, border: '1px solid', 
             borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
@@ -582,7 +949,56 @@ export const MainContent = ({
             display: 'flex', flexDirection: 'column', gap: 2
           }}>
             <Typography variant="h6" sx={{ color: '#f85149', fontWeight: 'bold' }}>Danger Zone</Typography>
-            
+
+            {/* Transfer Ownership */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, pb: 2, borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+              <Box>
+                <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>Transfer ownership</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {userRole === 'owner'
+                    ? 'Hand this workspace over to another member. You will become an admin.'
+                    : 'Only the owner can transfer ownership of this workspace.'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexShrink: 0 }}>
+                <Select
+                  size="small"
+                  displayEmpty
+                  value={newOwnerId}
+                  onChange={(e) => setNewOwnerId(e.target.value)}
+                  disabled={userRole !== 'owner' || transferableMembers.length === 0 || isTransferring}
+                  renderValue={(selected) => {
+                    if (!selected) return <Box component="span" sx={{ color: 'text.secondary' }}>Select a member</Box>
+                    const m = transferableMembers.find(mem => (mem.userId || mem.email) === selected)
+                    return m?.displayName || m?.email || 'Member'
+                  }}
+                  sx={{
+                    minWidth: 190,
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
+                  }}
+                >
+                  {transferableMembers.length === 0 && (
+                    <MenuItem value="" disabled>No eligible members</MenuItem>
+                  )}
+                  {transferableMembers.map((m) => (
+                    <MenuItem key={m.userId || m.email} value={m.userId || m.email}>
+                      {m.displayName || m.email || 'Member'}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<SwapHorizIcon />}
+                  onClick={handleTransferOwnership}
+                  disabled={userRole !== 'owner' || !newOwnerId || isTransferring}
+                  sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}
+                >
+                  {isTransferring ? 'Transferring...' : 'Transfer'}
+                </Button>
+              </Box>
+            </Box>
+
             {/* Leave Workspace */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2, borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
               <Box>
@@ -632,6 +1048,8 @@ export const MainContent = ({
             {[
               { id: 'settings-general', label: 'General' },
               { id: 'settings-access', label: 'Access & Security' },
+              { id: 'settings-notifications', label: 'Notifications' },
+              { id: 'settings-activity', label: 'Activity Log' },
               { id: 'settings-billing', label: 'Billing & Plan' },
               { id: 'settings-data', label: 'Data Management' },
               { id: 'settings-danger', label: 'Danger Zone' }

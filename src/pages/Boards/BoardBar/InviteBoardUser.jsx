@@ -110,6 +110,7 @@ function InviteBoardUser({ boardId, boardMembers = [], workspaceMembers = [] }) 
                 label="Enter email to invite..."
                 type="text"
                 variant="outlined"
+                inputProps={{ maxLength: 254 }}
                 {...register('inviteeEmail', {
                   required: FIELD_REQUIRED_MESSAGE,
                   pattern: { value: EMAIL_RULE, message: EMAIL_RULE_MESSAGE }

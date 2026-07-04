@@ -204,6 +204,7 @@ function ListColumns({ columns }) {
                 variant='outlined'
                 autoFocus
                 value={newColumntitle}
+                inputProps={{ maxLength: 50 }}
                 onChange = {(e) => setNewColumntitle(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {

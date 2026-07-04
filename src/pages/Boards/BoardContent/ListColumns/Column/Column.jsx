@@ -447,6 +447,7 @@ function Column({ column }) {
           <ToggleFocusInput
             value={column?.title}
             onChangedValue={onUpdateColumnTitle}
+            inputProps={{ maxLength: 50 }}
             data-no-dnd="true"
             disabled={isReadOnly}
           />
@@ -766,6 +767,7 @@ function Column({ column }) {
                   autoFocus
                   data-no-dnd= 'true'
                   value={newCardtitle}
+                  inputProps={{ maxLength: 50 }}
                   onChange = {(e) => setNewCardtitle(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {

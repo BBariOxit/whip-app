@@ -104,19 +104,21 @@ function AccountTab() {
               />
 
               <Box>
-                <TextField 
-                  label="Display Name" 
+                <TextField
+                  label="Display Name"
                   fullWidth
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { 
+                  inputProps={{ maxLength: 50 }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
                       bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa',
                       '& fieldset': { borderWidth: '1px !important', transition: 'none !important' },
                       '&:hover fieldset': { borderWidth: '2px !important' },
                       '&.Mui-focused fieldset': { borderWidth: '2px !important' }
-                    } 
+                    }
                   }}
                   {...register('displayName', {
-                    required: FIELD_REQUIRED_MESSAGE
+                    required: FIELD_REQUIRED_MESSAGE,
+                    maxLength: { value: 50, message: 'Display Name cannot exceed 50 characters' }
                   })}
                   error={!!errors['displayName']}
                 />
