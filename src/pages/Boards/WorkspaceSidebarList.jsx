@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { Box, Typography, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Avatar, Menu, MenuItem } from '@mui/material'
-import AddBoxIcon from '@mui/icons-material/AddBox'
+import { Box, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Avatar, Menu, MenuItem } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 
-export const WorkspaceSidebarList = ({ currentUser, workspaces, currentWorkspaceId, onSelectWorkspace, onOpenCreateModal, onOpenDeleteModal, onOpenRenameModal }) => {
+export const WorkspaceSidebarList = ({ currentUser, workspaces, currentWorkspaceId, onSelectWorkspace, onOpenDeleteModal, onOpenRenameModal }) => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [activeWorkspace, setActiveWorkspace] = useState(null)
 
@@ -50,24 +49,14 @@ export const WorkspaceSidebarList = ({ currentUser, workspaces, currentWorkspace
   }
 
   return (
-    <Box sx={{ mt: 3 }}>
-      {/* HEADER: Chữ WORKSPACES và nút Cộng */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, mb: 1 }}>
-        <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#8b949e', letterSpacing: '0.5px' }}>
-          WORKSPACES
-        </Typography>
-        <IconButton size="small" sx={{ color: '#8b949e' }} onClick={onOpenCreateModal}>
-          <AddBoxIcon fontSize="small" />
-        </IconButton>
-      </Box>
-
-      {/* LIST CÁC WORKSPACE */}
+    <Box>
+      {/* LIST CÁC WORKSPACE (header "Workspaces" đã có ở Sidebar cha) */}
       <List disablePadding>
         {workspaces.map((wsp) => {
           const isActive = wsp._id === currentWorkspaceId
           const userRole = getUserRole(wsp)
           const canManage = userRole === 'owner'
-          
+
           return (
             <ListItemButton
               key={wsp._id}
@@ -110,30 +99,30 @@ export const WorkspaceSidebarList = ({ currentUser, workspaces, currentWorkspace
                   </Box>
                 </Avatar>
               </ListItemIcon>
-              <ListItemText 
-                primary={wsp.title} 
-                primaryTypographyProps={{ 
-                  fontSize: '14px', 
+              <ListItemText
+                primary={wsp.title}
+                primaryTypographyProps={{
+                  fontSize: '14px',
                   fontWeight: isActive ? 600 : 500,
-                  color: isActive ? 'text.primary' : '#c9d1d9',
+                  color: isActive ? 'text.primary' : 'text.secondary',
                   sx: {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     pr: 1 // Add a bit of padding before the icon
                   }
-                }} 
+                }}
               />
 
               {canManage && (
-                <IconButton 
+                <IconButton
                   className="action-menu"
                   size="small"
                   onClick={(e) => handleOpenMenu(e, wsp)}
-                  sx={{ 
+                  sx={{
                     opacity: 0,
                     transition: 'opacity 0.2s',
-                    color: '#8b949e',
+                    color: 'text.secondary',
                     flexShrink: 0,
                     width: '28px',
                     height: '28px',
@@ -157,7 +146,7 @@ export const WorkspaceSidebarList = ({ currentUser, workspaces, currentWorkspace
         onClick={(e) => e.stopPropagation()}
         PaperProps={{ sx: { bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1c2128' : '#fff', borderRadius: '8px', minWidth: '150px' } }}
       >
-        <MenuItem onClick={() => { onOpenRenameModal(activeWorkspace); handleCloseMenu(); }} sx={{ fontSize: '14px', py: 1, gap: 1 }}>
+        <MenuItem onClick={() => { onOpenRenameModal(activeWorkspace); handleCloseMenu() }} sx={{ fontSize: '14px', py: 1, gap: 1 }}>
           <EditOutlinedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
           Rename
         </MenuItem>

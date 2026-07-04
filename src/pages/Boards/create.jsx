@@ -66,13 +66,13 @@ const SecurityCard = ({ icon, title, description, checked, onClick }) => (
       display: 'flex',
       gap: 1.5,
       transition: 'all 0.2s',
-      '&:hover': { borderColor: checked ? '#58a6ff' : '#444c56' }
+      '&:hover': { borderColor: (theme) => checked ? '#58a6ff' : (theme.palette.mode === 'dark' ? '#444c56' : '#b0bac4') }
     }}
   >
-    <Box sx={{ color: checked ? '#58a6ff' : '#768390', mt: 0.5 }}>{icon}</Box>
+    <Box sx={{ color: checked ? '#58a6ff' : 'text.secondary', mt: 0.5 }}>{icon}</Box>
     <Box>
       <Typography sx={{ fontWeight: 600, fontSize: '14px', color: checked ? (theme) => theme.palette.mode === 'dark' ? '#fff' : '#24292f' : (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a' }}>{title}</Typography>
-      <Typography sx={{ fontSize: '12px', color: '#768390' }}>{description}</Typography>
+      <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>{description}</Typography>
     </Box>
   </Box>
 )
@@ -86,7 +86,7 @@ export const ColorPickerInput = ({ label, color, onChange }) => {
 
   return (
     <Box sx={{ mb: 2 }}>
-      <Typography sx={{ fontSize: '12px', color: '#768390', mb: 1 }}>{label}</Typography>
+      <Typography sx={{ fontSize: '12px', color: 'text.secondary', mb: 1 }}>{label}</Typography>
       
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
         <Box
@@ -97,14 +97,14 @@ export const ColorPickerInput = ({ label, color, onChange }) => {
             borderRadius: '8px',
             bgcolor: color,
             cursor: 'pointer',
-            border: '2px solid #30363d',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            border: (theme) => theme.palette.mode === 'dark' ? '2px solid #30363d' : '2px solid #d0d7de',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             transition: 'transform 0.1s',
-            '&:hover': { transform: 'scale(1.05)', borderColor: '#444c56' }
+            '&:hover': { transform: 'scale(1.05)', borderColor: (theme) => theme.palette.mode === 'dark' ? '#444c56' : '#8c959f' }
           }}
         />
         
-        <Typography sx={{ fontFamily: 'monospace', fontSize: '14px', color: '#adbac7', textTransform: 'uppercase' }}>
+        <Typography sx={{ fontFamily: 'monospace', fontSize: '14px', color: 'text.secondary', textTransform: 'uppercase' }}>
           {color}
         </Typography>
       </Box>
@@ -118,10 +118,10 @@ export const ColorPickerInput = ({ label, color, onChange }) => {
         sx={{
           '& .MuiPaper-root': {
             p: 1.5,
-            bgcolor: '#1f242c',
-            border: '1px solid #30363d',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1f242c' : '#fff',
+            border: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : '1px solid #d0d7de',
             borderRadius: '12px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+            boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 8px 24px rgba(0,0,0,0.5)' : '0 8px 24px rgba(15,23,42,0.15)'
           }
         }}
       >
@@ -201,7 +201,7 @@ export function BoardModalForm({ isOpen, handleClose, initialData, onSubmit, tit
       }}
       onClick={(e) => e.stopPropagation()}
       >
-        <IconButton onClick={handleClose} sx={{ position: 'absolute', top: 16, right: 16, color: '#768390', '&:hover': { color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000' } }}>
+        <IconButton onClick={handleClose} sx={{ position: 'absolute', top: 16, right: 16, color: 'text.secondary', '&:hover': { color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000' } }}>
           <CloseIcon />
         </IconButton>
 
@@ -322,7 +322,7 @@ export function BoardModalForm({ isOpen, handleClose, initialData, onSubmit, tit
                     <Checkbox 
                       checked={isGradient} 
                       onChange={(e) => setIsGradient(e.target.checked)}
-                      sx={{ color: '#768390', '&.Mui-checked': { color: '#58a6ff' } }}
+                      sx={{ color: 'text.secondary', '&.Mui-checked': { color: '#58a6ff' } }}
                     />
                   }
                   label={<Typography sx={{ fontSize: '13px', color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a' }}>Use gradient</Typography>}

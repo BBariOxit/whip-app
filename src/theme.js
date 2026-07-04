@@ -10,7 +10,7 @@ const COLUMN_FOOTER_HEIGHT = '3.5rem'
 const APP_COLORS = {
   light: {
     primary: '#3b82f6', // Blue 500 (softer blue)
-    bgApp: '#f8fafc', // slate-50
+    bgApp: '#eef2f7', // slate-100/200 blend — enough contrast so white cards read as raised, not flat
     bgColumn: '#e2e8f0', // slate-200 for excellent contrast with white cards
     bgCard: '#ffffff',
     bgAppBar: '#ffffff',
@@ -92,7 +92,7 @@ const theme = extendTheme({
         body: {
           fontFamily: 'Inter, sans-serif',
           ...(theme.palette.mode === 'light' && {
-            backgroundColor: '#f8fafc'
+            backgroundColor: '#eef2f7'
           }),
           ...(theme.palette.mode === 'dark' && {
             backgroundColor: '#0f1117'

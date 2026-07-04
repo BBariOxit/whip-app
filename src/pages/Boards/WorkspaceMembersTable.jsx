@@ -105,10 +105,10 @@ export const WorkspaceMembersTable = ({ workspaceId }) => {
         <Table sx={{ minWidth: 650 }} aria-label="members table">
           <TableHead sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? '#21262d' : '#f6f8fa' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid #30363d' }}>User</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid #30363d' }}>Role</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid #30363d' }}>Joined At</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid #30363d' }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>User</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>Role</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>Joined At</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: 'text.primary', borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           

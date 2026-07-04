@@ -110,7 +110,7 @@ function TemplateManagerDrawer({ isOpen, onClose, boardId, currentUser }) {
                       </IconButton>
                     </Box>
                   ) : (
-                    <Typography fontSize="12px" color="#768390" sx={{ ml: 1, whiteSpace: 'nowrap' }}>View only</Typography>
+                    <Typography fontSize="12px" color="text.secondary" sx={{ ml: 1, whiteSpace: 'nowrap' }}>View only</Typography>
                   )}
                 </ListItem>
               ))
@@ -141,7 +141,7 @@ function TemplateManagerDrawer({ isOpen, onClose, boardId, currentUser }) {
                       </IconButton>
                     </Box>
                   ) : (
-                    <Typography fontSize="12px" color="#768390" sx={{ ml: 1, whiteSpace: 'nowrap' }}>View only</Typography>
+                    <Typography fontSize="12px" color="text.secondary" sx={{ ml: 1, whiteSpace: 'nowrap' }}>View only</Typography>
                   )}
                 </ListItem>
               ))

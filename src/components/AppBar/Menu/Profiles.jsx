@@ -97,7 +97,7 @@ function Profiles() {
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ fontWeight: 600, fontSize: '14px' }}>{currentUser?.displayName || 'Profile'}</Box>
-            {currentUser?.username && <Box sx={{ fontSize: '12px', color: '#768390' }}>@{currentUser?.username}</Box>}
+            {currentUser?.username && <Box sx={{ fontSize: '12px', color: 'text.secondary' }}>@{currentUser?.username}</Box>}
           </Box>
         </MenuItem>
 

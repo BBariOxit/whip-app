@@ -26,10 +26,10 @@ function AppBar({ onOpenCreateBoard, onOpenCreateWorkspace }) {
       gap: 2,
       paddingX: 2,
       overflowX: 'auto',
-      bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'background.paper' : '#e0f2fe'),
+      bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'background.paper' : 'background.appBar'),
       borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
       boxShadow: (theme) => (theme.palette.mode === 'light'
-        ? '0 1px 3px 0 rgb(0 0 0 / 0.05)'
+        ? '0 1px 3px 0 rgb(15 23 42 / 0.06)'
         : 'none'),
       '&::-webkit-scrollbar-track': { m: 2 }
     }}>

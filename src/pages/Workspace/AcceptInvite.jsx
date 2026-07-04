@@ -119,7 +119,7 @@ export const AcceptInvite = () => {
               variant="outlined" 
               fullWidth 
               onClick={() => navigate('/')}
-              sx={{ borderColor: '#30363d', color: 'text.primary', '&:hover': { borderColor: '#8b949e' } }}
+              sx={{ borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de', color: 'text.primary', '&:hover': { borderColor: '#8b949e' } }}
             >
               Go to Dashboard
             </Button>

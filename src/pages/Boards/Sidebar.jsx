@@ -98,7 +98,6 @@ export const Sidebar = ({ currentUser, currentView, handleViewChange, afterCreat
           workspaces={workspaces}
           currentWorkspaceId={currentView.type === 'workspace' ? currentView.id : null}
           onSelectWorkspace={(id, title) => handleViewChange({ type: 'workspace', id, title })}
-          onOpenCreateModal={onOpenCreateWorkspace}
           onOpenRenameModal={onOpenRenameWorkspace}
           onOpenDeleteModal={onOpenDeleteWorkspace}
         />

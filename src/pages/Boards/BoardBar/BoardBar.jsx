@@ -405,7 +405,7 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
             onClick={() => handleToggleVisibility('private')}
             selected={board?.type === 'private'}
           >
-            <ListItemIcon><LockIcon sx={{ color: '#768390' }} fontSize="small" /></ListItemIcon>
+            <ListItemIcon><LockIcon sx={{ color: 'text.secondary' }} fontSize="small" /></ListItemIcon>
             <ListItemText 
               primaryTypographyProps={{ fontSize: 14 }}
               primary="Private" 
