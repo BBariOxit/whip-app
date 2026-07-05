@@ -46,6 +46,15 @@ export const markAllNotificationsReadAPI = createAsyncThunk(
   }
 )
 
+// Xoá (ẩn) 1 thông báo chung
+export const deleteNotificationAPI = createAsyncThunk(
+  'notifications/deleteNotificationAPI',
+  async (notificationId) => {
+    await authorizedAxiosInstance.delete(`${API_ROOT}/v1/notifications/${notificationId}`)
+    return notificationId
+  }
+)
+
 // API cập nhật trạng thái lời mời vào Board (Accept / Reject)
 export const updateBoardInvitationAPI = createAsyncThunk(
   'notifications/updateBoardInvitationAPI',
@@ -111,6 +120,16 @@ export const notificationsSlice = createSlice({
     builder.addCase(markAllNotificationsReadAPI.fulfilled, (state) => {
       state.inAppNotifications.forEach(n => { n.isRead = true })
       state.unreadCount = 0
+    })
+
+    builder.addCase(deleteNotificationAPI.fulfilled, (state, action) => {
+      const removedId = action.payload
+      const target = state.inAppNotifications.find(n => n._id === removedId)
+      // Nếu xoá 1 thông báo chưa đọc thì giảm bộ đếm chưa đọc
+      if (target && !target.isRead) {
+        state.unreadCount = Math.max(0, state.unreadCount - 1)
+      }
+      state.inAppNotifications = state.inAppNotifications.filter(n => n._id !== removedId)
     })
   }
 })

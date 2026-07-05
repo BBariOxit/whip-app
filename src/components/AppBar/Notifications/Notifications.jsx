@@ -11,9 +11,11 @@ import Button from '@mui/material/Button'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Divider from '@mui/material/Divider'
+import IconButton from '@mui/material/IconButton'
 import GroupAddIcon from '@mui/icons-material/GroupAdd'
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
+import CloseIcon from '@mui/icons-material/Close'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   selectCurrentNotifications,
@@ -24,6 +26,7 @@ import {
   updateBoardInvitationAPI,
   markNotificationReadAPI,
   markAllNotificationsReadAPI,
+  deleteNotificationAPI,
   addNotification,
   addInAppNotification
 } from '~/redux/notifications/notificationsSlice'
@@ -113,13 +116,25 @@ function Notifications() {
     if (notif.boardId) navigate(`/boards/${notif.boardId}`)
   }
 
+  // Xoá (ẩn) 1 thông báo chung — chặn nổi bọt để không kích hoạt điều hướng của MenuItem
+  const handleDismissGeneric = (event, notifId) => {
+    event.stopPropagation()
+    dispatch(deleteNotificationAPI(notifId))
+  }
+
   // Gộp lời mời + thông báo chung, sắp xếp mới nhất lên đầu
   const mergedList = [
     ...(invitations || []),
     ...(inAppNotifications || [])
   ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
-  const hasDot = newNotification || unreadCount > 0
+  // Chuông sáng khi: có lời mời đang chờ (PENDING) HOẶC có thông báo in-app chưa đọc.
+  // Cả 2 đều lấy từ redux (sống qua remount + được refetch) nên không bị mất chỉ vì đổi route.
+  // Giữ newNotification để bật chấm tức thì khi có tin real-time đến.
+  const hasPendingInvite = (invitations || []).some(
+    i => i.boardInvitation?.status === BOARD_INVITATION_STATUS.PENDING
+  )
+  const hasDot = newNotification || hasPendingInvite || unreadCount > 0
 
   return (
     <Box>
@@ -304,9 +319,24 @@ function Notifications() {
                         {dayjs(item.createdAt).format('MMM D, YYYY h:mm A')}
                       </Typography>
                     </Box>
-                    {!item.isRead && (
-                      <Box sx={{ flexShrink: 0, width: 8, height: 8, borderRadius: '50%', bgcolor: '#3b82f6', mt: 1 }} />
-                    )}
+                    <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                      {!item.isRead && (
+                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#3b82f6' }} />
+                      )}
+                      <Tooltip title="Dismiss">
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleDismissGeneric(e, item._id)}
+                          sx={{
+                            p: 0.25,
+                            color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#64748b',
+                            '&:hover': { color: (theme) => theme.palette.mode === 'dark' ? '#e2e8f0' : '#0f172a' }
+                          }}
+                        >
+                          <CloseIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
                   </Box>
                 )}
               </MenuItem>

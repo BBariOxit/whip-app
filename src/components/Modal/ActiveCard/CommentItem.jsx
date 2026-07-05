@@ -22,6 +22,20 @@ import { useConfirm } from 'material-ui-confirm'
 
 import { getCommentRepliesAPI, createCommentAPI, updateCommentAPI, deleteCommentAPI } from '~/apis'
 
+// Tách "@tên" khỏi phần text thường (dùng nhóm bắt để split giữ lại token). Khớp với regex phía BE.
+const MENTION_SPLIT_REGEX = /(@[\p{L}\p{N}._-]+)/gu
+const isMentionToken = (part) => /^@[\p{L}\p{N}._-]+$/u.test(part)
+
+// Render nội dung comment, tô màu các đoạn @mention để dễ nhận biết
+const renderCommentContent = (content) => {
+  if (!content) return null
+  return content.split(MENTION_SPLIT_REGEX).map((part, index) => (
+    isMentionToken(part)
+      ? <Box key={index} component="span" sx={{ color: 'primary.main', fontWeight: 600 }}>{part}</Box>
+      : part
+  ))
+}
+
 const CommentActionMenu = ({ onEdit, onDelete }) => {
   const [anchorEl, setAnchorEl] = useState(null)
   const openMenu = Boolean(anchorEl)
@@ -269,7 +283,7 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
                 lineHeight: '1.5',
                 mt: 0.5
               }}>
-                {rootComment.content}
+                {renderCommentContent(rootComment.content)}
               </Box>
               {rootComment.updatedAt && (
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', fontSize: '11px', mb: 0.5 }}>
@@ -393,7 +407,7 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
                       lineHeight: '1.5',
                       mt: 0.5
                     }}>
-                      {reply.content}
+                      {renderCommentContent(reply.content)}
                     </Box>
                     {reply.updatedAt && (
                       <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', fontSize: '11px', mb: 0.5 }}>
