@@ -4,26 +4,51 @@
 ![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-![React](https://img.shields.io/badge/React-18-00d8ff?logo=react&logoColor=white&labelColor=333333) ![Vite](https://img.shields.io/badge/Vite-4-646CFF?logo=vite&logoColor=white&labelColor=333333) ![MUI](https://img.shields.io/badge/MUI-5-007FFF?logo=mui&logoColor=white&labelColor=333333) ![Redux](https://img.shields.io/badge/State-Redux_Toolkit-764ABC?logo=redux&logoColor=white&labelColor=333333) ![React Router](https://img.shields.io/badge/Router-React_Router-CA4245?logo=reactrouter&logoColor=white&labelColor=333333) ![dnd-kit](https://img.shields.io/badge/Drag_&_Drop-dnd--kit-FF4154?logoColor=white&labelColor=333333)
+![React](https://img.shields.io/badge/React-18-00d8ff?logo=react&logoColor=white&labelColor=333333) ![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white&labelColor=333333) ![MUI](https://img.shields.io/badge/MUI-5-007FFF?logo=mui&logoColor=white&labelColor=333333) ![Redux](https://img.shields.io/badge/State-Redux_Toolkit-764ABC?logo=redux&logoColor=white&labelColor=333333) ![React Router](https://img.shields.io/badge/Router-React_Router_6-CA4245?logo=reactrouter&logoColor=white&labelColor=333333) ![dnd-kit](https://img.shields.io/badge/Drag_&_Drop-dnd--kit-FF4154?logoColor=white&labelColor=333333) ![Socket.io](https://img.shields.io/badge/Realtime-Socket.io-010101?logo=socket.io&logoColor=white&labelColor=333333)
 
 ## 🎯 Introduction
-Whip App is an intuitive, high-performance task management application featuring a seamless drag-and-drop interface. Designed to help developers organize tasks, boards, and cards efficiently, it offers a modern, lightweight, and superior alternative to traditional project management tools.
+Whip App is a modern, real-time project management application — a Trello-style Kanban workspace with a seamless drag-and-drop experience. It helps teams organize work across workspaces, boards, and cards, with rich collaboration features like comments, @mentions, live notifications, and role-based access control. Built for speed with React 18 + Vite and a polished Material UI interface.
+
+> This is the **frontend** of the Whip project. It talks to the **Whip API** backend (separate repository).
 
 ## 🛠 Tech Stack
-This project is built using modern and robust technologies:
-- **Core:** React 18
-- **Bundler:** Vite (for lightning-fast development server start times ⚡)
-- **Styling/UI:** Material UI (MUI v5) & Emotion
-- **State Management:** Redux Toolkit & Redux Persist
-- **Drag & Drop:** `@dnd-kit` for a smooth interaction experience
+- **Core:** React 18 + Vite 5 (lightning-fast dev server ⚡)
+- **UI:** Material UI (MUI v5) & Emotion — with dark/light mode
+- **State:** Redux Toolkit & Redux Persist
+- **Drag & Drop:** `@dnd-kit` for a smooth, accessible board experience
 - **Routing:** React Router v6
+- **Real-time:** Socket.io Client (live comments & notifications)
+- **Forms & Content:** React Hook Form, `@uiw/react-md-editor` (Markdown), Day.js
+- **Auth & UX:** Google OAuth (`@react-oauth/google`), Sonner (toasts), Material UI Confirm
 
 ## 🔥 Key Features
-The core functionalities that make this application stand out:
-- 🎨 **Modern Interface:** A sleek and highly responsive UI built with MUI components.
-- 🚀 **Blazing Fast Rendering:** Powered by Vite for optimal performance.
-- 🖱️ **Fluid Drag & Drop:** Seamlessly move tasks between columns with a highly optimized drag-and-drop system.
-- 💾 **State Persistence:** Never lose your ongoing work, even after refreshing the page, thanks to Redux Persist.
+
+**🏢 Workspaces & Collaboration**
+- Multiple workspaces with role-based access — **Owner / Admin / Member**
+- Invite members by email, transfer ownership, leave or delete a workspace
+- Per-member notification preferences
+
+**📋 Boards & Kanban**
+- Fluid drag-and-drop of columns and cards
+- Board visibility: **Private / Public / Workspace-visible**
+- Board & card templates, archiving, favorites (starred), move board
+- Global board search + in-workspace search & sorting
+
+**🗂️ Rich Cards**
+- Labels, checklists, due dates, cover images, attachments (Cloudinary)
+- Custom fields, card members, and a Markdown description editor
+- Comments & threaded replies with **@mention autocomplete**
+- Per-card activity log
+
+**🔔 Real-time & Notifications**
+- Live comments and notifications via Socket.io
+- In-app **and** email notifications (mentions, board created/deleted, member joins)
+- Notification bell with unread count, mark-as-read, and dismiss
+
+**✨ Experience**
+- Dark / Light theme
+- State persistence with Redux Persist — never lose your work on refresh
+- Google sign-in
 
 ## 🚀 Getting Started
 Follow these instructions to set up the project locally:
@@ -42,20 +67,30 @@ npm install
 npm run dev
 ```
 
+The app connects to the backend automatically based on `BUILD_MODE` (`dev` / `production`), so no API URL configuration is required.
+
 ## ⚙️ Environment Variables
-(Currently, the application can run without complex environment variables. For API connection configurations, you can create a `.env` file referencing the backend team's specifications.)
+Only needed for social login. Create a `.env` file in the root:
+
+```env
+VITE_GOOGLE_CLIENT_ID='<your-google-oauth-client-id>'
+VITE_GITHUB_CLIENT_ID='<your-github-oauth-client-id>'
+```
 
 ## 📸 Demo & Screenshots
-Here is a preview of the Whip App interface:
+A preview of the Whip App interface:
 
-### Board Interface
-![Board Demo](./public/demo-1.png)
+### Board (Kanban) Interface
+![Board Demo](./public/demo-01.png)
 
-### Card Detail Interface
-![Card Detail Demo](./public/demo-2.png)
+### Card Detail — labels, checklists, custom fields, Markdown & power-ups
+![Card Detail Demo](./public/demo-02.png)
 
-### Home Interface
-![Home Demo](./public/demo-3.png)
+### Workspace Dashboard — boards, search & sort
+![Workspace Dashboard Demo](./public/demo-03.png)
+
+### Workspace Settings — billing, data & danger zone
+![Workspace Settings Demo](./public/demo-04.png)
 
 ## 🤝 Contributing & License
 - **Contributing:** Contributions are welcome! Please fork this repository, create a new branch, and submit a Pull Request (PR). Ensure your code follows the project's coding standards.
