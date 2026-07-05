@@ -83,13 +83,13 @@ A preview of the Whip App interface:
 ### Board (Kanban) Interface
 ![Board Demo](./public/demo-01.png)
 
-### Card Detail — labels, checklists, custom fields, Markdown & power-ups
+### Card Detail
 ![Card Detail Demo](./public/demo-02.png)
 
-### Workspace Dashboard — boards, search & sort
+### Workspace Dashboard
 ![Workspace Dashboard Demo](./public/demo-03.png)
 
-### Workspace Settings — billing, data & danger zone
+### Workspace Settings
 ![Workspace Settings Demo](./public/demo-04.png)
 
 ## 🤝 Contributing & License
