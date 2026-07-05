@@ -17,7 +17,6 @@ import { TemplateCard } from './TemplateCard'
 import { DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
 import { WorkspaceMembersTable } from './WorkspaceMembersTable'
 import { InviteWorkspaceMemberModal } from '~/components/Modal/InviteWorkspaceMemberModal/InviteWorkspaceMemberModal'
-import { useDebounce } from '~/customHooks/useDebounce'
 import { useConfirm } from 'material-ui-confirm'
 import { leaveWorkspaceAPI, updateWorkspaceAPI, transferWorkspaceOwnershipAPI, updateWorkspaceLogoAPI } from '~/apis'
 import { toast } from 'sonner'
@@ -53,6 +52,10 @@ export const MainContent = ({
   page,
   isBulkMode,
   setIsBulkMode,
+  searchTerm,
+  setSearchTerm,
+  sortBy,
+  setSortBy,
   selectedIds,
   setSelectedIds,
   handleSelectCard,
@@ -65,12 +68,9 @@ export const MainContent = ({
   onWorkspaceUpdated
 }) => {
   const [activeTab, setActiveTab] = useState(0)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState('recent')
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [isLeaveModalOpen, setLeaveModalOpen] = useState(false)
   const [refreshMembersKey, setRefreshMembersKey] = useState(0)
-  const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const confirm = useConfirm()
   const scrollContainerRef = useRef(null)
 

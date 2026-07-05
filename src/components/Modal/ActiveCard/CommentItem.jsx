@@ -19,8 +19,11 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import { useConfirm } from 'material-ui-confirm'
+import { useSelector } from 'react-redux'
 
+import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
 import { getCommentRepliesAPI, createCommentAPI, updateCommentAPI, deleteCommentAPI } from '~/apis'
+import MentionTextarea from './MentionTextarea'
 
 // Tách "@tên" khỏi phần text thường (dùng nhóm bắt để split giữ lại token). Khớp với regex phía BE.
 const MENTION_SPLIT_REGEX = /(@[\p{L}\p{N}._-]+)/gu
@@ -80,6 +83,9 @@ const CommentActionMenu = ({ onEdit, onDelete }) => {
 }
 
 const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) => {
+  const activeBoard = useSelector(selectCurrentActive)
+  const boardMembers = activeBoard?.FE_allUser || []
+
   const [replies, setReplies] = useState([])
   const [loadingReplies, setLoadingReplies] = useState(false)
   
@@ -448,13 +454,15 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
         <Box sx={{ ml: 5, mt: 1.5, display: 'flex', gap: 1, alignItems: 'flex-start' }}>
            <Avatar src={currentUser?.avatar} sx={{ width: 28, height: 28 }} />
            <Box sx={{ width: '100%' }}>
-             <TextField 
-               size="small" 
-               fullWidth 
+             <MentionTextarea
+               size="small"
+               fullWidth
                autoFocus
                placeholder={targetUser ? `Trả lời ${targetUser}...` : `Trả lời ${rootComment.userDisplayName}...`}
                value={replyText}
-               onChange={e => setReplyText(e.target.value)}
+               onChange={setReplyText}
+               members={boardMembers}
+               excludeId={currentUser?._id}
                multiline
                disabled={isSending}
                inputProps={{ maxLength: 5000 }}

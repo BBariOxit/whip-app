@@ -16,6 +16,7 @@ import GroupAddIcon from '@mui/icons-material/GroupAdd'
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import CloseIcon from '@mui/icons-material/Close'
+import DraftsOutlinedIcon from '@mui/icons-material/DraftsOutlined'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   selectCurrentNotifications,
@@ -183,18 +184,42 @@ function Notifications() {
           }
         }}
       >
-        {/* Header: Mark all as read (chỉ hiện khi có thông báo chung chưa đọc) */}
-        {unreadCount > 0 && (
-          <Box sx={{ px: 2, py: 1, display: 'flex', justifyContent: 'flex-end', borderBottom: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : '1px solid #d0d7de' }}>
+        {/* Header: tiêu đề + số chưa đọc, kèm nút Mark all as read */}
+        <Box sx={{
+          px: 2, py: 1.25,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1,
+          borderBottom: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : '1px solid #d0d7de'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ fontSize: '14px', fontWeight: 700, color: 'text.primary' }}>
+              Notifications
+            </Typography>
+            {unreadCount > 0 && (
+              <Box sx={{
+                px: 0.75, minWidth: 20, height: 18, borderRadius: '9px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '11px', fontWeight: 700, color: '#fff', bgcolor: '#3b82f6'
+              }}>
+                {unreadCount}
+              </Box>
+            )}
+          </Box>
+          {unreadCount > 0 && (
             <Button
               size="small"
+              startIcon={<DraftsOutlinedIcon sx={{ fontSize: '15px !important' }} />}
               onClick={() => dispatch(markAllNotificationsReadAPI())}
-              sx={{ textTransform: 'none', fontSize: '12px', fontWeight: 600, minWidth: 0, p: 0 }}
+              sx={{
+                textTransform: 'none', fontSize: '12px', fontWeight: 600,
+                color: 'primary.main', borderRadius: '6px', px: 1, py: 0.25, minWidth: 0,
+                '& .MuiButton-startIcon': { mr: 0.5 },
+                '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.14)' : 'rgba(59,130,246,0.08)' }
+              }}
             >
               Mark all as read
             </Button>
-          </Box>
-        )}
+          )}
+        </Box>
 
         {mergedList.length === 0 && (
           <MenuItem sx={{
