@@ -8,7 +8,6 @@ dayjs.extend(relativeTime)
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Avatar from '@mui/material/Avatar'
-import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 
@@ -23,9 +22,11 @@ import DvrOutlinedIcon from '@mui/icons-material/DvrOutlined'
 
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
+import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
 import { getCardActivitiesAPI, getCardCommentsAPI, createCommentAPI } from '~/apis'
 import { socketIoInstance } from '~/socketClient'
 import CommentItem from './CommentItem'
+import MentionTextarea from './MentionTextarea'
 
 const ITEMS_PER_PAGE = 10
 
@@ -45,7 +46,11 @@ import { selectIsReadOnly } from '~/redux/activeBoard/activeBoardSlice'
 function CardActivitySection({ cardId }) {
   const isReadOnly = useSelector(selectIsReadOnly)
   const currentUser = useSelector(selectCurrentUser)
-  
+  const activeBoard = useSelector(selectCurrentActive)
+  // Danh sách member board để gợi ý @mention
+  const boardMembers = activeBoard?.FE_allUser || []
+
+  const [commentText, setCommentText] = useState('')
   const [activities, setActivities] = useState([])
   const [totalActivities, setTotalActivities] = useState(0)
   
@@ -179,12 +184,12 @@ function CardActivitySection({ cardId }) {
   const handleAddCardComment = async (event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
-      if (!event.target?.value.trim()) return
+      const content = commentText.trim()
+      if (!content) return
 
-      const content = event.target.value.trim()
       try {
         await createCommentAPI({ cardId, content, parentId: null })
-        event.target.value = ''
+        setCommentText('')
         fetchFirstPage()
       } catch (error) {
         console.error('Lỗi khi đăng comment:', error)
@@ -278,13 +283,16 @@ function CardActivitySection({ cardId }) {
           alt="User"
           src={currentUser?.avatar}
         />
-        <TextField
+        <MentionTextarea
           fullWidth
-          placeholder="Write a comment..."
-          type="text"
+          placeholder="Write a comment... (type @ to mention)"
           variant="outlined"
           multiline
           inputProps={{ maxLength: 5000 }}
+          value={commentText}
+          onChange={setCommentText}
+          members={boardMembers}
+          excludeId={currentUser?._id}
           onKeyDown={handleAddCardComment}
         />
       </Box>}

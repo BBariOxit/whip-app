@@ -422,7 +422,9 @@ function Column({ column }) {
           maxWidth: '18.75rem',
           bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(22,27,34,0.75)' : theme.palette.background.column),
           backdropFilter: 'blur(12px)',
-          border: (theme) => (theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid #dbe3ee'),
+          border: (theme) => (theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid #c9d4e3'),
+          // Đổ bóng để column nổi lên như một panel riêng (tạo phân lớp board < column < card)
+          boxShadow: (theme) => (theme.palette.mode === 'dark' ? 'none' : '0 1px 2px rgba(15,23,42,0.08), 0 6px 16px rgba(15,23,42,0.10)'),
           ml: 2,
           borderRadius: '20px',
           height: 'fit-content',
@@ -436,7 +438,8 @@ function Column({ column }) {
           p: 2,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          gap: 1
         }}>
           {/* <Typography variant='h6' sx={{
             fontSize: '1.2rem',

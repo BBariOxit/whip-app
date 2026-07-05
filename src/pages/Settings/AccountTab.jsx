@@ -60,7 +60,7 @@ function AccountTab() {
       {/* TIÊU ĐỀ TRANG KHU VỰC */}
       <Box>
         <Typography variant="h5" sx={{ fontWeight: 700, color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#24292f', mb: 0.5 }}>Public profile</Typography>
-        <Typography sx={{ fontSize: '14px', color: '#768390' }}>Manage your public identity and account data.</Typography>
+        <Typography sx={{ fontSize: '14px', color: 'text.secondary' }}>Manage your public identity and account data.</Typography>
         <Divider sx={{ borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de', mt: 2 }} />
       </Box>
 
@@ -84,7 +84,7 @@ function AccountTab() {
                     '&:hover fieldset': { borderWidth: '2px !important' },
                     '&.Mui-focused fieldset': { borderWidth: '2px !important' }
                   }, 
-                  '& .MuiFormHelperText-root': { color: '#768390' } 
+                  '& .MuiFormHelperText-root': { color: 'text.secondary' } 
                 }}
               />
 

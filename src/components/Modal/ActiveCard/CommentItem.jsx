@@ -19,8 +19,25 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import { useConfirm } from 'material-ui-confirm'
+import { useSelector } from 'react-redux'
 
+import { selectCurrentActive } from '~/redux/activeBoard/activeBoardSlice'
 import { getCommentRepliesAPI, createCommentAPI, updateCommentAPI, deleteCommentAPI } from '~/apis'
+import MentionTextarea from './MentionTextarea'
+
+// Tách "@tên" khỏi phần text thường (dùng nhóm bắt để split giữ lại token). Khớp với regex phía BE.
+const MENTION_SPLIT_REGEX = /(@[\p{L}\p{N}._-]+)/gu
+const isMentionToken = (part) => /^@[\p{L}\p{N}._-]+$/u.test(part)
+
+// Render nội dung comment, tô màu các đoạn @mention để dễ nhận biết
+const renderCommentContent = (content) => {
+  if (!content) return null
+  return content.split(MENTION_SPLIT_REGEX).map((part, index) => (
+    isMentionToken(part)
+      ? <Box key={index} component="span" sx={{ color: 'primary.main', fontWeight: 600 }}>{part}</Box>
+      : part
+  ))
+}
 
 const CommentActionMenu = ({ onEdit, onDelete }) => {
   const [anchorEl, setAnchorEl] = useState(null)
@@ -66,6 +83,9 @@ const CommentActionMenu = ({ onEdit, onDelete }) => {
 }
 
 const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) => {
+  const activeBoard = useSelector(selectCurrentActive)
+  const boardMembers = activeBoard?.FE_allUser || []
+
   const [replies, setReplies] = useState([])
   const [loadingReplies, setLoadingReplies] = useState(false)
   
@@ -269,7 +289,7 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
                 lineHeight: '1.5',
                 mt: 0.5
               }}>
-                {rootComment.content}
+                {renderCommentContent(rootComment.content)}
               </Box>
               {rootComment.updatedAt && (
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', fontSize: '11px', mb: 0.5 }}>
@@ -393,7 +413,7 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
                       lineHeight: '1.5',
                       mt: 0.5
                     }}>
-                      {reply.content}
+                      {renderCommentContent(reply.content)}
                     </Box>
                     {reply.updatedAt && (
                       <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', fontSize: '11px', mb: 0.5 }}>
@@ -434,13 +454,15 @@ const CommentItem = ({ rootComment, cardId, currentUser, onNewCommentRefetch }) 
         <Box sx={{ ml: 5, mt: 1.5, display: 'flex', gap: 1, alignItems: 'flex-start' }}>
            <Avatar src={currentUser?.avatar} sx={{ width: 28, height: 28 }} />
            <Box sx={{ width: '100%' }}>
-             <TextField 
-               size="small" 
-               fullWidth 
+             <MentionTextarea
+               size="small"
+               fullWidth
                autoFocus
                placeholder={targetUser ? `Trả lời ${targetUser}...` : `Trả lời ${rootComment.userDisplayName}...`}
                value={replyText}
-               onChange={e => setReplyText(e.target.value)}
+               onChange={setReplyText}
+               members={boardMembers}
+               excludeId={currentUser?._id}
                multiline
                disabled={isSending}
                inputProps={{ maxLength: 5000 }}

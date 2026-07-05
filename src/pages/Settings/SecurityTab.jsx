@@ -58,7 +58,7 @@ function SecurityTab() {
       {/* TIÊU ĐỀ TRANG KHU VỰC */}
       <Box>
         <Typography variant="h5" sx={{ fontWeight: 700, color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#24292f', mb: 0.5 }}>Change password</Typography>
-        <Typography sx={{ fontSize: '14px', color: '#768390' }}>Manage your password and security settings.</Typography>
+        <Typography sx={{ fontSize: '14px', color: 'text.secondary' }}>Manage your password and security settings.</Typography>
         <Divider sx={{ borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de', mt: 2 }} />
       </Box>
 
@@ -83,7 +83,7 @@ function SecurityTab() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <PasswordIcon fontSize="small" sx={{ color: '#768390' }} />
+                      <PasswordIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                     </InputAdornment>
                   )
                 }}
@@ -116,7 +116,7 @@ function SecurityTab() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LockIcon fontSize="small" sx={{ color: '#768390' }} />
+                      <LockIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                     </InputAdornment>
                   )
                 }}
@@ -149,7 +149,7 @@ function SecurityTab() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LockResetIcon fontSize="small" sx={{ color: '#768390' }} />
+                      <LockResetIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                     </InputAdornment>
                   )
                 }}

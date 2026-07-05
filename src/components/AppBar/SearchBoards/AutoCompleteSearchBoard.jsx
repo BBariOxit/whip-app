@@ -37,9 +37,9 @@ function AutoCompleteSearchBoard() {
     if (!searchValue) return
     // console.log(searchValue)
 
-    // Dùng createSearchParams của react-router-dom để tạo một cái searchPath chuẩn với q[title] để gọi lên API
-    const searchPath = `?${createSearchParams({ 'q[title]': searchValue })}`
-    console.log(searchPath)
+    // searchPath chuẩn: q[title] để lọc theo tên + workspaceId=all để search phạm vi toàn cục
+    // (board của mình + board workspace_visible/public trong các workspace mình tham gia)
+    const searchPath = `?${createSearchParams({ 'q[title]': searchValue, workspaceId: 'all' })}`
 
     // Gọi API...
     setLoading(true)

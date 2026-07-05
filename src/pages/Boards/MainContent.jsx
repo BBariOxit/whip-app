@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Box, Typography, Button, Pagination, PaginationItem, Tabs, Tab, TextField, Select, MenuItem, InputAdornment, Skeleton, Switch, CircularProgress } from '@mui/material'
+import { Box, Typography, Button, Pagination, PaginationItem, Tabs, Tab, TextField, Select, MenuItem, InputAdornment, Skeleton, CircularProgress } from '@mui/material'
 import ChecklistIcon from '@mui/icons-material/Checklist'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ViewColumnIcon from '@mui/icons-material/ViewColumn'
@@ -17,11 +17,11 @@ import { TemplateCard } from './TemplateCard'
 import { DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
 import { WorkspaceMembersTable } from './WorkspaceMembersTable'
 import { InviteWorkspaceMemberModal } from '~/components/Modal/InviteWorkspaceMemberModal/InviteWorkspaceMemberModal'
-import { useDebounce } from '~/customHooks/useDebounce'
 import { useConfirm } from 'material-ui-confirm'
-import { leaveWorkspaceAPI, updateWorkspaceAPI, transferWorkspaceOwnershipAPI, updateWorkspaceLogoAPI, updateWorkspaceNotificationsAPI } from '~/apis'
+import { leaveWorkspaceAPI, updateWorkspaceAPI, transferWorkspaceOwnershipAPI, updateWorkspaceLogoAPI } from '~/apis'
 import { toast } from 'sonner'
 import { LeaveWorkspaceModal } from '~/components/Modal/LeaveWorkspaceModal/LeaveWorkspaceModal'
+import { WorkspaceNotifications } from './WorkspaceNotifications'
 
 // Icon + màu cho từng loại activity (UI-only, chưa nối backend)
 const ACTIVITY_META = {
@@ -30,15 +30,6 @@ const ACTIVITY_META = {
   invite: { icon: PersonAddIcon, color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
   settings: { icon: SettingsOutlinedIcon, color: '#a371f7', bg: 'rgba(163,113,247,0.15)' },
   leave: { icon: LogoutIcon, color: '#d29922', bg: 'rgba(210,153,34,0.15)' }
-}
-
-// Tuỳ chọn thông báo mặc định (khớp default backend) — dùng khi member chưa có prefs
-const DEFAULT_NOTIF_PREFS = {
-  memberJoins: true,
-  boardChanges: true,
-  weeklyDigest: false,
-  mentions: true,
-  boardActivity: false
 }
 
 // Dữ liệu mẫu để dựng giao diện — sẽ thay bằng API sau
@@ -61,6 +52,10 @@ export const MainContent = ({
   page,
   isBulkMode,
   setIsBulkMode,
+  searchTerm,
+  setSearchTerm,
+  sortBy,
+  setSortBy,
   selectedIds,
   setSelectedIds,
   handleSelectCard,
@@ -73,17 +68,11 @@ export const MainContent = ({
   onWorkspaceUpdated
 }) => {
   const [activeTab, setActiveTab] = useState(0)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState('recent')
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [isLeaveModalOpen, setLeaveModalOpen] = useState(false)
   const [refreshMembersKey, setRefreshMembersKey] = useState(0)
-  const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const confirm = useConfirm()
   const scrollContainerRef = useRef(null)
-
-  // Notification preferences — tuỳ chọn cá nhân của user trong workspace này
-  const [notifPrefs, setNotifPrefs] = useState(DEFAULT_NOTIF_PREFS)
 
   // Transfer ownership
   const [newOwnerId, setNewOwnerId] = useState('')
@@ -174,29 +163,15 @@ export const MainContent = ({
     }
   }
 
-  // Nạp notification prefs của chính user từ bản ghi member (khi đổi workspace / dữ liệu load xong)
+  // Notification prefs của chính user, đọc từ bản ghi member trong workspace hiện tại
   const myNotificationPrefs = currentWorkspace?.members?.find(m => m.userId === currentUser?._id)?.notificationPrefs
-  const myNotificationPrefsKey = JSON.stringify(myNotificationPrefs || null)
-  useEffect(() => {
-    setNotifPrefs({ ...DEFAULT_NOTIF_PREFS, ...(myNotificationPrefs || {}) })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentView.id, myNotificationPrefsKey])
 
-  // Bật/tắt 1 tuỳ chọn thông báo: cập nhật ngay (optimistic) + lưu backend + đồng bộ state cha
-  const handleToggleNotif = async (key) => {
-    const prev = notifPrefs
-    const next = { ...notifPrefs, [key]: !notifPrefs[key] }
-    setNotifPrefs(next)
-    try {
-      await updateWorkspaceNotificationsAPI(currentWorkspace._id, next)
-      const newMembers = (currentWorkspace.members || []).map(m =>
-        m.userId === currentUser?._id ? { ...m, notificationPrefs: next } : m
-      )
-      onWorkspaceUpdated?.({ _id: currentWorkspace._id, members: newMembers })
-    } catch (error) {
-      setNotifPrefs(prev)
-      toast.error('Error: ' + (error?.message || 'Failed to update notifications'))
-    }
+  // Sau khi lưu tuỳ chọn thông báo thành công: đồng bộ prefs vào member tương ứng ở state cha
+  const handleNotifSaved = (nextPrefs) => {
+    const newMembers = (currentWorkspace.members || []).map(m =>
+      m.userId === currentUser?._id ? { ...m, notificationPrefs: nextPrefs } : m
+    )
+    onWorkspaceUpdated?.({ _id: currentWorkspace._id, members: newMembers })
   }
 
   // Transfer ownership (có confirm vì hành động không thể tự hoàn tác)
@@ -769,63 +744,11 @@ export const MainContent = ({
           </Box>
 
           {/* ═══════════ 3. NOTIFICATIONS ═══════════ */}
-          <Box id="settings-notifications" sx={{
-            p: 3, borderRadius: 2, border: '1px solid',
-            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
-            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#fff'
-          }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: 'text.primary' }}>Notifications</Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-              Choose which updates from this workspace you want to be notified about.
-            </Typography>
-
-            {/* Email group */}
-            <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Email
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', mt: 0.5, mb: 3 }}>
-              {[
-                { key: 'memberJoins', label: 'New member joins', desc: 'When someone accepts an invite to this workspace.' },
-                { key: 'boardChanges', label: 'Board created or deleted', desc: 'When a board is added to or removed from the workspace.' },
-                { key: 'weeklyDigest', label: 'Weekly activity digest', desc: 'A summary of workspace activity every Monday.' }
-              ].map((item, idx, arr) => (
-                <Box key={item.key} sx={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5,
-                  borderBottom: idx < arr.length - 1 ? '1px solid' : 'none',
-                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-                }}>
-                  <Box sx={{ pr: 2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{item.label}</Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
-                  </Box>
-                  <Switch checked={notifPrefs[item.key]} onChange={() => handleToggleNotif(item.key)} />
-                </Box>
-              ))}
-            </Box>
-
-            {/* In-app group */}
-            <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              In-app
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', mt: 0.5 }}>
-              {[
-                { key: 'mentions', label: 'Mentions', desc: 'When someone @mentions you in a card or comment.' },
-                { key: 'boardActivity', label: 'Board activity', desc: 'Updates on boards you are a member of.' }
-              ].map((item, idx, arr) => (
-                <Box key={item.key} sx={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5,
-                  borderBottom: idx < arr.length - 1 ? '1px solid' : 'none',
-                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-                }}>
-                  <Box sx={{ pr: 2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>{item.label}</Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
-                  </Box>
-                  <Switch checked={notifPrefs[item.key]} onChange={() => handleToggleNotif(item.key)} />
-                </Box>
-              ))}
-            </Box>
-          </Box>
+          <WorkspaceNotifications
+            workspaceId={currentWorkspace?._id}
+            myPrefs={myNotificationPrefs}
+            onSaved={handleNotifSaved}
+          />
 
           {/* ═══════════ 4. ACTIVITY LOG ═══════════ */}
           <Box id="settings-activity" sx={{

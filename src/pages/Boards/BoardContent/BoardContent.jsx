@@ -174,7 +174,9 @@ function BoardContent({
     <DndContext {...dndProps}>
       <Box
         sx={{
-          bgcolor: 'background.default',
+          // Light mode: canvas ám xanh nhẹ để board có sức sống + đủ sâu để column nổi lên.
+          // Dark mode: canvas sâu hơn background.default để column (dark) nhấc rõ khỏi nền.
+          bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#0b0d13' : '#cbd9ef'),
           width: '100%',
           height: (theme) => theme.trello.boardContentHeight,
           p: '10px 0'

@@ -11,9 +11,12 @@ import Button from '@mui/material/Button'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Divider from '@mui/material/Divider'
+import IconButton from '@mui/material/IconButton'
 import GroupAddIcon from '@mui/icons-material/GroupAdd'
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
+import CloseIcon from '@mui/icons-material/Close'
+import DraftsOutlinedIcon from '@mui/icons-material/DraftsOutlined'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   selectCurrentNotifications,
@@ -24,6 +27,7 @@ import {
   updateBoardInvitationAPI,
   markNotificationReadAPI,
   markAllNotificationsReadAPI,
+  deleteNotificationAPI,
   addNotification,
   addInAppNotification
 } from '~/redux/notifications/notificationsSlice'
@@ -113,13 +117,25 @@ function Notifications() {
     if (notif.boardId) navigate(`/boards/${notif.boardId}`)
   }
 
+  // Xoá (ẩn) 1 thông báo chung — chặn nổi bọt để không kích hoạt điều hướng của MenuItem
+  const handleDismissGeneric = (event, notifId) => {
+    event.stopPropagation()
+    dispatch(deleteNotificationAPI(notifId))
+  }
+
   // Gộp lời mời + thông báo chung, sắp xếp mới nhất lên đầu
   const mergedList = [
     ...(invitations || []),
     ...(inAppNotifications || [])
   ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
-  const hasDot = newNotification || unreadCount > 0
+  // Chuông sáng khi: có lời mời đang chờ (PENDING) HOẶC có thông báo in-app chưa đọc.
+  // Cả 2 đều lấy từ redux (sống qua remount + được refetch) nên không bị mất chỉ vì đổi route.
+  // Giữ newNotification để bật chấm tức thì khi có tin real-time đến.
+  const hasPendingInvite = (invitations || []).some(
+    i => i.boardInvitation?.status === BOARD_INVITATION_STATUS.PENDING
+  )
+  const hasDot = newNotification || hasPendingInvite || unreadCount > 0
 
   return (
     <Box>
@@ -168,18 +184,42 @@ function Notifications() {
           }
         }}
       >
-        {/* Header: Mark all as read (chỉ hiện khi có thông báo chung chưa đọc) */}
-        {unreadCount > 0 && (
-          <Box sx={{ px: 2, py: 1, display: 'flex', justifyContent: 'flex-end', borderBottom: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : '1px solid #d0d7de' }}>
+        {/* Header: tiêu đề + số chưa đọc, kèm nút Mark all as read */}
+        <Box sx={{
+          px: 2, py: 1.25,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1,
+          borderBottom: (theme) => theme.palette.mode === 'dark' ? '1px solid #30363d' : '1px solid #d0d7de'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ fontSize: '14px', fontWeight: 700, color: 'text.primary' }}>
+              Notifications
+            </Typography>
+            {unreadCount > 0 && (
+              <Box sx={{
+                px: 0.75, minWidth: 20, height: 18, borderRadius: '9px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '11px', fontWeight: 700, color: '#fff', bgcolor: '#3b82f6'
+              }}>
+                {unreadCount}
+              </Box>
+            )}
+          </Box>
+          {unreadCount > 0 && (
             <Button
               size="small"
+              startIcon={<DraftsOutlinedIcon sx={{ fontSize: '15px !important' }} />}
               onClick={() => dispatch(markAllNotificationsReadAPI())}
-              sx={{ textTransform: 'none', fontSize: '12px', fontWeight: 600, minWidth: 0, p: 0 }}
+              sx={{
+                textTransform: 'none', fontSize: '12px', fontWeight: 600,
+                color: 'primary.main', borderRadius: '6px', px: 1, py: 0.25, minWidth: 0,
+                '& .MuiButton-startIcon': { mr: 0.5 },
+                '&:hover': { bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(59,130,246,0.14)' : 'rgba(59,130,246,0.08)' }
+              }}
             >
               Mark all as read
             </Button>
-          </Box>
-        )}
+          )}
+        </Box>
 
         {mergedList.length === 0 && (
           <MenuItem sx={{
@@ -304,9 +344,24 @@ function Notifications() {
                         {dayjs(item.createdAt).format('MMM D, YYYY h:mm A')}
                       </Typography>
                     </Box>
-                    {!item.isRead && (
-                      <Box sx={{ flexShrink: 0, width: 8, height: 8, borderRadius: '50%', bgcolor: '#3b82f6', mt: 1 }} />
-                    )}
+                    <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                      {!item.isRead && (
+                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#3b82f6' }} />
+                      )}
+                      <Tooltip title="Dismiss">
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleDismissGeneric(e, item._id)}
+                          sx={{
+                            p: 0.25,
+                            color: (theme) => theme.palette.mode === 'dark' ? '#94a3b8' : '#64748b',
+                            '&:hover': { color: (theme) => theme.palette.mode === 'dark' ? '#e2e8f0' : '#0f172a' }
+                          }}
+                        >
+                          <CloseIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
                   </Box>
                 )}
               </MenuItem>

@@ -10,11 +10,11 @@ const COLUMN_FOOTER_HEIGHT = '3.5rem'
 const APP_COLORS = {
   light: {
     primary: '#3b82f6', // Blue 500 (softer blue)
-    bgApp: '#f8fafc', // slate-50
-    bgColumn: '#e2e8f0', // slate-200 for excellent contrast with white cards
+    bgApp: '#eef2f7', // slate-100/200 blend — enough contrast so white cards read as raised, not flat
+    bgColumn: '#e4ebf4', // slate-200 ám xanh nhẹ, ăn tông với canvas blue-tint và tương phản tốt với card trắng
     bgCard: '#ffffff',
     bgAppBar: '#ffffff',
-    bgBoardBar: '#f8fafc',
+    bgBoardBar: '#e3ecf7', // ám xanh nhẹ, hạ 1 nấc so với AppBar trắng để 2 navbar là 2 tầng và làm cầu nối tông xuống canvas
     textPrimary: '#0f172a',
     textSecondary: '#475569',
     border: '#cbd5e1' // slate-300 for better visibility
@@ -25,7 +25,7 @@ const APP_COLORS = {
     bgColumn: '#151b23',
     bgCard: '#1d2430',
     bgAppBar: '#0f1117',
-    bgBoardBar: '#0f1117',
+    bgBoardBar: '#161c26', // nhích trên canvas 1 nấc để BoardBar là "chrome" riêng, không tan vào board (mirror light mode)
     textPrimary: '#e6edf3',
     textSecondary: '#9da7b3',
     border: 'rgba(255,255,255,0.06)'
@@ -92,7 +92,7 @@ const theme = extendTheme({
         body: {
           fontFamily: 'Inter, sans-serif',
           ...(theme.palette.mode === 'light' && {
-            backgroundColor: '#f8fafc'
+            backgroundColor: '#eef2f7'
           }),
           ...(theme.palette.mode === 'dark' && {
             backgroundColor: '#0f1117'

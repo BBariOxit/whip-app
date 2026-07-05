@@ -309,13 +309,17 @@ function Card({ card }) {
         display: card?.FE_PlaceholderCard ? 'none' : 'block',
         bgcolor: 'background.paper',
         flexShrink: 0, // Không cho card bị shrink khi list có nhiều card
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
         '&:hover': {
           borderColor: (theme) => theme.palette.primary.main,
-          boxShadow: (theme) => `0 0 0 1px ${theme.palette.primary.main}`
+          transform: 'translateY(-2px)', // Nhấc card lên khi hover để tạo chiều sâu
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? `0 10px 24px rgba(0,0,0,0.45), 0 0 0 1px ${theme.palette.primary.main}`
+            : `0 12px 24px rgba(15,23,42,0.14), 0 0 0 1px ${theme.palette.primary.main}`
         },
         '&:hover .card-more-btn': { opacity: 1 }
       }}>
-      
+
       {/* Nút 3 chấm */}
       {!isReadOnly && (
         <IconButton

@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import AppBar from '~/components/AppBar/AppBar'
 import Box from '@mui/material/Box'
 import { useLocation, useSearchParams } from 'react-router-dom'
+import { useDebounce } from '~/customHooks/useDebounce'
 import { fetchBoardsAPI, fetchTemplatesAPI, bulkDeleteBoardsAPI, fetchWorkspacesAPI, deleteWorkspaceAPI } from '~/apis'
 import { toast } from 'sonner'
 import { useConfirm } from 'material-ui-confirm'
@@ -48,6 +49,11 @@ function Boards() {
 
   const page = parseInt(query.get('page') || '1', 10)
 
+  // Tìm kiếm + sắp xếp board (server-side, áp cho toàn bộ board chứ không chỉ trang hiện tại)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [sortBy, setSortBy] = useState('recent')
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
+
   // Bulk Edit State
   const [isBulkMode, setIsBulkMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState([])
@@ -58,6 +64,23 @@ function Boards() {
   const updateStateData = (res) => {
     setBoards(res.boards || [])
     setTotalBoards(res.totalBoards || 0)
+  }
+
+  // Nguồn DUY NHẤT dựng query cho fetchBoardsAPI: page + view + tìm kiếm + sắp xếp
+  const buildBoardsQuery = () => {
+    const params = new URLSearchParams()
+    if (page && page > 1) params.set('page', page)
+    if (currentView.type === 'workspace' && currentView.id) {
+      params.set('workspaceId', currentView.id)
+    } else if (currentView.type === 'personal') {
+      params.set('workspaceId', 'null')
+    } else if (currentView.type === 'guest') {
+      params.set('workspaceId', 'guest')
+    }
+    const term = debouncedSearchTerm.trim()
+    if (term) params.set('q[title]', term)
+    if (sortBy) params.set('sort', sortBy)
+    return `?${params.toString()}`
   }
 
   // Fetch Workspaces on Mount
@@ -71,29 +94,31 @@ function Boards() {
     })
   }, [])
 
-  // Fetch Boards when switching to personal or workspace or changing page
+  // Fetch Boards khi đổi view / trang / tìm kiếm / sắp xếp
   useEffect(() => {
     if (currentView.type === 'personal' || currentView.type === 'workspace' || currentView.type === 'guest') {
-      const searchParams = new URLSearchParams()
-      if (page && page > 1) searchParams.set('page', page)
-      if (currentView.type === 'workspace' && currentView.id) {
-        searchParams.set('workspaceId', currentView.id)
-      } else if (currentView.type === 'personal') {
-        searchParams.set('workspaceId', 'null')
-      } else if (currentView.type === 'guest') {
-        searchParams.set('workspaceId', 'guest')
-      }
-      
       setIsFetchingBoards(true)
-      fetchBoardsAPI(`?${searchParams.toString()}`)
-        .then(res => {
-          updateStateData(res)
-        })
-        .finally(() => {
-          setIsFetchingBoards(false)
-        })
+      fetchBoardsAPI(buildBoardsQuery())
+        .then(updateStateData)
+        .finally(() => setIsFetchingBoards(false))
     }
-  }, [page, currentView.type, currentView.id])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, currentView.type, currentView.id, debouncedSearchTerm, sortBy])
+
+  // Đổi tìm kiếm hoặc sắp xếp -> quay về trang 1 (bỏ qua lần mount đầu để giữ deep-link)
+  const isFirstQueryChange = useRef(true)
+  useEffect(() => {
+    if (isFirstQueryChange.current) {
+      isFirstQueryChange.current = false
+      return
+    }
+    if (page !== 1) {
+      const p = new URLSearchParams(searchParams)
+      p.set('page', '1')
+      setSearchParams(p)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm, sortBy])
 
   // Đồng bộ view từ URL: khi điều hướng tới /boards?view=templates từ nơi khác (vd shortcut Templates
   // trên navbar) mà trang Boards đã mount sẵn, React Router không remount nên phải tự chuyển view.
@@ -112,16 +137,7 @@ function Boards() {
 
   const afterCreateNewBoard = () => {
     if (currentView.type === 'personal' || currentView.type === 'workspace' || currentView.type === 'guest') {
-      const searchParams = new URLSearchParams()
-      if (page && page > 1) searchParams.set('page', page)
-      if (currentView.type === 'workspace' && currentView.id) {
-        searchParams.set('workspaceId', currentView.id)
-      } else if (currentView.type === 'personal') {
-        searchParams.set('workspaceId', 'null')
-      } else if (currentView.type === 'guest') {
-        searchParams.set('workspaceId', 'guest')
-      }
-      fetchBoardsAPI(`?${searchParams.toString()}`).then(updateStateData)
+      fetchBoardsAPI(buildBoardsQuery()).then(updateStateData)
     } else {
       setCurrentView({ type: 'personal', id: null, title: 'Your Personal Boards' })
     }
@@ -232,7 +248,7 @@ function Boards() {
         toast.success(`Successfully deleted ${selectedIds.length} boards!`)
         setSelectedIds([])
         setIsBulkMode(false)
-        fetchBoardsAPI(location.search).then(updateStateData)
+        fetchBoardsAPI(buildBoardsQuery()).then(updateStateData)
       } catch (error) {
         toast.error('Failed to bulk delete boards!')
       }
@@ -311,6 +327,10 @@ function Boards() {
           page={page}
           isBulkMode={isBulkMode}
           setIsBulkMode={setIsBulkMode}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
           selectedIds={selectedIds}
           setSelectedIds={setSelectedIds}
           handleSelectCard={handleSelectCard}
