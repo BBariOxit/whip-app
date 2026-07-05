@@ -11,10 +11,10 @@ const APP_COLORS = {
   light: {
     primary: '#3b82f6', // Blue 500 (softer blue)
     bgApp: '#eef2f7', // slate-100/200 blend — enough contrast so white cards read as raised, not flat
-    bgColumn: '#e2e8f0', // slate-200 for excellent contrast with white cards
+    bgColumn: '#e4ebf4', // slate-200 ám xanh nhẹ, ăn tông với canvas blue-tint và tương phản tốt với card trắng
     bgCard: '#ffffff',
     bgAppBar: '#ffffff',
-    bgBoardBar: '#f8fafc',
+    bgBoardBar: '#e3ecf7', // ám xanh nhẹ, hạ 1 nấc so với AppBar trắng để 2 navbar là 2 tầng và làm cầu nối tông xuống canvas
     textPrimary: '#0f172a',
     textSecondary: '#475569',
     border: '#cbd5e1' // slate-300 for better visibility
