@@ -25,7 +25,7 @@ const APP_COLORS = {
     bgColumn: '#151b23',
     bgCard: '#1d2430',
     bgAppBar: '#0f1117',
-    bgBoardBar: '#0f1117',
+    bgBoardBar: '#161c26', // nhích trên canvas 1 nấc để BoardBar là "chrome" riêng, không tan vào board (mirror light mode)
     textPrimary: '#e6edf3',
     textSecondary: '#9da7b3',
     border: 'rgba(255,255,255,0.06)'
