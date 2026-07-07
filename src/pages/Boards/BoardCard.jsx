@@ -20,7 +20,7 @@ const GRADIENTS = [
   'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)'
 ]
 
-export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulkMode, isSelected, onSelect, canManage = true, currentUser }) => {
+export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulkMode, isSelected, onSelect, canManage = true, canDeleteBoard = false, currentUser }) => {
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
   
@@ -118,7 +118,7 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
         }
       }}>
         {/* NÚT 3 CHẤM */}
-        {(canManage || (currentUser && board.ownerIds?.includes(currentUser._id))) && (
+        {(canManage || canDeleteBoard || (currentUser && board.ownerIds?.includes(currentUser._id))) && (
           <IconButton
             className="more-options-btn"
             onClick={handleOpenMenu}
@@ -161,15 +161,19 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
             }
           }}
         >
-          <MenuItem onClick={handleEdit}>
-            <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
-            <ListItemText>Edit board</ListItemText>
-          </MenuItem>
+          {(canManage || (currentUser && board.ownerIds?.includes(currentUser._id))) && (
+            <MenuItem onClick={handleEdit}>
+              <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
+              <ListItemText>Edit board</ListItemText>
+            </MenuItem>
+          )}
           
-          <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
-            <ListItemIcon sx={{ color: 'inherit' }}><DeleteIcon fontSize="small" /></ListItemIcon>
-            <ListItemText>Delete board</ListItemText>
-          </MenuItem>
+          {(canDeleteBoard || (currentUser && board.ownerIds?.includes(currentUser._id))) && (
+            <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
+              <ListItemIcon sx={{ color: 'inherit' }}><DeleteIcon fontSize="small" /></ListItemIcon>
+              <ListItemText>Delete board</ListItemText>
+            </MenuItem>
+          )}
         </Menu>
 
         <CardActionArea 

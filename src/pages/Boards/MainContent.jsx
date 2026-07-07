@@ -113,6 +113,9 @@ export const MainContent = ({
   const canManage = userRole === 'owner' || userRole === 'admin'
   const isOwner = userRole === 'owner'
   const currentWorkspace = workspaces.find(w => w._id === currentView.id)
+  const canInvite = canManage || (userRole === 'member' && currentWorkspace?.invitePermission === 'all')
+  const canCreateBoard = canManage || (userRole === 'member' && currentWorkspace?.boardCreation === 'all')
+  const canDeleteBoard = canManage || (userRole === 'member' && currentWorkspace?.boardDeletion === 'all')
 
   // Ứng viên nhận quyền sở hữu: mọi member trừ owner hiện tại và lời mời đang chờ
   const transferableMembers = (currentWorkspace?.members || []).filter(
@@ -266,7 +269,7 @@ export const MainContent = ({
             <Tab label="MEMBERS" sx={{ fontWeight: 600, textTransform: 'none', fontSize: '14px', minHeight: '40px', py: 1 }} />
             <Tab label="SETTINGS" sx={{ fontWeight: 600, textTransform: 'none', fontSize: '14px', minHeight: '40px', py: 1 }} />
           </Tabs>
-          {canManage && (
+          {canInvite && (
             <Button
               variant="outlined"
               startIcon={<PersonAddIcon />}
@@ -357,7 +360,7 @@ export const MainContent = ({
                 <MenuItem value="z-a">Name Z-A</MenuItem>
               </Select>
 
-              {currentView.type !== 'templates' && currentView.type !== 'home' && currentView.type !== 'guest' && boards?.length > 0 && canManage && (
+              {currentView.type !== 'templates' && currentView.type !== 'home' && currentView.type !== 'guest' && boards?.length > 0 && canDeleteBoard && (
                 <Button 
                   variant={isBulkMode ? "contained" : "outlined"} 
                   color={isBulkMode ? "error" : "primary"}
@@ -439,7 +442,7 @@ export const MainContent = ({
                         ? "You don't have any personal boards yet." 
                         : "This workspace doesn't have any boards yet.")}
                 </Typography>
-                {currentView.type !== 'guest' && (
+                {currentView.type !== 'guest' && canCreateBoard && (
                   <Button 
                     onClick={onOpenCreateBoard}
                     variant="contained" 
@@ -470,6 +473,7 @@ export const MainContent = ({
                     isSelected={selectedIds.includes(b._id)}
                     onSelect={() => handleSelectCard(b._id)}
                     canManage={canManage}
+                    canDeleteBoard={canDeleteBoard}
                     currentUser={currentUser}
                   />
                 )}
