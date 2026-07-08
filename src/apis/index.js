@@ -394,6 +394,12 @@ export const updateWorkspaceNotificationsAPI = async (workspaceId, prefs) => {
   return response.data
 }
 
+// Activity Log của workspace (BE trả { activities, total })
+export const getWorkspaceActivitiesAPI = async (workspaceId, page = 1, limit = 10) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces/${workspaceId}/activities?page=${page}&limit=${limit}`)
+  return response.data
+}
+
 export const leaveBoardAPI = async (boardId) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/${boardId}/leave`)
   return response.data
