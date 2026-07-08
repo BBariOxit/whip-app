@@ -2,15 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { Box, Typography, Button, Pagination, PaginationItem, Tabs, Tab, TextField, Select, MenuItem, InputAdornment, Skeleton, CircularProgress } from '@mui/material'
 import ChecklistIcon from '@mui/icons-material/Checklist'
 import DeleteIcon from '@mui/icons-material/Delete'
-import ViewColumnIcon from '@mui/icons-material/ViewColumn'
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined'
 import AddIcon from '@mui/icons-material/Add'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import LogoutIcon from '@mui/icons-material/Logout'
 import { Link } from 'react-router-dom'
 import { BoardCard } from './BoardCard'
 import { TemplateCard } from './TemplateCard'
@@ -22,24 +19,7 @@ import { leaveWorkspaceAPI, updateWorkspaceAPI, transferWorkspaceOwnershipAPI, u
 import { toast } from 'sonner'
 import { LeaveWorkspaceModal } from '~/components/Modal/LeaveWorkspaceModal/LeaveWorkspaceModal'
 import { WorkspaceNotifications } from './WorkspaceNotifications'
-
-// Icon + màu cho từng loại activity (UI-only, chưa nối backend)
-const ACTIVITY_META = {
-  create: { icon: ViewColumnIcon, color: '#2ea043', bg: 'rgba(46,160,67,0.15)' },
-  delete: { icon: DeleteIcon, color: '#f85149', bg: 'rgba(248,81,73,0.15)' },
-  invite: { icon: PersonAddIcon, color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
-  settings: { icon: SettingsOutlinedIcon, color: '#a371f7', bg: 'rgba(163,113,247,0.15)' },
-  leave: { icon: LogoutIcon, color: '#d29922', bg: 'rgba(210,153,34,0.15)' }
-}
-
-// Dữ liệu mẫu để dựng giao diện — sẽ thay bằng API sau
-const SAMPLE_ACTIVITY = [
-  { id: 'a1', type: 'create', user: 'You', action: 'created board', target: 'Marketing Plan', time: '2 hours ago' },
-  { id: 'a2', type: 'invite', user: 'alooooo', action: 'invited', target: 'nam@example.com', time: 'Yesterday at 4:12 PM' },
-  { id: 'a3', type: 'settings', user: 'You', action: 'changed workspace visibility to', target: 'Private', time: '2 days ago' },
-  { id: 'a4', type: 'delete', user: 'ânn', action: 'deleted board', target: 'Old Sprint Q1', time: '4 days ago' },
-  { id: 'a5', type: 'leave', user: 'guest_user', action: 'left the workspace', target: '', time: 'Last week' }
-]
+import { WorkspaceActivityLog } from './WorkspaceActivityLog'
 
 export const MainContent = ({
   currentUser,
@@ -656,28 +636,6 @@ export const MainContent = ({
           }}>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: 'text.primary' }}>Access & Security</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {/* Workspace Visibility */}
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2.5, borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
-                <Box>
-                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>Workspace Visibility</Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
-                    Control whether this workspace can be discovered by others.
-                  </Typography>
-                </Box>
-                <Select
-                  size="small"
-                  value={currentWorkspace?.visibility || 'private'}
-                  onChange={(e) => handleAccessChange('visibility', e.target.value)}
-                  disabled={!isOwner}
-                  sx={{
-                    minWidth: 150,
-                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
-                  }}
-                >
-                  <MenuItem value="private">Private</MenuItem>
-                  <MenuItem value="public">Public</MenuItem>
-                </Select>
-              </Box>
               {/* Invite Permissions */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2.5, borderBottom: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
                 <Box>
@@ -755,48 +713,10 @@ export const MainContent = ({
           />
 
           {/* ═══════════ 4. ACTIVITY LOG ═══════════ */}
-          <Box id="settings-activity" sx={{
-            p: 3, borderRadius: 2, border: '1px solid',
-            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
-            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#fff'
-          }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>Activity Log</Typography>
-              <Button size="small" sx={{ textTransform: 'none', fontWeight: 600 }}>View all</Button>
-            </Box>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-              Recent actions taken by members in this workspace.
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              {SAMPLE_ACTIVITY.map((act, idx) => {
-                const meta = ACTIVITY_META[act.type]
-                const ActIcon = meta.icon
-                return (
-                  <Box key={act.id} sx={{
-                    display: 'flex', gap: 2, alignItems: 'flex-start', py: 1.75,
-                    borderBottom: idx < SAMPLE_ACTIVITY.length - 1 ? '1px solid' : 'none',
-                    borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-                  }}>
-                    <Box sx={{
-                      width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      bgcolor: meta.bg, color: meta.color
-                    }}>
-                      <ActIcon sx={{ fontSize: 18 }} />
-                    </Box>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                        <Box component="span" sx={{ fontWeight: 700 }}>{act.user}</Box>
-                        {' '}{act.action}{act.target ? ' ' : ''}
-                        {act.target && <Box component="span" sx={{ fontWeight: 600 }}>{act.target}</Box>}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>{act.time}</Typography>
-                    </Box>
-                  </Box>
-                )
-              })}
-            </Box>
-          </Box>
+          <WorkspaceActivityLog
+            workspaceId={currentWorkspace?._id}
+            currentUserId={currentUser?._id}
+          />
 
           {/* ═══════════ 5. BILLING & PLAN ═══════════ */}
           <Box id="settings-billing" sx={{ 
