@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import AppBar from '~/components/AppBar/AppBar'
 import Box from '@mui/material/Box'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams, useNavigate } from 'react-router-dom'
 import { useDebounce } from '~/customHooks/useDebounce'
-import { fetchBoardsAPI, fetchTemplatesAPI, bulkDeleteBoardsAPI, fetchWorkspacesAPI, deleteWorkspaceAPI } from '~/apis'
+import { fetchBoardsAPI, fetchTemplatesAPI, bulkDeleteBoardsAPI, fetchWorkspacesAPI, deleteWorkspaceAPI, importWorkspaceAPI, importBoardAPI, duplicateBoardAPI } from '~/apis'
 import { toast } from 'sonner'
 import { useConfirm } from 'material-ui-confirm'
 import { Sidebar } from './Sidebar'
@@ -39,6 +39,7 @@ function Boards() {
 
   // Boards & Workspace Data State
   const [boards, setBoards] = useState(null)
+  const [autoRenameBoardId, setAutoRenameBoardId] = useState(null)
   const [totalBoards, setTotalBoards] = useState(null)
   const [templates, setTemplates] = useState(null)
   const [workspaces, setWorkspaces] = useState([])
@@ -58,6 +59,7 @@ function Boards() {
   const [isBulkMode, setIsBulkMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState([])
   const confirmAction = useConfirm()
+  const navigate = useNavigate()
 
   const [isFetchingBoards, setIsFetchingBoards] = useState(false)
 
@@ -148,6 +150,125 @@ function Boards() {
     setCurrentView({ type: 'workspace', id: newWorkspace._id, title: newWorkspace.title })
   }
 
+  // ===== IMPORT (từ file JSON đã export) — dùng chung cho cả workspace lẫn board =====
+  // Một input file duy nhất; loại đang mong đợi ('workspace' | 'board') lưu ở ref để tránh
+  // vấn đề bất đồng bộ khi mở hộp thoại chọn file ngay sau khi set state.
+  const importFileInputRef = useRef(null)
+  const importExpectedKindRef = useRef('workspace')
+
+  const handleOpenImportWorkspace = () => {
+    importExpectedKindRef.current = 'workspace'
+    importFileInputRef.current?.click()
+  }
+
+  const handleOpenImportBoard = () => {
+    importExpectedKindRef.current = 'board'
+    importFileInputRef.current?.click()
+  }
+
+  const handleImportFileSelected = async (event) => {
+    const file = event.target.files?.[0]
+    // Reset value để lần sau chọn lại đúng file đó vẫn kích hoạt onChange.
+    event.target.value = ''
+    if (!file) return
+
+    // Chặn file quá lớn trước khi đọc để tránh treo trình duyệt.
+    const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+    if (file.size > MAX_SIZE) {
+      toast.error('File too large (max 10MB).')
+      return
+    }
+
+    let payload
+    try {
+      payload = JSON.parse(await file.text())
+    } catch {
+      toast.error('Invalid file: not a valid JSON.')
+      return
+    }
+
+    if (payload?.schemaVersion !== 1) {
+      toast.error('Invalid or unsupported file.')
+      return
+    }
+
+    // Chặn nhầm loại: file board không thể import qua "Import workspace" và ngược lại.
+    // kind mặc định 'workspace' để tương thích file export cũ chưa có trường này.
+    const expectedKind = importExpectedKindRef.current
+    const fileKind = payload.kind || 'workspace'
+    if (fileKind !== expectedKind) {
+      toast.error(`This is a "${fileKind}" file. Please use "Import ${fileKind}" instead.`)
+      return
+    }
+
+    if (expectedKind === 'board') {
+      await handleImportBoard(payload)
+    } else {
+      await handleImportWorkspace(payload)
+    }
+  }
+
+  const handleImportWorkspace = async (payload) => {
+    if (!payload?.workspace?.title) {
+      toast.error('Invalid workspace file.')
+      return
+    }
+    const boardCount = Array.isArray(payload.boards) ? payload.boards.length : 0
+    try {
+      await confirmAction({
+        title: 'Import Workspace',
+        description: `This will create a NEW workspace "${payload.workspace.title}" with ${boardCount} board(s). You will be the owner. Note: other members, card assignees, attachments and comments are NOT imported.`,
+        confirmationText: 'Import',
+        cancellationText: 'Cancel',
+        buttonOrder: ['confirm', 'cancel'],
+        confirmationButtonProps: { color: 'primary', variant: 'contained' }
+      })
+    } catch {
+      return // người dùng bấm Cancel
+    }
+
+    const toastId = toast.loading('Importing workspace...')
+    try {
+      const result = await importWorkspaceAPI(payload)
+      // Nạp lại danh sách để có bản ghi workspace đầy đủ (members...) rồi điều hướng vào workspace mới.
+      const fresh = await fetchWorkspacesAPI()
+      setWorkspaces(fresh)
+      const created = fresh.find(w => w._id === result.workspaceId)
+      setCurrentView({ type: 'workspace', id: result.workspaceId, title: created?.title || payload.workspace.title })
+      toast.success('Workspace imported successfully!', { id: toastId })
+    } catch (error) {
+      toast.error('Error: ' + (error?.message || 'Failed to import workspace'), { id: toastId })
+    }
+  }
+
+  const handleImportBoard = async (payload) => {
+    if (!payload?.board?.title) {
+      toast.error('Invalid board file.')
+      return
+    }
+    try {
+      await confirmAction({
+        title: 'Import Board',
+        description: `This will create a NEW private board "${payload.board.title}" in your Personal Boards. Note: card assignees, attachments and comments are NOT imported.`,
+        confirmationText: 'Import',
+        cancellationText: 'Cancel',
+        buttonOrder: ['confirm', 'cancel'],
+        confirmationButtonProps: { color: 'primary', variant: 'contained' }
+      })
+    } catch {
+      return // người dùng bấm Cancel
+    }
+
+    const toastId = toast.loading('Importing board...')
+    try {
+      const result = await importBoardAPI(payload)
+      toast.success('Board imported successfully!', { id: toastId })
+      navigate(`/boards/${result.boardId}`) // mở luôn board mới (thuộc Personal Boards)
+    } catch (error) {
+      toast.error('Error: ' + (error?.message || 'Failed to import board'), { id: toastId })
+    }
+  }
+
   const handleConfirmDeleteWorkspace = (workspace) => {
     confirmAction({
       title: 'Delete Workspace',
@@ -225,6 +346,29 @@ function Boards() {
     }
   }
 
+  const handleDuplicateBoard = async (sourceBoard) => {
+    const toastId = toast.loading('Duplicating board...')
+    try {
+      const newBoard = await duplicateBoardAPI(sourceBoard._id)
+      // Chèn bản sao NGAY SAU bản gốc trong danh sách (optimistic, không refetch).
+      setBoards(prev => {
+        const list = prev || []
+        const idx = list.findIndex(b => b._id === sourceBoard._id)
+        if (idx === -1) return [...list, newBoard]
+        const next = [...list]
+        next.splice(idx + 1, 0, newBoard)
+        return next
+      })
+      setTotalBoards(prev => prev + 1)
+      setAutoRenameBoardId(newBoard._id) // card mới tự vào chế độ sửa tên
+      toast.success('Board duplicated!', { id: toastId })
+    } catch (error) {
+      toast.error('Error: ' + (error?.message || 'Failed to duplicate board'), { id: toastId })
+    }
+  }
+
+  const handleRenameDone = () => setAutoRenameBoardId(null)
+
   const handleSelectCard = (boardId) => {
     if (selectedIds.includes(boardId)) {
       setSelectedIds(selectedIds.filter(id => id !== boardId))
@@ -294,6 +438,17 @@ function Boards() {
       <AppBar
         onOpenCreateBoard={() => setIsCreateBoardOpen(true)}
         onOpenCreateWorkspace={() => setIsCreateWorkspaceOpen(true)}
+        onOpenImportWorkspace={handleOpenImportWorkspace}
+        onOpenImportBoard={handleOpenImportBoard}
+      />
+
+      {/* Input ẩn để chọn file JSON import workspace (kích hoạt từ menu Create → Import workspace) */}
+      <input
+        ref={importFileInputRef}
+        type="file"
+        accept="application/json,.json"
+        hidden
+        onChange={handleImportFileSelected}
       />
       
       {/* APP SHELL LAYOUT */}
@@ -337,6 +492,9 @@ function Boards() {
           handleBulkDelete={handleBulkDelete}
           onBoardDeleted={onBoardDeleted}
           onBoardUpdated={onBoardUpdated}
+          onBoardDuplicated={handleDuplicateBoard}
+          autoRenameBoardId={autoRenameBoardId}
+          onRenameDone={handleRenameDone}
           onOpenDeleteWorkspace={handleConfirmDeleteWorkspace}
           onLeaveWorkspace={handleLeaveWorkspace}
           onWorkspaceUpdated={handleWorkspaceUpdated}

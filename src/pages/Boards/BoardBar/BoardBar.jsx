@@ -41,9 +41,10 @@ import PersonIcon from '@mui/icons-material/Person'
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove'
 import IconButton from '@mui/material/IconButton'
 import { useNavigate } from 'react-router-dom'
-import { updateBoardDetailAPI, fetchWorkspacesAPI, joinBoardAPI, leaveBoardAPI, deleteBoardAPI, toggleStarBoardAPI } from '~/apis'
+import { updateBoardDetailAPI, fetchWorkspacesAPI, joinBoardAPI, leaveBoardAPI, deleteBoardAPI, toggleStarBoardAPI, exportBoardAPI } from '~/apis'
 import Typography from '@mui/material/Typography'
 import DeleteIcon from '@mui/icons-material/Delete'
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 
 const MENU_STYLE = {
   color: 'text.primary',
@@ -99,7 +100,7 @@ export const BoardTitleIndicator = ({ board, onClickTitle }) => {
   )
 }
 
-export const BoardTitleMenu = ({ board, currentUser, anchorEl, handleClose, onLeave, onDelete }) => {
+export const BoardTitleMenu = ({ board, currentUser, anchorEl, handleClose, onLeave, onDelete, onExport }) => {
   const isOwner = board.ownerIds?.includes(currentUser?._id)
   const isMember = board.memberIds?.includes(currentUser?._id)
 
@@ -118,6 +119,13 @@ export const BoardTitleMenu = ({ board, currentUser, anchorEl, handleClose, onLe
           Board Actions
         </Typography>
       </Box>
+
+      <MenuItem onClick={() => { handleClose(); onExport() }} sx={{ gap: 1.5, px: 2, py: 1, color: 'text.primary' }}>
+        <Box sx={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <FileDownloadOutlinedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+        </Box>
+        <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>Export board</ListItemText>
+      </MenuItem>
 
       <MenuItem onClick={() => { handleClose(); onLeave() }} disabled={isOwner} sx={{ gap: 1.5, px: 2, py: 1, color: isOwner ? 'text.disabled' : 'error.main' }}>
         <Box sx={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -303,6 +311,27 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
     }).catch(() => {})
   }
 
+  // Export board: lấy JSON qua axios (giữ auth + xử lý lỗi tập trung) rồi tạo Blob để tải file.
+  const handleExportBoard = async () => {
+    const toastId = toast.loading('Exporting board...')
+    try {
+      const data = await exportBoardAPI(board._id)
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const safeTitle = (board.title || 'board').replace(/[^a-z0-9-_]+/gi, '-').toLowerCase()
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `whip-board-${safeTitle}-${new Date().toISOString().slice(0, 10)}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      toast.success('Board exported successfully!', { id: toastId })
+    } catch (error) {
+      toast.error('Error: ' + (error?.message || 'Failed to export board'), { id: toastId })
+    }
+  }
+
   const handleDeleteBoard = () => {
     confirm({
       title: 'Delete Board',
@@ -361,6 +390,7 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
             handleClose={() => setAnchorElTitleMenu(null)}
             onLeave={handleLeaveBoard}
             onDelete={handleDeleteBoard}
+            onExport={handleExportBoard}
           />
         </Box>
 

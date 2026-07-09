@@ -39,6 +39,11 @@ export const updateBoardVisibilityAPI = async (boardId, type) => {
   return response.data
 }
 
+export const duplicateBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/${boardId}/duplicate`)
+  return response.data
+}
+
 export const deleteBoardAPI = async (boardId) => {
   const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/boards/${boardId}`)
   return response.data
@@ -343,6 +348,26 @@ export const updateWorkspaceAPI = async (workspaceId, updateData) => {
 export const deleteWorkspaceAPI = async (workspaceId) => {
   const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/workspaces/${workspaceId}`)
   toast.success('Workspace deleted successfully')
+  return response.data
+}
+
+export const exportWorkspaceAPI = async (workspaceId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces/${workspaceId}/export`)
+  return response.data
+}
+
+export const importWorkspaceAPI = async (payload) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/workspaces/import`, payload)
+  return response.data
+}
+
+export const exportBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/${boardId}/export`)
+  return response.data
+}
+
+export const importBoardAPI = async (payload) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/import`, payload)
   return response.data
 }
 

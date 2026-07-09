@@ -15,7 +15,7 @@ import { DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
 import { WorkspaceMembersTable } from './WorkspaceMembersTable'
 import { InviteWorkspaceMemberModal } from '~/components/Modal/InviteWorkspaceMemberModal/InviteWorkspaceMemberModal'
 import { useConfirm } from 'material-ui-confirm'
-import { leaveWorkspaceAPI, updateWorkspaceAPI, transferWorkspaceOwnershipAPI, updateWorkspaceLogoAPI } from '~/apis'
+import { leaveWorkspaceAPI, updateWorkspaceAPI, transferWorkspaceOwnershipAPI, updateWorkspaceLogoAPI, exportWorkspaceAPI } from '~/apis'
 import { toast } from 'sonner'
 import { LeaveWorkspaceModal } from '~/components/Modal/LeaveWorkspaceModal/LeaveWorkspaceModal'
 import { WorkspaceNotifications } from './WorkspaceNotifications'
@@ -42,6 +42,9 @@ export const MainContent = ({
   handleBulkDelete,
   onBoardDeleted,
   onBoardUpdated,
+  onBoardDuplicated,
+  autoRenameBoardId,
+  onRenameDone,
   onOpenCreateBoard,
   onOpenDeleteWorkspace,
   onLeaveWorkspace,
@@ -61,6 +64,9 @@ export const MainContent = ({
   // Logo upload
   const logoInputRef = useRef(null)
   const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+
+  // Export workspace data
+  const [isExporting, setIsExporting] = useState(false)
 
   // General form (title + description) — controlled để lưu được xuống backend
   const [generalForm, setGeneralForm] = useState({ title: '', description: '' })
@@ -207,6 +213,32 @@ export const MainContent = ({
     } finally {
       setIsUploadingLogo(false)
       if (logoInputRef.current) logoInputRef.current.value = ''
+    }
+  }
+
+  // Export dữ liệu workspace: lấy JSON qua axios (giữ auth + xử lý lỗi tập trung),
+  // rồi tạo Blob để trình duyệt tải file xuống. Không điều hướng trực tiếp tới endpoint
+  // để không bỏ qua interceptor xác thực của authorizedAxiosInstance.
+  const handleExportData = async () => {
+    if (!currentWorkspace || isExporting) return
+    setIsExporting(true)
+    try {
+      const data = await exportWorkspaceAPI(currentWorkspace._id)
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const safeTitle = (currentWorkspace.title || 'workspace').replace(/[^a-z0-9-_]+/gi, '-').toLowerCase()
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `whip-${safeTitle}-${new Date().toISOString().slice(0, 10)}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      toast.success('Workspace data exported successfully!')
+    } catch (error) {
+      toast.error('Error: ' + (error?.message || 'Failed to export data'))
+    } finally {
+      setIsExporting(false)
     }
   }
 
@@ -443,12 +475,15 @@ export const MainContent = ({
                 gap: 2.5
               }}>
                 {boards.map((b, index) =>
-                  <BoardCard 
-                    key={b._id} 
-                    board={b} 
+                  <BoardCard
+                    key={b._id}
+                    board={b}
                     index={index}
                     onBoardDeleted={onBoardDeleted}
                     onBoardUpdated={onBoardUpdated}
+                    onDuplicate={onBoardDuplicated}
+                    autoRename={b._id === autoRenameBoardId}
+                    onRenameDone={onRenameDone}
                     isBulkMode={isBulkMode}
                     isSelected={selectedIds.includes(b._id)}
                     onSelect={() => handleSelectCard(b._id)}
@@ -778,12 +813,13 @@ export const MainContent = ({
                   Download all boards, cards, and members as a JSON file for backup or migration.
                 </Typography>
               </Box>
-              <Button 
-                variant="outlined" 
-                disabled={!canManage}
+              <Button
+                variant="outlined"
+                disabled={!canManage || isExporting}
+                onClick={handleExportData}
                 sx={{ px: 3, fontWeight: 'bold' }}
               >
-                Export Data
+                {isExporting ? 'Exporting...' : 'Export Data'}
               </Button>
             </Box>
           </Box>

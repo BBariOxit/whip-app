@@ -8,13 +8,14 @@ import ListItemText from '@mui/material/ListItemText'
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
 import ViewColumnIcon from '@mui/icons-material/ViewColumn'
 import BusinessIcon from '@mui/icons-material/Business'
+import UploadFileIcon from '@mui/icons-material/UploadFile'
 
 /**
  * Nút Create ở navbar: bấm ra dropdown chọn tạo Board hay Workspace.
  * Component chỉ lo phần UI dropdown, còn việc mở modal tạo được delegate ra ngoài qua props
  * để mỗi trang tự xử lý hậu-tạo phù hợp ngữ cảnh (trang boards refresh tại chỗ, trong board thì điều hướng).
  */
-function CreateMenu({ onCreateBoard, onCreateWorkspace }) {
+function CreateMenu({ onCreateBoard, onCreateWorkspace, onImportWorkspace, onImportBoard }) {
   const [anchorEl, setAnchorEl] = React.useState(null)
   const open = Boolean(anchorEl)
 
@@ -29,6 +30,16 @@ function CreateMenu({ onCreateBoard, onCreateWorkspace }) {
   const handleSelectWorkspace = () => {
     handleClose()
     onCreateWorkspace?.()
+  }
+
+  const handleSelectImport = () => {
+    handleClose()
+    onImportWorkspace?.()
+  }
+
+  const handleSelectImportBoard = () => {
+    handleClose()
+    onImportBoard?.()
   }
 
   return (
@@ -67,6 +78,17 @@ function CreateMenu({ onCreateBoard, onCreateWorkspace }) {
             secondaryTypographyProps={{ fontSize: 12 }}
           />
         </MenuItem>
+        {onImportBoard && (
+          <MenuItem onClick={handleSelectImportBoard} sx={{ py: 1.25, gap: 0.5 }}>
+            <ListItemIcon><UploadFileIcon fontSize="small" /></ListItemIcon>
+            <ListItemText
+              primary="Import board"
+              secondary="From a JSON file"
+              primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }}
+              secondaryTypographyProps={{ fontSize: 12 }}
+            />
+          </MenuItem>
+        )}
         <MenuItem onClick={handleSelectWorkspace} sx={{ py: 1.25, gap: 0.5 }}>
           <ListItemIcon><BusinessIcon fontSize="small" /></ListItemIcon>
           <ListItemText
@@ -76,6 +98,17 @@ function CreateMenu({ onCreateBoard, onCreateWorkspace }) {
             secondaryTypographyProps={{ fontSize: 12 }}
           />
         </MenuItem>
+        {onImportWorkspace && (
+          <MenuItem onClick={handleSelectImport} sx={{ py: 1.25, gap: 0.5 }}>
+            <ListItemIcon><UploadFileIcon fontSize="small" /></ListItemIcon>
+            <ListItemText
+              primary="Import workspace"
+              secondary="From a JSON file"
+              primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }}
+              secondaryTypographyProps={{ fontSize: 12 }}
+            />
+          </MenuItem>
+        )}
       </Menu>
     </Box>
   )

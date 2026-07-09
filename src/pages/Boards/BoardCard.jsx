@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { Box, Card, CardActionArea, CardContent, Typography, IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Checkbox, Button } from '@mui/material'
+import { useState, useEffect, useRef } from 'react'
+import { Box, Card, CardActionArea, CardContent, Typography, IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Checkbox, Button, TextField } from '@mui/material'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import EditIcon from '@mui/icons-material/Edit'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Link } from 'react-router-dom'
 import { useConfirm } from 'material-ui-confirm'
@@ -20,11 +21,25 @@ const GRADIENTS = [
   'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)'
 ]
 
-export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulkMode, isSelected, onSelect, canManage = true, canDeleteBoard = false, currentUser }) => {
+export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, onDuplicate, autoRename = false, onRenameDone, isBulkMode, isSelected, onSelect, canManage = true, canDeleteBoard = false, currentUser }) => {
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
-  
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+
+  // Inline rename (chỉ tự bật cho board vừa được nhân bản, qua prop autoRename)
+  const [isRenaming, setIsRenaming] = useState(false)
+  const [titleDraft, setTitleDraft] = useState('')
+  const autoRenameHandled = useRef(false)
+
+  // Khi autoRename bật lần đầu: vào chế độ sửa tên, con trỏ sẵn ở tên "... (Copy)".
+  useEffect(() => {
+    if (autoRename && !autoRenameHandled.current) {
+      autoRenameHandled.current = true
+      setTitleDraft(board.title)
+      setIsRenaming(true)
+    }
+  }, [autoRename, board.title])
 
   const confirmDelete = useConfirm()
 
@@ -78,6 +93,35 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
   const handleEdit = () => {
     handleCloseMenu()
     setIsEditModalOpen(true)
+  }
+
+  const handleDuplicate = (e) => {
+    handleCloseMenu(e)
+    onDuplicate?.(board)
+  }
+
+  // Lưu tên mới. Bỏ qua nếu không đổi (giữ "... (Copy)"); chặn tên < 3 ký tự.
+  const commitRename = async () => {
+    if (!isRenaming) return
+    const newTitle = titleDraft.trim()
+    setIsRenaming(false)
+    onRenameDone?.() // báo cha xoá cờ autoRename
+    if (!newTitle || newTitle === board.title) return
+    if (newTitle.length < 3) {
+      toast.error('Board name must be at least 3 characters.')
+      return
+    }
+    try {
+      const updated = await updateBoardDetailAPI(board._id, { title: newTitle })
+      if (onBoardUpdated) onBoardUpdated(updated)
+    } catch (error) {
+      toast.error('Failed to rename board!')
+    }
+  }
+
+  const cancelRename = () => {
+    setIsRenaming(false)
+    onRenameDone?.()
   }
 
   const handleUpdateBoard = async (updateData) => {
@@ -167,7 +211,14 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
               <ListItemText>Edit board</ListItemText>
             </MenuItem>
           )}
-          
+
+          {(canManage || (currentUser && board.ownerIds?.includes(currentUser._id))) && (
+            <MenuItem onClick={handleDuplicate}>
+              <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
+              <ListItemText>Duplicate board</ListItemText>
+            </MenuItem>
+          )}
+
           {(canDeleteBoard || (currentUser && board.ownerIds?.includes(currentUser._id))) && (
             <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
               <ListItemIcon sx={{ color: 'inherit' }}><DeleteIcon fontSize="small" /></ListItemIcon>
@@ -176,10 +227,11 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
           )}
         </Menu>
 
-        <CardActionArea 
-          component={isBulkMode ? "div" : Link} 
-          to={isBulkMode ? undefined : `/boards/${board._id}`}
+        <CardActionArea
+          component={(isBulkMode || isRenaming) ? 'div' : Link}
+          to={(isBulkMode || isRenaming) ? undefined : `/boards/${board._id}`}
           onClick={(e) => {
+            if (isRenaming) { e.preventDefault(); return }
             if (isBulkMode) {
               e.preventDefault()
               if (onSelect) onSelect()
@@ -233,19 +285,57 @@ export const BoardCard = ({ board, index, onBoardDeleted, onBoardUpdated, isBulk
             '&:last-child': { pb: 1.5 },
             bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1e2125' : '#ffffff'
           }}>
-            <Typography gutterBottom variant="h6" component="div" sx={{
-              fontWeight: 700,
-              fontSize: '1rem',
-              mb: 0.5,
-              overflow: 'hidden',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              lineHeight: 1.2,
-              minHeight: '2.4em'
-            }}>
-              {board?.title}
-            </Typography>
+            {isRenaming ? (
+              <TextField
+                value={titleDraft}
+                onChange={(e) => setTitleDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); commitRename() }
+                  else if (e.key === 'Escape') { e.preventDefault(); cancelRename() }
+                }}
+                onBlur={commitRename}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                autoFocus
+                fullWidth
+                variant="standard"
+                inputProps={{ maxLength: 50 }}
+                InputProps={{ disableUnderline: true }}
+                sx={{
+                  mb: 0.5,
+                  '& .MuiInputBase-root': {
+                    borderRadius: '6px',
+                    border: '1.5px solid',
+                    borderColor: 'primary.main',
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                    px: 0.75,
+                    py: 0.4
+                  },
+                  '& .MuiInputBase-input': {
+                    fontWeight: 700,
+                    fontSize: '1rem',
+                    lineHeight: 1.2,
+                    p: 0,
+                    color: 'text.primary'
+                  }
+                }}
+              />
+            ) : (
+              <Typography gutterBottom variant="h6" component="div" sx={{
+                fontWeight: 700,
+                fontSize: '1rem',
+                mb: 0.5,
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                lineHeight: 1.2,
+                minHeight: '2.4em'
+              }}>
+                {board?.title}
+              </Typography>
+            )}
             <Typography
               variant="body2"
               color="text.secondary"
