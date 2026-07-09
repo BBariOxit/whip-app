@@ -15,7 +15,7 @@ import Workspaces from './Menu/Workspaces'
 import Notifications from './Notifications/Notifications'
 import AutoCompleteSearchBoard from './SearchBoards/AutoCompleteSearchBoard'
 
-function AppBar({ onOpenCreateBoard, onOpenCreateWorkspace }) {
+function AppBar({ onOpenCreateBoard, onOpenCreateWorkspace, onOpenImportWorkspace, onOpenImportBoard }) {
   return (
     <Box sx={{
       width: '100%',
@@ -64,6 +64,8 @@ function AppBar({ onOpenCreateBoard, onOpenCreateWorkspace }) {
           <CreateMenu
             onCreateBoard={onOpenCreateBoard}
             onCreateWorkspace={onOpenCreateWorkspace}
+            onImportWorkspace={onOpenImportWorkspace}
+            onImportBoard={onOpenImportBoard}
           />
         </Box>
 

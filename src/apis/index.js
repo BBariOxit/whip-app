@@ -351,6 +351,21 @@ export const exportWorkspaceAPI = async (workspaceId) => {
   return response.data
 }
 
+export const importWorkspaceAPI = async (payload) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/workspaces/import`, payload)
+  return response.data
+}
+
+export const exportBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/${boardId}/export`)
+  return response.data
+}
+
+export const importBoardAPI = async (payload) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/import`, payload)
+  return response.data
+}
+
 export const getWorkspaceDetailsAPI = async (workspaceId) => {
   const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces/${workspaceId}`)
   return response.data
