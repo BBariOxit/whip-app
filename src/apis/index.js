@@ -346,6 +346,11 @@ export const deleteWorkspaceAPI = async (workspaceId) => {
   return response.data
 }
 
+export const exportWorkspaceAPI = async (workspaceId) => {
+  const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces/${workspaceId}/export`)
+  return response.data
+}
+
 export const getWorkspaceDetailsAPI = async (workspaceId) => {
   const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces/${workspaceId}`)
   return response.data
