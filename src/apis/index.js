@@ -39,6 +39,11 @@ export const updateBoardVisibilityAPI = async (boardId, type) => {
   return response.data
 }
 
+export const duplicateBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/${boardId}/duplicate`)
+  return response.data
+}
+
 export const deleteBoardAPI = async (boardId) => {
   const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/boards/${boardId}`)
   return response.data

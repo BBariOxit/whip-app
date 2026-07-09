@@ -42,6 +42,9 @@ export const MainContent = ({
   handleBulkDelete,
   onBoardDeleted,
   onBoardUpdated,
+  onBoardDuplicated,
+  autoRenameBoardId,
+  onRenameDone,
   onOpenCreateBoard,
   onOpenDeleteWorkspace,
   onLeaveWorkspace,
@@ -472,12 +475,15 @@ export const MainContent = ({
                 gap: 2.5
               }}>
                 {boards.map((b, index) =>
-                  <BoardCard 
-                    key={b._id} 
-                    board={b} 
+                  <BoardCard
+                    key={b._id}
+                    board={b}
                     index={index}
                     onBoardDeleted={onBoardDeleted}
                     onBoardUpdated={onBoardUpdated}
+                    onDuplicate={onBoardDuplicated}
+                    autoRename={b._id === autoRenameBoardId}
+                    onRenameDone={onRenameDone}
                     isBulkMode={isBulkMode}
                     isSelected={selectedIds.includes(b._id)}
                     onSelect={() => handleSelectCard(b._id)}

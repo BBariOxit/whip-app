@@ -3,7 +3,7 @@ import AppBar from '~/components/AppBar/AppBar'
 import Box from '@mui/material/Box'
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom'
 import { useDebounce } from '~/customHooks/useDebounce'
-import { fetchBoardsAPI, fetchTemplatesAPI, bulkDeleteBoardsAPI, fetchWorkspacesAPI, deleteWorkspaceAPI, importWorkspaceAPI, importBoardAPI } from '~/apis'
+import { fetchBoardsAPI, fetchTemplatesAPI, bulkDeleteBoardsAPI, fetchWorkspacesAPI, deleteWorkspaceAPI, importWorkspaceAPI, importBoardAPI, duplicateBoardAPI } from '~/apis'
 import { toast } from 'sonner'
 import { useConfirm } from 'material-ui-confirm'
 import { Sidebar } from './Sidebar'
@@ -39,6 +39,7 @@ function Boards() {
 
   // Boards & Workspace Data State
   const [boards, setBoards] = useState(null)
+  const [autoRenameBoardId, setAutoRenameBoardId] = useState(null)
   const [totalBoards, setTotalBoards] = useState(null)
   const [templates, setTemplates] = useState(null)
   const [workspaces, setWorkspaces] = useState([])
@@ -345,6 +346,29 @@ function Boards() {
     }
   }
 
+  const handleDuplicateBoard = async (sourceBoard) => {
+    const toastId = toast.loading('Duplicating board...')
+    try {
+      const newBoard = await duplicateBoardAPI(sourceBoard._id)
+      // Chèn bản sao NGAY SAU bản gốc trong danh sách (optimistic, không refetch).
+      setBoards(prev => {
+        const list = prev || []
+        const idx = list.findIndex(b => b._id === sourceBoard._id)
+        if (idx === -1) return [...list, newBoard]
+        const next = [...list]
+        next.splice(idx + 1, 0, newBoard)
+        return next
+      })
+      setTotalBoards(prev => prev + 1)
+      setAutoRenameBoardId(newBoard._id) // card mới tự vào chế độ sửa tên
+      toast.success('Board duplicated!', { id: toastId })
+    } catch (error) {
+      toast.error('Error: ' + (error?.message || 'Failed to duplicate board'), { id: toastId })
+    }
+  }
+
+  const handleRenameDone = () => setAutoRenameBoardId(null)
+
   const handleSelectCard = (boardId) => {
     if (selectedIds.includes(boardId)) {
       setSelectedIds(selectedIds.filter(id => id !== boardId))
@@ -468,6 +492,9 @@ function Boards() {
           handleBulkDelete={handleBulkDelete}
           onBoardDeleted={onBoardDeleted}
           onBoardUpdated={onBoardUpdated}
+          onBoardDuplicated={handleDuplicateBoard}
+          autoRenameBoardId={autoRenameBoardId}
+          onRenameDone={handleRenameDone}
           onOpenDeleteWorkspace={handleConfirmDeleteWorkspace}
           onLeaveWorkspace={handleLeaveWorkspace}
           onWorkspaceUpdated={handleWorkspaceUpdated}
