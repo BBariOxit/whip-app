@@ -1,29 +1,74 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AppBar from '~/components/AppBar/AppBar'
 import Container from '@mui/material/Container'
 import Box from '@mui/material/Box'
 import Tab from '@mui/material/Tab'
+import Typography from '@mui/material/Typography'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import SecurityIcon from '@mui/icons-material/Security'
 import PersonIcon from '@mui/icons-material/Person'
+import TuneIcon from '@mui/icons-material/Tune'
+import PrivacyTipOutlinedIcon from '@mui/icons-material/PrivacyTipOutlined'
+import { alpha, useTheme } from '@mui/material/styles'
 import { Link, useLocation } from 'react-router-dom'
 import AccountTab from './AccountTab'
 import SecurityTab from './SecurityTab'
+import PreferencesTab from './PreferencesTab'
+import DataPrivacyTab from './DataPrivacyTab'
 
 const TABS = {
   ACCOUNT: 'account',
-  SECURITY: 'security'
+  PREFERENCES: 'preferences',
+  SECURITY: 'security',
+  DATA: 'data-privacy'
 }
+
+const getTabFromPath = (pathname) => {
+  if (pathname.includes(TABS.DATA)) return TABS.DATA
+  if (pathname.includes(TABS.PREFERENCES)) return TABS.PREFERENCES
+  if (pathname.includes(TABS.SECURITY)) return TABS.SECURITY
+  return TABS.ACCOUNT
+}
+
+const settingsTabs = [
+  {
+    value: TABS.ACCOUNT,
+    label: 'Public profile',
+    to: '/settings/account',
+    icon: <PersonIcon fontSize="small" />
+  },
+  {
+    value: TABS.PREFERENCES,
+    label: 'Preferences',
+    to: '/settings/preferences',
+    icon: <TuneIcon fontSize="small" />
+  },
+  {
+    value: TABS.SECURITY,
+    label: 'Security & password',
+    to: '/settings/security',
+    icon: <SecurityIcon fontSize="small" />
+  },
+  {
+    value: TABS.DATA,
+    label: 'Data & privacy',
+    to: '/settings/data-privacy',
+    icon: <PrivacyTipOutlinedIcon fontSize="small" />
+  }
+]
 
 function Settings() {
   const location = useLocation()
-  const getDefaultTab = () => {
-    if (location.pathname.includes(TABS.SECURITY)) return TABS.SECURITY
-    return TABS.ACCOUNT
-  }
-  const [activeTab, setActiveTab] = useState(getDefaultTab())
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const [activeTab, setActiveTab] = useState(getTabFromPath(location.pathname))
+
+  useEffect(() => {
+    setActiveTab(getTabFromPath(location.pathname))
+  }, [location.pathname])
 
   const handleChangeTab = (event, selectedTab) => { setActiveTab(selectedTab) }
 
@@ -31,79 +76,107 @@ function Settings() {
     <Container disableGutters maxWidth={false}>
       <AppBar />
       <TabContext value={activeTab}>
-        <Box sx={{ 
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? '#0d1117' : '#f6f8fa', 
-          minHeight: 'calc(100vh - 58px)', 
-          display: 'flex',
-          justifyContent: 'center',
-          pt: 6,
-          px: 4
+        <Box sx={{
+          bgcolor: 'background.default',
+          minHeight: 'calc(100vh - 58px)',
+          px: { xs: 2, md: 4 },
+          py: { xs: 3, md: 5 }
         }}>
           <Box sx={{
-            display: 'flex', 
-            width: '100%', 
-            maxWidth: '1012px',
-            gap: 4 
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '276px minmax(0, 1fr)' },
+            gap: { xs: 2.5, md: 4 },
+            width: '100%',
+            maxWidth: '1280px',
+            mx: 'auto'
           }}>
-            {/* 1. SIDEBAR ĐIỀU HƯỚNG BÊN TRÁI */}
-            <Box sx={{ width: '296px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
-              <TabList 
-                onChange={handleChangeTab} 
-                orientation="vertical"
-                sx={{
+            <Box
+              component="aside"
+              sx={(theme) => ({
+                alignSelf: 'start',
+                position: { xs: 'static', md: 'sticky' },
+                top: { md: `calc(${theme.trello.appBarHeight} + 24px)` },
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: '8px',
+                bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.74) : theme.palette.background.paper,
+                boxShadow: theme.palette.mode === 'light' ? '0 10px 30px rgba(15, 23, 42, 0.06)' : 'none',
+                overflow: 'hidden'
+              })}
+            >
+              <Box sx={{
+                px: 2,
+                py: 2,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                display: { xs: 'none', md: 'block' }
+              }}>
+                <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: 'text.primary' }}>
+                  Settings
+                </Typography>
+                <Typography sx={{ mt: 0.25, fontSize: '0.8125rem', color: 'text.secondary' }}>
+                  Account preferences
+                </Typography>
+              </Box>
+
+              <TabList
+                onChange={handleChangeTab}
+                orientation={isMobile ? 'horizontal' : 'vertical'}
+                variant={isMobile ? 'scrollable' : 'standard'}
+                allowScrollButtonsMobile
+                sx={(theme) => ({
+                  p: 1,
+                  minHeight: 'auto',
+                  '& .MuiTabs-flexContainer': {
+                    gap: 0.5
+                  },
                   '& .MuiTabs-indicator': { display: 'none' },
                   '& .MuiTab-root': {
                     justifyContent: 'flex-start',
-                    minHeight: '32px',
+                    minHeight: 42,
+                    px: 1.5,
                     py: 1,
-                    px: 2,
-                    mb: 0.5,
-                    borderRadius: '6px',
-                    color: (theme) => theme.palette.mode === 'dark' ? '#768390' : '#57606a',
+                    borderRadius: '7px',
+                    color: 'text.secondary',
                     textTransform: 'none',
-                    fontWeight: 500,
-                    fontSize: '14px',
+                    fontWeight: 650,
+                    fontSize: '0.9rem',
+                    lineHeight: 1.2,
+                    transition: 'background-color 0.15s ease, color 0.15s ease',
+                    '& .MuiTab-iconWrapper': {
+                      mr: 1.25,
+                      color: 'inherit'
+                    },
                     '&:hover': {
-                      color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#24292f',
-                      bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.04)'
+                      color: 'text.primary',
+                      bgcolor: theme.palette.mode === 'dark' ? alpha('#fff', 0.05) : alpha(theme.palette.primary.main, 0.08)
                     },
                     '&.Mui-selected': {
-                      color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#24292f',
-                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#25282c' : '#eaf2ff',
-                      fontWeight: 600
+                      color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main,
+                      bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.18) : alpha(theme.palette.primary.main, 0.12)
                     }
                   }
-                }}
+                })}
               >
-                <Tab
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <PersonIcon fontSize="small" sx={{ mr: 1.5 }} />
-                      Public profile
-                    </Box>
-                  }
-                  value={TABS.ACCOUNT}
-                  component={Link}
-                  to="/settings/account" 
-                />
-                <Tab
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <SecurityIcon fontSize="small" sx={{ mr: 1.5 }} />
-                      Security & password
-                    </Box>
-                  }
-                  value={TABS.SECURITY}
-                  component={Link}
-                  to="/settings/security" 
-                />
+                {settingsTabs.map((tab) => (
+                  <Tab
+                    key={tab.value}
+                    icon={tab.icon}
+                    iconPosition="start"
+                    label={tab.label}
+                    value={tab.value}
+                    component={Link}
+                    to={tab.to}
+                  />
+                ))}
               </TabList>
             </Box>
 
-            {/* 2. VÙNG NỘI DUNG CHÍNH BÊN PHẢI */}
-            <Box sx={{ flex: 1, maxWidth: '800px' }}>
+            <Box component="main" sx={{ minWidth: 0 }}>
               <TabPanel value={TABS.ACCOUNT} sx={{ p: 0 }}><AccountTab /></TabPanel>
+              <TabPanel value={TABS.PREFERENCES} sx={{ p: 0 }}><PreferencesTab /></TabPanel>
               <TabPanel value={TABS.SECURITY} sx={{ p: 0 }}><SecurityTab /></TabPanel>
+              <TabPanel value={TABS.DATA} sx={{ p: 0 }}><DataPrivacyTab /></TabPanel>
             </Box>
           </Box>
         </Box>

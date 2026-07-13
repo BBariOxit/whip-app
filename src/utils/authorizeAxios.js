@@ -1,8 +1,8 @@
-import axios from "axios"
+import axios from 'axios'
 import { toast } from 'sonner'
-import { interceptorLoadingElements } from "./formatters"
-import { logoutUserAPI } from "~/redux/user/userSlice"
-import { API_ROOT } from "~/utils/constants"
+import { interceptorLoadingElements } from './formatters'
+import { clearCurrentUser, logoutUserAPI } from '~/redux/user/userSlice'
+import { API_ROOT } from '~/utils/constants'
 
 /**
  * Không thể import { store } from '~/redux/store' theo cách thông thường ở đây
@@ -61,7 +61,9 @@ authorizedAxiosInstance.interceptors.response.use(
     /** Quan trọng: Xử lý Refresh Token tự động */
     // Trường hợp 1: Nếu như nhận mã 401 từ BE, thì gọi api đăng xuất luôn
     if(error.response?.status === 401) {
-      axiosReduxStore.dispatch(logoutUserAPI(false)) // false để không hiện toast message logout
+      // A 401 means the local auth state is stale (or the request is from a guest).
+      // Clear Redux locally instead of calling /logout and risking a recursive 401 loop.
+      axiosReduxStore.dispatch(clearCurrentUser())
     }
 
     // Trường hợp 2: Nếu như nhận mã 410 từ BE, thì sẽ gọi api refresh token để làm mới lại accessToken
@@ -113,12 +115,12 @@ authorizedAxiosInstance.interceptors.response.use(
     }
     // Dùng toastify để hiển thị bất kể mọi mã lỗi lên màn hình - Ngoại trừ mã 410
     // - GONE phục vụ việc tự động refresh lại token.
-    if(error.response?.status !== 410) {
+    if(error.response?.status !== 410 && !error.config?.skipGlobalErrorToast) {
       toast.error(errorMessage)
     }
     
     return Promise.reject(error)
   }
-);
+)
 
 export default authorizedAxiosInstance

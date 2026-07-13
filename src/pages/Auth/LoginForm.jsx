@@ -25,13 +25,12 @@ import {
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import { useDispatch } from 'react-redux'
 import { loginUserAPI, googleLoginUserAPI } from '~/redux/user/userSlice'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useGoogleLogin } from '@react-oauth/google'
 
 function LoginForm() {
   const dispatch = useDispatch()
-  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
 
   const { register, handleSubmit, formState: { errors } } = useForm()
@@ -45,9 +44,7 @@ function LoginForm() {
     toast.promise(
       dispatch(loginUserAPI({ email, password })).unwrap(),
       { pending: 'Logging in...' },
-    ).then(res => {
-      if (!res.error) navigate('/')
-    }).catch(() => {})
+    ).catch(() => {})
   }
 
   // Google Login handler - dùng implicit flow lấy access_token
@@ -59,7 +56,6 @@ function LoginForm() {
         const result = await dispatch(googleLoginUserAPI(tokenResponse.access_token)).unwrap()
         if (!result.error) {
           toast.success('Logged in with Google successfully!')
-          navigate('/')
         }
       } catch (error) {
         toast.error(error?.message || 'Google login failed!')

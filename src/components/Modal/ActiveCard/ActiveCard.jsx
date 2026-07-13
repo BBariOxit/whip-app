@@ -571,7 +571,7 @@ function ActiveCard() {
       <ShareModal 
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        shareUrl={`${window.location.origin}/boards/${board?._id}?cardId=${activeCard?._id}`}
+        shareUrl={`${window.location.origin}/share/cards/${board?._id}/${activeCard?._id}`}
         title={activeCard?.title}
         type="Card"
       />

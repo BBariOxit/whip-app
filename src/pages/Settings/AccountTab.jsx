@@ -1,5 +1,8 @@
-import { Box, Typography, TextField, Button, Avatar, Divider } from '@mui/material'
+import { Box, Typography, TextField, Button, Avatar } from '@mui/material'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
+import SaveIcon from '@mui/icons-material/Save'
+import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined'
+import { alpha } from '@mui/material/styles'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'sonner'
@@ -7,6 +10,18 @@ import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import VisuallyHiddenInput from '~/components/Form/VisuallyHiddenInput'
 import { selectCurrentUser, updateUserAPI } from '~/redux/user/userSlice'
 import { FIELD_REQUIRED_MESSAGE, singleFileValidator } from '~/utils/validators'
+import {
+  SettingsContentShell,
+  SettingsPageHeader,
+  SettingsRow,
+  SettingsSection
+} from './SettingsComponents'
+import { settingsFieldSx } from './settingsStyles'
+
+const navItems = [
+  { id: 'profile-details', label: 'Profile details' },
+  { id: 'profile-identity', label: 'Public identity' }
+]
 
 function AccountTab() {
   const dispatch = useDispatch()
@@ -25,7 +40,7 @@ function AccountTab() {
 
     toast.promise(
       dispatch(updateUserAPI({ displayName })),
-      { pending: 'Updating... ' },
+      { pending: 'Updating... ' }
     ).then(res => {
       if (!res.error) {
         toast.success('User updated successfully!')
@@ -45,7 +60,7 @@ function AccountTab() {
 
     toast.promise(
       dispatch(updateUserAPI(reqData)),
-      { pending: 'Uploading... ' },
+      { pending: 'Uploading... ' }
     ).then(res => {
       if (!res.error) {
         toast.success('Avatar uploaded successfully!')
@@ -55,115 +70,204 @@ function AccountTab() {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      
-      {/* TIÊU ĐỀ TRANG KHU VỰC */}
-      <Box>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#24292f', mb: 0.5 }}>Public profile</Typography>
-        <Typography sx={{ fontSize: '14px', color: 'text.secondary' }}>Manage your public identity and account data.</Typography>
-        <Divider sx={{ borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de', mt: 2 }} />
-      </Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <SettingsPageHeader
+        title="Public profile"
+        description="Manage your public identity and account data."
+      />
 
-      {/* KHỐI LAYOUT CHỨA AVATAR VÀ FORM NẰM NGANG */}
-      <Box sx={{ display: 'flex', gap: 5, alignItems: 'flex-start' }}>
-        
-        {/* CỘT NHẬP FORM TEXT (BÊN TRÁI TRONG KHỐI CHÍNH) */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <form onSubmit={handleSubmit(submitChangeGeneralInformation)} style={{ width: '100%' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <TextField 
-                label="Username" 
-                defaultValue={currentUser?.username} 
-                fullWidth
-                helperText={`Your profile URL: whip.cobweb.id.vn/u/${currentUser?.username}`}
-                disabled
-                sx={{ 
-                  '& .MuiOutlinedInput-root': { 
-                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa',
-                    '& fieldset': { borderWidth: '1px !important', transition: 'none !important' },
-                    '&:hover fieldset': { borderWidth: '2px !important' },
-                    '&.Mui-focused fieldset': { borderWidth: '2px !important' }
-                  }, 
-                  '& .MuiFormHelperText-root': { color: 'text.secondary' } 
+      <SettingsContentShell navItems={navItems}>
+        <SettingsSection id="profile-details" title="Profile details">
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) 220px' },
+            gap: { xs: 3, md: 4 },
+            alignItems: 'start'
+          }}>
+            <Box sx={{ minWidth: 0 }}>
+              <form onSubmit={handleSubmit(submitChangeGeneralInformation)} style={{ width: '100%' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                  <TextField
+                    label="Username"
+                    defaultValue={currentUser?.username}
+                    fullWidth
+                    helperText={`whip.cobweb.id.vn/u/${currentUser?.username}`}
+                    disabled
+                    sx={settingsFieldSx}
+                  />
+
+                  <TextField
+                    label="Email address"
+                    defaultValue={currentUser?.email}
+                    disabled
+                    fullWidth
+                    sx={settingsFieldSx}
+                  />
+
+                  <Box>
+                    <TextField
+                      label="Display name"
+                      fullWidth
+                      inputProps={{ maxLength: 50 }}
+                      sx={settingsFieldSx}
+                      {...register('displayName', {
+                        required: FIELD_REQUIRED_MESSAGE,
+                        maxLength: { value: 50, message: 'Display Name cannot exceed 50 characters' }
+                      })}
+                      error={!!errors['displayName']}
+                    />
+                    <FieldErrorAlert errors={errors} fieldName={'displayName'} />
+                  </Box>
+
+                  <Box sx={{ pt: 0.5 }}>
+                    <Button
+                      className="interceptor-loading"
+                      type="submit"
+                      variant="contained"
+                      startIcon={<SaveIcon fontSize="small" />}
+                      sx={{
+                        minHeight: 42,
+                        px: 2.5,
+                        borderRadius: '8px',
+                        boxShadow: 'none',
+                        fontWeight: 700,
+                        '&:hover': { boxShadow: 'none' }
+                      }}
+                    >
+                      Update profile
+                    </Button>
+                  </Box>
+                </Box>
+              </form>
+            </Box>
+
+            <Box
+              sx={(theme) => ({
+                order: { xs: -1, md: 0 },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: { xs: 'center', md: 'stretch' },
+                gap: 2,
+                p: 2,
+                borderRadius: '8px',
+                bgcolor: theme.palette.mode === 'dark' ? alpha('#fff', 0.035) : '#f8fafc',
+                border: '1px solid',
+                borderColor: theme.palette.mode === 'dark' ? alpha('#fff', 0.08) : '#e2e8f0'
+              })}
+            >
+              <Typography sx={{ fontSize: '0.9rem', fontWeight: 750, color: 'text.primary', alignSelf: 'stretch' }}>
+                Profile picture
+              </Typography>
+
+              <Box
+                component="label"
+                sx={{
+                  position: 'relative',
+                  cursor: 'pointer',
+                  borderRadius: '50%',
+                  alignSelf: 'center',
+                  '&:hover .avatar-overlay': { opacity: 1 }
                 }}
-              />
-
-              <TextField 
-                label="Email Address" 
-                defaultValue={currentUser?.email} 
-                disabled 
-                fullWidth
-                sx={{ 
-                  '& .MuiOutlinedInput-root': { 
-                    bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa',
-                    '& fieldset': { borderWidth: '1px !important', transition: 'none !important' },
-                    '&:hover fieldset': { borderWidth: '2px !important' },
-                    '&.Mui-focused fieldset': { borderWidth: '2px !important' }
-                  } 
-                }}
-              />
-
-              <Box>
-                <TextField
-                  label="Display Name"
-                  fullWidth
-                  inputProps={{ maxLength: 50 }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: (theme) => theme.palette.mode === 'dark' ? '#171b22' : '#f6f8fa',
-                      '& fieldset': { borderWidth: '1px !important', transition: 'none !important' },
-                      '&:hover fieldset': { borderWidth: '2px !important' },
-                      '&.Mui-focused fieldset': { borderWidth: '2px !important' }
-                    }
-                  }}
-                  {...register('displayName', {
-                    required: FIELD_REQUIRED_MESSAGE,
-                    maxLength: { value: 50, message: 'Display Name cannot exceed 50 characters' }
+              >
+                <Avatar
+                  src={currentUser?.avatar}
+                  sx={(theme) => ({
+                    width: 148,
+                    height: 148,
+                    border: '3px solid',
+                    borderColor: theme.palette.mode === 'dark' ? alpha('#fff', 0.16) : '#fff',
+                    boxShadow: theme.palette.mode === 'dark' ? '0 18px 32px rgba(0, 0, 0, 0.28)' : '0 18px 32px rgba(15, 23, 42, 0.15)'
                   })}
-                  error={!!errors['displayName']}
                 />
-                <FieldErrorAlert errors={errors} fieldName={'displayName'} />
-              </Box>
-
-              <Box sx={{ mt: 1 }}>
-                <Button 
-                  className="interceptor-loading"
-                  type="submit" 
-                  variant="contained" 
-                  sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' }, px: 3, py: 1, fontWeight: 600, textTransform: 'none' }}
+                <Box
+                  className="avatar-overlay"
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: 148,
+                    height: 148,
+                    borderRadius: '50%',
+                    bgcolor: 'rgba(2, 6, 23, 0.66)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 0.75,
+                    opacity: 0,
+                    transition: 'opacity 0.18s ease',
+                    color: '#fff',
+                    fontSize: '0.8rem',
+                    fontWeight: 750
+                  }}
                 >
-                  Update profile
-                </Button>
+                  <CloudUploadIcon fontSize="small" />
+                  Upload
+                </Box>
+                <VisuallyHiddenInput type="file" onChange={uploadAvatar} />
               </Box>
-            </Box>
-          </form>
-        </Box>
 
-        {/* CỘT AVATAR (BÊN PHẢI TRONG KHỐI CHÍNH) */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, width: '200px' }}>
-          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: (theme) => theme.palette.mode === 'dark' ? '#adbac7' : '#57606a', width: '100%', textAlign: 'left' }}>Profile picture</Typography>
-          
-          {/* Khu vực Avatar Hover bọc lót tinh tế */}
-          <Box 
-            component="label"
-            sx={{ 
-              position: 'relative', 
-              cursor: 'pointer', 
-              borderRadius: '50%',
-              '&:hover .avatar-overlay': { opacity: 1 } 
-            }}
-          >
-            <Avatar src={currentUser?.avatar} sx={{ width: 140, height: 140, border: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#30363d' : '#d0d7de' }} />
-            <Box className="avatar-overlay" sx={{ position: 'absolute', top: 0, left: 0, width: 140, height: 140, borderRadius: '50%', bgcolor: 'rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, opacity: 0, transition: 'opacity 0.2s', color: '#fff', fontSize: '12px', fontWeight: 600 }}>
-              <CloudUploadIcon fontSize="small" />
-              Edit
+              <Button
+                component="label"
+                variant="outlined"
+                startIcon={<CloudUploadIcon fontSize="small" />}
+                sx={{
+                  minHeight: 38,
+                  borderRadius: '8px',
+                  alignSelf: 'stretch'
+                }}
+              >
+                Upload photo
+                <VisuallyHiddenInput type="file" onChange={uploadAvatar} />
+              </Button>
             </Box>
-            <VisuallyHiddenInput type="file" onChange={uploadAvatar} />
           </Box>
-        </Box>
+        </SettingsSection>
 
-      </Box>
+        <SettingsSection id="profile-identity" title="Public identity">
+          <SettingsRow
+            title="Profile URL"
+            description="This is the public link people can use to view your profile."
+          >
+            <Typography
+              component="code"
+              sx={(theme) => ({
+                px: 1.25,
+                py: 0.75,
+                borderRadius: '8px',
+                bgcolor: theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
+                border: '1px solid',
+                borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
+                color: 'text.secondary',
+                fontSize: '0.8125rem'
+              })}
+            >
+              whip.cobweb.id.vn/u/{currentUser?.username}
+            </Typography>
+          </SettingsRow>
 
+          <SettingsRow
+            title="Account status"
+            description="Your account can use protected workspace and board features."
+            last
+          >
+            <Box sx={(theme) => ({
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              px: 1.25,
+              py: 0.75,
+              borderRadius: '999px',
+              color: '#22c55e',
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.1)',
+              fontSize: '0.8125rem',
+              fontWeight: 700
+            })}>
+              <VerifiedUserOutlinedIcon sx={{ fontSize: 18 }} />
+              Active
+            </Box>
+          </SettingsRow>
+        </SettingsSection>
+      </SettingsContentShell>
     </Box>
   )
 }

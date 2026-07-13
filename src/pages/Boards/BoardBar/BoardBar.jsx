@@ -598,7 +598,7 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        shareUrl={window.location.href}
+        shareUrl={`${window.location.origin}/share/boards/${board?._id}`}
         title={board?.title}
         type="Board"
       />

@@ -19,6 +19,22 @@ export const fetchBoardDetailAPI = async (boardId) => {
   return response.data
 }
 
+export const fetchSharedBoardAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(
+    `${API_ROOT}/v1/shares/boards/${boardId}`,
+    { skipGlobalErrorToast: true }
+  )
+  return response.data
+}
+
+export const fetchSharedCardAPI = async (boardId, cardId) => {
+  const response = await authorizedAxiosInstance.get(
+    `${API_ROOT}/v1/shares/boards/${boardId}/cards/${cardId}`,
+    { skipGlobalErrorToast: true }
+  )
+  return response.data
+}
+
 export const getArchivedItemsAPI = async (boardId) => {
   const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/${boardId}/archived-items`)
   return response.data
@@ -220,7 +236,7 @@ export const createNewBoardAPI = async (data) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards`, data)
   toast.success('Board created successfully')
   return response.data
-} 
+}
 
 export const updateCardDetailsAPI = async (cardId, updateData) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/cards/${cardId}`, updateData)
@@ -434,4 +450,4 @@ export const acceptWorkspaceInviteAPI = async (data) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/workspaces/accept-invite`, data)
   toast.success(response.data?.message || 'Invitation accepted successfully!')
   return response.data
-}
+}
