@@ -1,5 +1,5 @@
 import Board from '~/pages/Boards/_id'
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
 import NotFound from '~/pages/404/NotFound'
 // import LoginForm from '~/pages/Auth/LoginForm'
 // import RegisterForm from '~/pages/Auth/RegisterForm'
@@ -10,12 +10,18 @@ import { selectCurrentUser } from '~/redux/user/userSlice'
 import Settings from '~/pages/Settings/Settings'
 import Boards from '~/pages/Boards/index'
 import { AcceptInvite } from '~/pages/Workspace/AcceptInvite'
+import SharedBoard from '~/pages/Share/SharedBoard'
+import SharedCard from '~/pages/Share/SharedCard'
 /**
  * Giải pháp Clean Code trong việc xác định các route nào cần đăng nhập tài khoản xong thì mới cho truy cập
  * Sử dụng <Outlet /> của react-router-dom để hiển thị các Child Route
  */
 const ProtectedRoute = ({ user }) => {
-  if (!user) return <Navigate to='/login' replace={true} />
+  const location = useLocation()
+  if (!user) {
+    const from = `${location.pathname}${location.search}${location.hash}`
+    return <Navigate to='/login' replace={true} state={{ from }} />
+  }
   return <Outlet />
 }
 
@@ -43,8 +49,11 @@ function App() {
         <Route path="/boards" element={<Boards />} />
 
         {/* User settings */}
+        <Route path='/settings' element={<Navigate to='/settings/account' replace={true} />} />
         <Route path='/settings/account' element={<Settings />} />
+        <Route path='/settings/preferences' element={<Settings />} />
         <Route path='/settings/security' element={<Settings />} />
+        <Route path='/settings/data-privacy' element={<Settings />} />
       </Route>
 
       {/* Authentications */}
@@ -52,6 +61,11 @@ function App() {
       <Route path="/register" element={<Auth />} />
       <Route path='/account/verification' element={<AccountVerification />} />
       <Route path="/accept-invite" element={<AcceptInvite />} />
+
+      {/* Public entry points. Backend RBAC decides whether the resource can be
+          viewed as a guest or requires an authenticated board member. */}
+      <Route path="/share/boards/:boardId" element={<SharedBoard />} />
+      <Route path="/share/cards/:boardId/:cardId" element={<SharedCard />} />
 
       {/* Route 404 not found page  */}
       <Route path="*" element={<NotFound />} />

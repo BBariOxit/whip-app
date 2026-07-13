@@ -10,6 +10,12 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
+import { consumeRedirectAfterLogin, saveRedirectAfterLogin } from '~/utils/authRedirect'
+
+const AuthenticatedRedirect = () => {
+  const [target] = useState(() => consumeRedirectAfterLogin('/'))
+  return <Navigate to={target} replace={true} />
+}
 
 function Auth() {
   const location = useLocation()
@@ -21,6 +27,10 @@ function Auth() {
   const currentUser = useSelector(selectCurrentUser)
   const [searchParams] = useSearchParams()
   const [isProcessingGitHub, setIsProcessingGitHub] = useState(false)
+
+  useEffect(() => {
+    if (location.state?.from) saveRedirectAfterLogin(location.state.from)
+  }, [location.state])
 
   // Xử lý GitHub OAuth callback - khi GitHub redirect về với ?code=xxx
   useEffect(() => {
@@ -34,13 +44,6 @@ function Auth() {
       ).then(res => {
         if (!res.error) {
           toast.success('Logged in with GitHub successfully!')
-          const pendingRedirect = localStorage.getItem('redirectAfterLogin')
-          if (pendingRedirect) {
-            localStorage.removeItem('redirectAfterLogin')
-            navigate(pendingRedirect, { replace: true })
-          } else {
-            navigate('/', { replace: true })
-          }
         }
       }).catch((error) => {
         toast.error(error?.message || 'GitHub login failed!')
@@ -53,12 +56,7 @@ function Auth() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (currentUser) {
-    const pendingRedirect = localStorage.getItem('redirectAfterLogin')
-    if (pendingRedirect) {
-      localStorage.removeItem('redirectAfterLogin')
-      return <Navigate to={pendingRedirect} replace={true} />
-    }
-    return <Navigate to="/" replace={true} />
+    return <AuthenticatedRedirect />
   }
 
   return (

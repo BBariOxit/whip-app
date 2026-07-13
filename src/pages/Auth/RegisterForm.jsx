@@ -56,7 +56,6 @@ function RegisterForm() {
         const result = await dispatch(googleLoginUserAPI(tokenResponse.access_token)).unwrap()
         if (!result.error) {
           toast.success('Logged in with Google successfully!')
-          navigate('/')
         }
       } catch (error) {
         toast.error(error?.message || 'Google login failed!')

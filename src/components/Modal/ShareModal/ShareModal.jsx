@@ -1,5 +1,6 @@
-import { useRef } from 'react'
+import { useId } from 'react'
 import Dialog from '@mui/material/Dialog'
+import Alert from '@mui/material/Alert'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import Button from '@mui/material/Button'
@@ -14,17 +15,22 @@ import { QRCodeSVG } from 'qrcode.react'
 import { toast } from 'sonner'
 
 export const ShareModal = ({ isOpen, onClose, shareUrl, title, type = 'Board' }) => {
-  const qrRef = useRef(null)
+  const qrId = useId()
+  const isLocalLink = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/)/i.test(shareUrl)
 
   // 1. Copy Link
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareUrl)
-    toast.success(`${type} link copied to clipboard!`)
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      toast.success(`${type} link copied to clipboard!`)
+    } catch {
+      toast.error('Could not copy the share link. Please copy it manually.')
+    }
   }
 
   // 2. Tải ảnh QR Code (Convert từ SVG sang PNG)
   const handleDownloadQR = () => {
-    const svg = document.getElementById('share-qr-code')
+    const svg = document.getElementById(qrId)
     if (!svg) return
     const svgData = new XMLSerializer().serializeToString(svg)
     const canvas = document.createElement('canvas')
@@ -41,7 +47,8 @@ export const ShareModal = ({ isOpen, onClose, shareUrl, title, type = 'Board' })
       
       const pngFile = canvas.toDataURL('image/png')
       const downloadLink = document.createElement('a')
-      downloadLink.download = `QR_${type}_${title.replace(/\s+/g, '_')}.png` // Tên file tải về
+      const safeTitle = (title || 'shared_item').replace(/[^a-zA-Z0-9_-]+/g, '_')
+      downloadLink.download = `QR_${type}_${safeTitle}.png`
       downloadLink.href = pngFile
       downloadLink.click()
       toast.success('QR Code downloaded successfully!')
@@ -60,6 +67,11 @@ export const ShareModal = ({ isOpen, onClose, shareUrl, title, type = 'Board' })
       </DialogTitle>
       
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, pt: 3 }}>
+        {isLocalLink && (
+          <Alert severity="warning" sx={{ width: '100%' }}>
+            This localhost link only works on this computer. Use a deployed or LAN-accessible URL before sharing it with another device.
+          </Alert>
+        )}
         
         {/* Tên Board/Card đang share */}
         <Typography sx={{ color: 'text.secondary', textAlign: 'center' }}>
@@ -69,12 +81,12 @@ export const ShareModal = ({ isOpen, onClose, shareUrl, title, type = 'Board' })
         {/* Cục QR Code nền trắng */}
         <Box sx={{ bgcolor: '#fff', padding: 2, borderRadius: 2, display: 'flex', justifyContent: 'center' }}>
           <QRCodeSVG 
-            id="share-qr-code"
+            id={qrId}
             value={shareUrl} 
             size={220}
-            bgColor={"#ffffff"}
-            fgColor={"#000000"}
-            level={"H"} // Chuẩn H: Quét cực nhạy lỡ có bị mờ góc
+            bgColor={'#ffffff'}
+            fgColor={'#000000'}
+            level={'H'} // Chuẩn H: Quét cực nhạy lỡ có bị mờ góc
           />
         </Box>
 

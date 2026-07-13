@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import { saveRedirectAfterLogin } from '~/utils/authRedirect'
 
 export const AcceptInvite = () => {
   const [searchParams] = useSearchParams()
@@ -48,7 +49,7 @@ export const AcceptInvite = () => {
 
   const handleLoginRedirect = () => {
     // Redirect to login and save the invite URL to redirect back after login
-    localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search)
+    saveRedirectAfterLogin(window.location.pathname + window.location.search)
     navigate('/login')
   }
 
