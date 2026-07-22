@@ -154,7 +154,7 @@ function ActiveCard() {
     // Gọi API...
     toast.promise(
       callApiUpdateCard(reqData).finally(() => event.target.value = ''),
-      { pending: 'Uploading...' }
+      { loading: 'Uploading...' }
     )
   }
 
@@ -221,7 +221,7 @@ function ActiveCard() {
         dispatch(updateCurrentActiveCard(updatedCard))
         dispatch(updateCardInBoard(updatedCard))
       }).finally(() => event.target.value = ''),
-      { pending: 'Uploading attachment...' }
+      { loading: 'Uploading attachment...' }
     )
   }
 
@@ -231,7 +231,7 @@ function ActiveCard() {
         dispatch(updateCurrentActiveCard(updatedCard))
         dispatch(updateCardInBoard(updatedCard))
       }),
-      { pending: 'Deleting attachment...' }
+      { loading: 'Deleting attachment...' }
     )
   }
 

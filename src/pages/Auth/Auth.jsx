@@ -58,14 +58,13 @@ function Auth() {
 
       setIsProcessingGitHub(true)
 
-      toast.promise(
-        dispatch(githubLoginUserAPI({ code, redirectUri })).unwrap(),
-        { pending: 'Logging in with GitHub...' }
-      ).then(() => {
-        toast.success('Logged in with GitHub successfully!')
-      }).catch((error) => {
-        toast.error(error?.message || 'GitHub login failed!')
-      }).finally(() => {
+      const githubLoginRequest = dispatch(githubLoginUserAPI({ code, redirectUri })).unwrap()
+      toast.promise(githubLoginRequest, {
+        loading: 'Logging in with GitHub...',
+        success: 'Logged in with GitHub successfully!'
+      })
+
+      githubLoginRequest.catch(() => {}).finally(() => {
         setIsProcessingGitHub(false)
       })
     }

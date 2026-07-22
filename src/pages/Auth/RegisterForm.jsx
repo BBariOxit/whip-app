@@ -39,10 +39,10 @@ function RegisterForm() {
 
   const submitRegister = (data) => {
     const { email, password } = data
-    toast.promise(
-      registerUserAPI({ email, password }),
-      { pending: 'Registration is in progress...' }
-    ).then(user => {
+    const registrationRequest = registerUserAPI({ email, password })
+    toast.promise(registrationRequest, { loading: 'Registration is in progress...' })
+
+    registrationRequest.then(user => {
       navigate(`/login?registeredEmail=${user.email}`)
     }).catch(() => {})
   }

@@ -43,10 +43,9 @@ function LoginForm() {
   const submitLogIn = (data) => {
     const { email, password } = data
 
-    toast.promise(
-      dispatch(loginUserAPI({ email, password })).unwrap(),
-      { pending: 'Logging in...' }
-    ).catch(() => {})
+    const loginRequest = dispatch(loginUserAPI({ email, password })).unwrap()
+    toast.promise(loginRequest, { loading: 'Logging in...' })
+    loginRequest.catch(() => {})
   }
 
   // Google Login handler - dùng implicit flow lấy access_token

@@ -69,24 +69,23 @@ function SecurityTab() {
     }).then(() => {
       const { current_password, new_password } = data
 
-      toast.promise(
-        dispatch(changePasswordAPI({ current_password, new_password })).unwrap(),
-        { pending: 'Updating... ' }
-      ).then(() => {
-        toast.success('Password changed. Please sign in again.')
-      }).catch(() => {})
+      const changePasswordRequest = dispatch(changePasswordAPI({ current_password, new_password })).unwrap()
+      toast.promise(changePasswordRequest, {
+        loading: 'Updating...',
+        success: 'Password changed. Please sign in again.'
+      })
+      changePasswordRequest.catch(() => {})
 
     }).catch(() => {})
   }
 
   const requestPasswordSetup = () => {
-    toast.promise(
-      requestPasswordResetAPI(currentUser.email),
-      {
-        pending: 'Sending password setup email...',
-        success: 'Check your email for a password setup link.'
-      }
-    ).catch(() => {})
+    const setupRequest = requestPasswordResetAPI(currentUser.email)
+    toast.promise(setupRequest, {
+      loading: 'Sending password setup email...',
+      success: 'Check your email for a password setup link.'
+    })
+    setupRequest.catch(() => {})
   }
 
   return (

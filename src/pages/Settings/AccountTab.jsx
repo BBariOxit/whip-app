@@ -35,14 +35,12 @@ function AccountTab() {
     const { displayName } = data
     if (displayName === currentUser?.displayName) return
 
-    toast.promise(
-      dispatch(updateUserAPI({ displayName })),
-      { pending: 'Updating... ' }
-    ).then(res => {
-      if (!res.error) {
-        toast.success('User updated successfully!')
-      }
+    const updateRequest = dispatch(updateUserAPI({ displayName })).unwrap()
+    toast.promise(updateRequest, {
+      loading: 'Updating...',
+      success: 'User updated successfully!'
     })
+    updateRequest.catch(() => {})
   }
 
   const uploadAvatar = (e) => {
@@ -55,13 +53,12 @@ function AccountTab() {
     let reqData = new FormData()
     reqData.append('avatar', e.target?.files[0])
 
-    toast.promise(
-      dispatch(updateUserAPI(reqData)),
-      { pending: 'Uploading... ' }
-    ).then(res => {
-      if (!res.error) {
-        toast.success('Avatar uploaded successfully!')
-      }
+    const uploadRequest = dispatch(updateUserAPI(reqData)).unwrap()
+    toast.promise(uploadRequest, {
+      loading: 'Uploading...',
+      success: 'Avatar uploaded successfully!'
+    })
+    uploadRequest.catch(() => {}).finally(() => {
       e.target.value = ''
     })
   }
