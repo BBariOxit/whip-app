@@ -1,7 +1,6 @@
 import { Box, Typography, TextField, Button, Avatar } from '@mui/material'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import SaveIcon from '@mui/icons-material/Save'
-import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined'
 import { alpha } from '@mui/material/styles'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
@@ -13,14 +12,12 @@ import { FIELD_REQUIRED_MESSAGE, singleFileValidator } from '~/utils/validators'
 import {
   SettingsContentShell,
   SettingsPageHeader,
-  SettingsRow,
   SettingsSection
 } from './SettingsComponents'
 import { settingsFieldSx } from './settingsStyles'
 
 const navItems = [
-  { id: 'profile-details', label: 'Profile details' },
-  { id: 'profile-identity', label: 'Public identity' }
+  { id: 'profile-details', label: 'Profile details' }
 ]
 
 function AccountTab() {
@@ -38,14 +35,12 @@ function AccountTab() {
     const { displayName } = data
     if (displayName === currentUser?.displayName) return
 
-    toast.promise(
-      dispatch(updateUserAPI({ displayName })),
-      { pending: 'Updating... ' }
-    ).then(res => {
-      if (!res.error) {
-        toast.success('User updated successfully!')
-      }
+    const updateRequest = dispatch(updateUserAPI({ displayName })).unwrap()
+    toast.promise(updateRequest, {
+      loading: 'Updating...',
+      success: 'User updated successfully!'
     })
+    updateRequest.catch(() => {})
   }
 
   const uploadAvatar = (e) => {
@@ -58,13 +53,12 @@ function AccountTab() {
     let reqData = new FormData()
     reqData.append('avatar', e.target?.files[0])
 
-    toast.promise(
-      dispatch(updateUserAPI(reqData)),
-      { pending: 'Uploading... ' }
-    ).then(res => {
-      if (!res.error) {
-        toast.success('Avatar uploaded successfully!')
-      }
+    const uploadRequest = dispatch(updateUserAPI(reqData)).unwrap()
+    toast.promise(uploadRequest, {
+      loading: 'Uploading...',
+      success: 'Avatar uploaded successfully!'
+    })
+    uploadRequest.catch(() => {}).finally(() => {
       e.target.value = ''
     })
   }
@@ -72,8 +66,8 @@ function AccountTab() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <SettingsPageHeader
-        title="Public profile"
-        description="Manage your public identity and account data."
+        title="Profile"
+        description="Manage your profile and account information."
       />
 
       <SettingsContentShell navItems={navItems}>
@@ -91,7 +85,6 @@ function AccountTab() {
                     label="Username"
                     defaultValue={currentUser?.username}
                     fullWidth
-                    helperText={`whip.cobweb.id.vn/u/${currentUser?.username}`}
                     disabled
                     sx={settingsFieldSx}
                   />
@@ -221,51 +214,6 @@ function AccountTab() {
               </Button>
             </Box>
           </Box>
-        </SettingsSection>
-
-        <SettingsSection id="profile-identity" title="Public identity">
-          <SettingsRow
-            title="Profile URL"
-            description="This is the public link people can use to view your profile."
-          >
-            <Typography
-              component="code"
-              sx={(theme) => ({
-                px: 1.25,
-                py: 0.75,
-                borderRadius: '8px',
-                bgcolor: theme.palette.mode === 'dark' ? '#161b22' : '#f8fafc',
-                border: '1px solid',
-                borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
-                color: 'text.secondary',
-                fontSize: '0.8125rem'
-              })}
-            >
-              whip.cobweb.id.vn/u/{currentUser?.username}
-            </Typography>
-          </SettingsRow>
-
-          <SettingsRow
-            title="Account status"
-            description="Your account can use protected workspace and board features."
-            last
-          >
-            <Box sx={(theme) => ({
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.75,
-              px: 1.25,
-              py: 0.75,
-              borderRadius: '999px',
-              color: '#22c55e',
-              bgcolor: theme.palette.mode === 'dark' ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.1)',
-              fontSize: '0.8125rem',
-              fontWeight: 700
-            })}>
-              <VerifiedUserOutlinedIcon sx={{ fontSize: 18 }} />
-              Active
-            </Box>
-          </SettingsRow>
         </SettingsSection>
       </SettingsContentShell>
     </Box>

@@ -7,14 +7,21 @@ import { toast } from 'sonner'
 const initialState = {
   currentUser: null
 }
+
+const sanitizeUser = (payload) => {
+  const user = { ...payload }
+  delete user.accessToken
+  delete user.refreshToken
+  return user
+}
 // Các hành động gọi api (bất đồng bộ) và cập nhật dữ liệu vào Redux, dùng Middleware createAsyncThunk đi kèm với extraReducers
 export const loginUserAPI = createAsyncThunk(
-  'user/loginUserAPI', 
+  'user/loginUserAPI',
   async (data) => {
     const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/login`, data)
     // lưu ý: axios trả về kết quả qua property của nó là data
-    return response.data  
-  }  
+    return response.data
+  }
 )
 
 export const googleLoginUserAPI = createAsyncThunk(
@@ -27,8 +34,16 @@ export const googleLoginUserAPI = createAsyncThunk(
 
 export const githubLoginUserAPI = createAsyncThunk(
   'user/githubLoginUserAPI',
-  async (code) => {
-    const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/github-login`, { code })
+  async ({ code, redirectUri }) => {
+    const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/github-login`, { code, redirectUri })
+    return response.data
+  }
+)
+
+export const changePasswordAPI = createAsyncThunk(
+  'user/changePasswordAPI',
+  async (data) => {
+    const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/users/change-password`, data)
     return response.data
   }
 )
@@ -66,16 +81,13 @@ export const userSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(loginUserAPI.fulfilled, (state, action) => {
       // action.payload chính là cái response.data đã được return ở trên
-      const user = action.payload
-      state.currentUser = user
+      state.currentUser = sanitizeUser(action.payload)
     })
     builder.addCase(googleLoginUserAPI.fulfilled, (state, action) => {
-      const user = action.payload
-      state.currentUser = user
+      state.currentUser = sanitizeUser(action.payload)
     })
     builder.addCase(githubLoginUserAPI.fulfilled, (state, action) => {
-      const user = action.payload
-      state.currentUser = user
+      state.currentUser = sanitizeUser(action.payload)
     })
     builder.addCase(logoutUserAPI.fulfilled, (state) => {
       // B1: Logout thành công thì sẽ clear thông tin currentUser về null ở đây
@@ -83,8 +95,10 @@ export const userSlice = createSlice({
       state.currentUser = null
     })
     builder.addCase(updateUserAPI.fulfilled, (state, action) => {
-      const user = action.payload
-      state.currentUser = user
+      state.currentUser = sanitizeUser(action.payload)
+    })
+    builder.addCase(changePasswordAPI.fulfilled, (state) => {
+      state.currentUser = null
     })
   }
 })

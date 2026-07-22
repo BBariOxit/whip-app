@@ -34,14 +34,14 @@ function App() {
       <Route path="/" element={
         // Ở đây cần replace giá trị true để nó thay thế route /, có thể hiểu là route
         // / sẽ không còn nằm trong history của Browser
-        // Thực hành dễ hiểu hơn bằng cách nhấn Go Home từ trang 404 xong thử quay lại bằng 
+        // Thực hành dễ hiểu hơn bằng cách nhấn Go Home từ trang 404 xong thử quay lại bằng
         // nút back của trình duyệt giữa 2 trường hợp có replace hoặc không có.
         <Navigate to="/boards" replace={true} />
       } />
-      
-      {/* Protected Routes (Hiểu đơn giản trong dự án của chúng ta là những route chỉ cho truy cập 
+
+      {/* Protected Routes (Hiểu đơn giản trong dự án của chúng ta là những route chỉ cho truy cập
         sau khi đã login) */}
-      <Route element={<ProtectedRoute user={currentUser} />}> 
+      <Route element={<ProtectedRoute user={currentUser} />}>
         {/* <Outlet /> của react-router-dom sẽ chạy vào các child route trong này */}
 
         {/* Board details */}
@@ -51,7 +51,7 @@ function App() {
         {/* User settings */}
         <Route path='/settings' element={<Navigate to='/settings/account' replace={true} />} />
         <Route path='/settings/account' element={<Settings />} />
-        <Route path='/settings/preferences' element={<Settings />} />
+        <Route path='/settings/preferences' element={<Navigate to='/settings/account' replace={true} />} />
         <Route path='/settings/security' element={<Settings />} />
         <Route path='/settings/data-privacy' element={<Settings />} />
       </Route>
@@ -59,6 +59,8 @@ function App() {
       {/* Authentications */}
       <Route path="/login" element={<Auth />} />
       <Route path="/register" element={<Auth />} />
+      <Route path="/forgot-password" element={<Auth />} />
+      <Route path="/reset-password" element={<Auth />} />
       <Route path='/account/verification' element={<AccountVerification />} />
       <Route path="/accept-invite" element={<AcceptInvite />} />
 

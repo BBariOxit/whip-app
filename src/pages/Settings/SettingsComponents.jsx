@@ -20,12 +20,12 @@ export const SettingsPageHeader = ({ title, description }) => (
   </Box>
 )
 
-export const SettingsContentShell = ({ children, navItems }) => (
+export const SettingsContentShell = ({ children, navItems = [] }) => (
   <Box sx={{ display: 'flex', gap: 4, width: '100%', alignItems: 'flex-start' }}>
     <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
       {children}
     </Box>
-    <SettingsAnchorNav items={navItems} />
+    {navItems.length > 1 && <SettingsAnchorNav items={navItems} />}
   </Box>
 )
 

@@ -12,11 +12,26 @@ import { notificationsReducer } from './notifications/notificationsSlice'
  */
 
 import { combineReducers } from 'redux' // lưu ý chúng ta có sẵn redux trong node_modules bởi vì khi cài @reduxjs/toolkit là đã có luôn
-import { persistReducer } from 'redux-persist'
+import { createMigrate, persistReducer } from 'redux-persist'
 import storage from 'redux-persist/lib/storage' // default là localstorage
 
 // Cấu hình persist
+const migrations = {
+  1: (state) => {
+    if (!state?.user?.currentUser) return state
+
+    // Legacy sessions persisted JWTs and do not contain the current security fields.
+    // Require a one-time sign-in so those secrets are removed and user data is refreshed.
+    return {
+      ...state,
+      user: { ...state.user, currentUser: null }
+    }
+  }
+}
+
 const rootPersistConfig = {
+  version: 1,
+  migrate: createMigrate(migrations, { debug: false }),
   key: 'root', // key của cái persist do chúng ta chỉ định, cứ để mặc định là root
   storage: storage, // Biến storage ở trên - lưu vào localstorage
   whitelist: ['user'] // định nghĩa các slice dữ liệu ĐƯỢC PHÉP duy trì qua mỗi lần f5 trình duyệt
