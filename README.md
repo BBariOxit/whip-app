@@ -77,6 +77,8 @@ VITE_GOOGLE_CLIENT_ID='<your-google-oauth-client-id>'
 VITE_GITHUB_CLIENT_ID='<your-github-oauth-client-id>'
 ```
 
+The GitHub OAuth App callback URL must be exactly `<frontend-origin>/login`. Use the client ID that matches the backend GitHub credentials for each environment (local and production).
+
 ## 📸 Demo & Screenshots
 A preview of the Whip App interface:
 

@@ -1,10 +1,8 @@
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
 import DownloadIcon from '@mui/icons-material/Download'
 import HistoryIcon from '@mui/icons-material/History'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
-import PrivacyTipOutlinedIcon from '@mui/icons-material/PrivacyTipOutlined'
 import {
   SettingsContentShell,
   SettingsPageHeader,
@@ -15,7 +13,6 @@ import {
 const navItems = [
   { id: 'data-export', label: 'Export' },
   { id: 'data-history', label: 'Recent activity' },
-  { id: 'data-privacy', label: 'Privacy' },
   { id: 'data-danger', label: 'Danger Zone', danger: true }
 ]
 
@@ -24,7 +21,7 @@ function DataPrivacyTab() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <SettingsPageHeader
         title="Data & privacy"
-        description="Review personal data controls and account-level privacy options."
+        description="Review personal data tools and account controls."
       />
 
       <SettingsContentShell navItems={navItems}>
@@ -73,28 +70,6 @@ function DataPrivacyTab() {
             >
               Clear recent
             </Button>
-          </SettingsRow>
-        </SettingsSection>
-
-        <SettingsSection id="data-privacy" title="Privacy">
-          <SettingsRow
-            title="Profile visibility"
-            description="Control whether other Whip users can discover your public profile."
-            last
-          >
-            <Chip
-              icon={<PrivacyTipOutlinedIcon />}
-              label="Public profile"
-              variant="outlined"
-              sx={{
-                minWidth: 148,
-                minHeight: 40,
-                borderRadius: '999px',
-                borderWidth: 2,
-                fontWeight: 700,
-                '& .MuiChip-label': { px: 1 }
-              }}
-            />
           </SettingsRow>
         </SettingsSection>
 

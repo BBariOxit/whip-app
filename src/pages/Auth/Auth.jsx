@@ -2,15 +2,18 @@ import { useLocation, Navigate, useSearchParams, useNavigate } from 'react-route
 import Box from '@mui/material/Box'
 import LoginForm from './LoginForm'
 import RegisterForm from './RegisterForm'
+import ForgotPasswordForm from './ForgotPasswordForm'
+import ResetPasswordForm from './ResetPasswordForm'
 import SandboxBoard from './Sandbox/SandboxBoard'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectCurrentUser, githubLoginUserAPI } from '~/redux/user/userSlice'
 import ModeSelect from '~/components/ModeSelect/ModeSelect'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import { consumeRedirectAfterLogin, saveRedirectAfterLogin } from '~/utils/authRedirect'
+import { consumeGitHubOAuthState } from '~/utils/githubOAuth'
 
 const AuthenticatedRedirect = () => {
   const [target] = useState(() => consumeRedirectAfterLogin('/'))
@@ -23,10 +26,13 @@ function Auth() {
   const dispatch = useDispatch()
   const isLogin = location.pathname === '/login'
   const isRegister = location.pathname === '/register'
+  const isForgotPassword = location.pathname === '/forgot-password'
+  const isResetPassword = location.pathname === '/reset-password'
 
   const currentUser = useSelector(selectCurrentUser)
   const [searchParams] = useSearchParams()
   const [isProcessingGitHub, setIsProcessingGitHub] = useState(false)
+  const githubCallbackHandled = useRef(false)
 
   useEffect(() => {
     if (location.state?.from) saveRedirectAfterLogin(location.state.from)
@@ -35,27 +41,37 @@ function Auth() {
   // Xử lý GitHub OAuth callback - khi GitHub redirect về với ?code=xxx
   useEffect(() => {
     const code = searchParams.get('code')
-    if (code && !currentUser && !isProcessingGitHub) {
+    const oauthError = searchParams.get('error')
+    if ((code || oauthError) && !currentUser && !isProcessingGitHub && !githubCallbackHandled.current) {
+      githubCallbackHandled.current = true
+      const redirectUri = consumeGitHubOAuthState(searchParams.get('state'))
+      navigate('/login', { replace: true })
+
+      if (oauthError) {
+        toast.error(searchParams.get('error_description') || 'GitHub authorization was cancelled')
+        return
+      }
+      if (!redirectUri) {
+        toast.error('GitHub login session is invalid or expired. Please try again.')
+        return
+      }
+
       setIsProcessingGitHub(true)
 
       toast.promise(
-        dispatch(githubLoginUserAPI(code)).unwrap(),
+        dispatch(githubLoginUserAPI({ code, redirectUri })).unwrap(),
         { pending: 'Logging in with GitHub...' }
-      ).then(res => {
-        if (!res.error) {
-          toast.success('Logged in with GitHub successfully!')
-        }
+      ).then(() => {
+        toast.success('Logged in with GitHub successfully!')
       }).catch((error) => {
         toast.error(error?.message || 'GitHub login failed!')
-        // Xóa code khỏi URL để tránh retry
-        navigate('/login', { replace: true })
       }).finally(() => {
         setIsProcessingGitHub(false)
       })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (currentUser) {
+  if (currentUser && (isLogin || isRegister)) {
     return <AuthenticatedRedirect />
   }
 
@@ -126,6 +142,8 @@ function Auth() {
             <>
               {isLogin && <LoginForm />}
               {isRegister && <RegisterForm />}
+              {isForgotPassword && <ForgotPasswordForm />}
+              {isResetPassword && <ResetPasswordForm />}
             </>
           )}
         </Box>

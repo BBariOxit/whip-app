@@ -201,14 +201,22 @@ export const googleLoginAPI = async (credential) => {
   return response.data
 }
 
-export const githubLoginAPI = async (code) => {
-  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/github-login`, { code })
-  return response.data
-}
-
 export const verifyUserAPI = async (data) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/users/verify`, data)
   toast.success('Account verified successfully! Now you can login to enjoy our services! Have a good day!', { theme: 'colored' })
+  return response.data
+}
+
+export const requestPasswordResetAPI = async (email) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/forgot-password`, { email })
+  return response.data
+}
+
+export const resetPasswordAPI = async (token, newPassword) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/reset-password`, {
+    token,
+    new_password: newPassword
+  })
   return response.data
 }
 

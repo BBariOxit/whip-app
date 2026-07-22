@@ -28,9 +28,10 @@ import { toast } from 'sonner'
 import { useDispatch } from 'react-redux'
 import { googleLoginUserAPI } from '~/redux/user/userSlice'
 import { useGoogleLogin } from '@react-oauth/google'
+import { startGitHubOAuth } from '~/utils/githubOAuth'
 
 function RegisterForm() {
-  const { register, handleSubmit, formState: { errors }, watch } = useForm()
+  const { register, handleSubmit, formState: { errors } } = useForm()
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const [showPassword, setShowPassword] = useState(false)
@@ -40,12 +41,10 @@ function RegisterForm() {
     const { email, password } = data
     toast.promise(
       registerUserAPI({ email, password }),
-      { pending: 'Registration is in progress...' },
+      { pending: 'Registration is in progress...' }
     ).then(user => {
       navigate(`/login?registeredEmail=${user.email}`)
-    }).catch(error => {
-      console.log(error)
-    })
+    }).catch(() => {})
   }
 
   // Google Login handler
@@ -69,23 +68,9 @@ function RegisterForm() {
   // GitHub Login handler
   const handleGitHubLogin = () => {
     try {
-      const redirectUri = `${window.location.origin}/login`
-      const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID
-      
-      console.log('GitHub Login Debug:', {
-        redirectUri,
-        githubClientId,
-        env: import.meta.env
-      })
-
-      if (!githubClientId) {
-        console.error('Missing VITE_GITHUB_CLIENT_ID in .env file')
-      }
-
-      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
-      window.location.assign(githubAuthUrl)
+      startGitHubOAuth()
     } catch (error) {
-      console.error('GitHub Login Error:', error)
+      toast.error(error.message)
     }
   }
 
@@ -98,7 +83,7 @@ function RegisterForm() {
         WebkitBackgroundClip: 'text !important',
         WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? '#fff !important' : '#000 !important',
         transition: 'background-color 5000s ease-in-out 0s !important',
-        boxShadow: 'inset 0 0 20px 20px transparent !important',
+        boxShadow: 'inset 0 0 20px 20px transparent !important'
       },
       '& .MuiOutlinedInput-notchedOutline': {
         borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.12)',

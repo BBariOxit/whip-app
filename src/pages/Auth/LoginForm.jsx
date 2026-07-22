@@ -28,6 +28,7 @@ import { loginUserAPI, googleLoginUserAPI } from '~/redux/user/userSlice'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useGoogleLogin } from '@react-oauth/google'
+import { startGitHubOAuth } from '~/utils/githubOAuth'
 
 function LoginForm() {
   const dispatch = useDispatch()
@@ -37,13 +38,14 @@ function LoginForm() {
   let [searchParams] = useSearchParams()
   const registeredEmail = searchParams.get('registeredEmail')
   const verifiedEmail = searchParams.get('verifiedEmail')
+  const passwordReset = searchParams.get('passwordReset') === 'true'
 
   const submitLogIn = (data) => {
     const { email, password } = data
 
     toast.promise(
       dispatch(loginUserAPI({ email, password })).unwrap(),
-      { pending: 'Logging in...' },
+      { pending: 'Logging in...' }
     ).catch(() => {})
   }
 
@@ -69,23 +71,9 @@ function LoginForm() {
   // GitHub Login handler - redirect tới GitHub authorize URL
   const handleGitHubLogin = () => {
     try {
-      const redirectUri = `${window.location.origin}/login`
-      const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID
-      
-      console.log('GitHub Login Debug:', {
-        redirectUri,
-        githubClientId,
-        env: import.meta.env
-      })
-
-      if (!githubClientId) {
-        console.error('Missing VITE_GITHUB_CLIENT_ID in .env file')
-      }
-
-      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
-      window.location.assign(githubAuthUrl)
+      startGitHubOAuth()
     } catch (error) {
-      console.error('GitHub Login Error:', error)
+      toast.error(error.message)
     }
   }
 
@@ -98,7 +86,7 @@ function LoginForm() {
         WebkitBackgroundClip: 'text !important',
         WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? '#fff !important' : '#000 !important',
         transition: 'background-color 5000s ease-in-out 0s !important',
-        boxShadow: 'inset 0 0 20px 20px transparent !important',
+        boxShadow: 'inset 0 0 20px 20px transparent !important'
       },
       '& .MuiOutlinedInput-notchedOutline': {
         borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.12)',
@@ -164,6 +152,11 @@ function LoginForm() {
       </Box>
 
       {/* Alert Messages */}
+      {passwordReset &&
+        <Alert severity="success" sx={{ mb: 2, borderRadius: '12px' }}>
+          Your password has been reset. Sign in with your new password.
+        </Alert>
+      }
       {verifiedEmail &&
         <Alert severity="success" sx={{ mb: 2, borderRadius: '12px', '.MuiAlert-message': { overflow: 'hidden' } }}>
           Your email&nbsp;
@@ -299,6 +292,13 @@ function LoginForm() {
             })}
           />
           <FieldErrorAlert errors={errors} fieldName="password" />
+          <Box sx={{ mt: 1, textAlign: 'right' }}>
+            <Link to="/forgot-password">
+              <Typography component="span" sx={{ color: 'primary.main', fontSize: '0.85rem', fontWeight: 600 }}>
+                Forgot password?
+              </Typography>
+            </Link>
+          </Box>
         </Box>
 
         {/* Login Button */}

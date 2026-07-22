@@ -10,25 +10,21 @@ import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import SecurityIcon from '@mui/icons-material/Security'
 import PersonIcon from '@mui/icons-material/Person'
-import TuneIcon from '@mui/icons-material/Tune'
 import PrivacyTipOutlinedIcon from '@mui/icons-material/PrivacyTipOutlined'
 import { alpha, useTheme } from '@mui/material/styles'
 import { Link, useLocation } from 'react-router-dom'
 import AccountTab from './AccountTab'
 import SecurityTab from './SecurityTab'
-import PreferencesTab from './PreferencesTab'
 import DataPrivacyTab from './DataPrivacyTab'
 
 const TABS = {
   ACCOUNT: 'account',
-  PREFERENCES: 'preferences',
   SECURITY: 'security',
   DATA: 'data-privacy'
 }
 
 const getTabFromPath = (pathname) => {
   if (pathname.includes(TABS.DATA)) return TABS.DATA
-  if (pathname.includes(TABS.PREFERENCES)) return TABS.PREFERENCES
   if (pathname.includes(TABS.SECURITY)) return TABS.SECURITY
   return TABS.ACCOUNT
 }
@@ -36,15 +32,9 @@ const getTabFromPath = (pathname) => {
 const settingsTabs = [
   {
     value: TABS.ACCOUNT,
-    label: 'Public profile',
+    label: 'Profile',
     to: '/settings/account',
     icon: <PersonIcon fontSize="small" />
-  },
-  {
-    value: TABS.PREFERENCES,
-    label: 'Preferences',
-    to: '/settings/preferences',
-    icon: <TuneIcon fontSize="small" />
   },
   {
     value: TABS.SECURITY,
@@ -115,7 +105,7 @@ function Settings() {
                   Settings
                 </Typography>
                 <Typography sx={{ mt: 0.25, fontSize: '0.8125rem', color: 'text.secondary' }}>
-                  Account preferences
+                  Account settings
                 </Typography>
               </Box>
 
@@ -174,7 +164,6 @@ function Settings() {
 
             <Box component="main" sx={{ minWidth: 0 }}>
               <TabPanel value={TABS.ACCOUNT} sx={{ p: 0 }}><AccountTab /></TabPanel>
-              <TabPanel value={TABS.PREFERENCES} sx={{ p: 0 }}><PreferencesTab /></TabPanel>
               <TabPanel value={TABS.SECURITY} sx={{ p: 0 }}><SecurityTab /></TabPanel>
               <TabPanel value={TABS.DATA} sx={{ p: 0 }}><DataPrivacyTab /></TabPanel>
             </Box>
