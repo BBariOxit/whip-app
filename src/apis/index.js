@@ -428,6 +428,11 @@ export const importBoardAPI = async (payload) => {
   return response.data
 }
 
+export const importPersonalBoardsAPI = async (payload) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/import-personal`, payload)
+  return response.data
+}
+
 export const getWorkspaceDetailsAPI = async (workspaceId) => {
   const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces/${workspaceId}`)
   return response.data

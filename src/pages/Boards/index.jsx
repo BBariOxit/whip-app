@@ -3,7 +3,7 @@ import AppBar from '~/components/AppBar/AppBar'
 import Box from '@mui/material/Box'
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom'
 import { useDebounce } from '~/customHooks/useDebounce'
-import { fetchBoardsAPI, fetchTemplatesAPI, bulkDeleteBoardsAPI, fetchWorkspacesAPI, deleteWorkspaceAPI, importWorkspaceAPI, importBoardAPI, duplicateBoardAPI } from '~/apis'
+import { fetchBoardsAPI, fetchTemplatesAPI, bulkDeleteBoardsAPI, fetchWorkspacesAPI, deleteWorkspaceAPI, importWorkspaceAPI, importBoardAPI, importPersonalBoardsAPI, duplicateBoardAPI } from '~/apis'
 import { toast } from 'sonner'
 import { useConfirm } from 'material-ui-confirm'
 import { Sidebar } from './Sidebar'
@@ -196,12 +196,16 @@ function Boards() {
     // kind mặc định 'workspace' để tương thích file export cũ chưa có trường này.
     const expectedKind = importExpectedKindRef.current
     const fileKind = payload.kind || 'workspace'
-    if (fileKind !== expectedKind) {
+    const isSupportedBoardFile = expectedKind === 'board' &&
+      ['board', 'personal-boards'].includes(fileKind)
+    if (fileKind !== expectedKind && !isSupportedBoardFile) {
       toast.error(`This is a "${fileKind}" file. Please use "Import ${fileKind}" instead.`)
       return
     }
 
-    if (expectedKind === 'board') {
+    if (fileKind === 'personal-boards') {
+      await handleImportPersonalBoards(payload)
+    } else if (expectedKind === 'board') {
       await handleImportBoard(payload)
     } else {
       await handleImportWorkspace(payload)
@@ -266,6 +270,43 @@ function Boards() {
       navigate(`/boards/${result.boardId}`) // mở luôn board mới (thuộc Personal Boards)
     } catch (error) {
       toast.error('Error: ' + (error?.message || 'Failed to import board'), { id: toastId })
+    }
+  }
+
+  const handleImportPersonalBoards = async (payload) => {
+    const boardCount = Array.isArray(payload?.boards) ? payload.boards.length : 0
+    if (boardCount === 0) {
+      toast.error('This personal boards archive does not contain any boards.')
+      return
+    }
+
+    try {
+      await confirmAction({
+        title: 'Import Personal Boards',
+        description: `This will restore ${boardCount} board(s) as NEW private Personal Boards. Card assignees, attachments and comments are not included in this archive.`,
+        confirmationText: 'Import all',
+        cancellationText: 'Cancel',
+        buttonOrder: ['confirm', 'cancel'],
+        confirmationButtonProps: { color: 'primary', variant: 'contained' }
+      })
+    } catch {
+      return
+    }
+
+    const toastId = toast.loading(`Importing ${boardCount} board(s)...`)
+    try {
+      const result = await importPersonalBoardsAPI(payload)
+      const personalQuery = new URLSearchParams({
+        workspaceId: 'null',
+        sort: sortBy
+      })
+      const freshBoards = await fetchBoardsAPI(`?${personalQuery.toString()}`)
+      updateStateData(freshBoards)
+      setCurrentView({ type: 'personal', id: null, title: 'Your Personal Boards' })
+      setSearchParams(new URLSearchParams({ workspaceId: 'null' }))
+      toast.success(`${result.count} personal board(s) imported successfully!`, { id: toastId })
+    } catch (error) {
+      toast.error('Error: ' + (error?.message || 'Failed to import personal boards'), { id: toastId })
     }
   }
 
