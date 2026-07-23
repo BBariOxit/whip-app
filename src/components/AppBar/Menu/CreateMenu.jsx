@@ -83,7 +83,7 @@ function CreateMenu({ onCreateBoard, onCreateWorkspace, onImportWorkspace, onImp
             <ListItemIcon><UploadFileIcon fontSize="small" /></ListItemIcon>
             <ListItemText
               primary="Import board"
-              secondary="From a JSON file"
+              secondary="Single board or personal archive"
               primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }}
               secondaryTypographyProps={{ fontSize: 12 }}
             />

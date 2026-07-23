@@ -39,7 +39,9 @@ import { useNavigate } from 'react-router-dom'
 const BOARD_INVITATION_STATUS = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED',
+  EXPIRED: 'EXPIRED'
 }
 
 // Icon cho từng loại thông báo chung (in-app)
@@ -312,6 +314,12 @@ function Notifications() {
                       )}
                       {item.boardInvitation?.status === BOARD_INVITATION_STATUS.REJECTED && (
                         <Typography sx={{ fontSize: '12.5px', fontWeight: 600, color: (theme) => theme.palette.mode === 'dark' ? '#f87171' : '#dc2626', mt: 1 }}>Declined</Typography>
+                      )}
+                      {item.boardInvitation?.status === BOARD_INVITATION_STATUS.CANCELLED && (
+                        <Typography sx={{ fontSize: '12.5px', fontWeight: 600, color: 'text.secondary', mt: 1 }}>Cancelled</Typography>
+                      )}
+                      {item.boardInvitation?.status === BOARD_INVITATION_STATUS.EXPIRED && (
+                        <Typography sx={{ fontSize: '12.5px', fontWeight: 600, color: 'warning.main', mt: 1 }}>Expired</Typography>
                       )}
                     </Box>
                   </Box>

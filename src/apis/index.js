@@ -428,6 +428,32 @@ export const importBoardAPI = async (payload) => {
   return response.data
 }
 
+export const getBoardInvitationsAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(
+    `${API_ROOT}/v1/invitations/board?boardId=${boardId}`
+  )
+  return response.data
+}
+
+export const cancelBoardInvitationAPI = async (invitationId) => {
+  const response = await authorizedAxiosInstance.delete(
+    `${API_ROOT}/v1/invitations/board/${invitationId}`
+  )
+  return response.data
+}
+
+export const resendBoardInvitationAPI = async (invitationId) => {
+  const response = await authorizedAxiosInstance.post(
+    `${API_ROOT}/v1/invitations/board/${invitationId}/resend`
+  )
+  return response.data
+}
+
+export const importPersonalBoardsAPI = async (payload) => {
+  const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/import-personal`, payload)
+  return response.data
+}
+
 export const getWorkspaceDetailsAPI = async (workspaceId) => {
   const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/workspaces/${workspaceId}`)
   return response.data
@@ -484,6 +510,14 @@ export const getWorkspaceActivitiesAPI = async (workspaceId, page = 1, limit = 1
 
 export const leaveBoardAPI = async (boardId) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/${boardId}/leave`)
+  return response.data
+}
+
+export const transferBoardOwnershipAPI = async (boardId, targetUserId) => {
+  const response = await authorizedAxiosInstance.post(
+    `${API_ROOT}/v1/boards/${boardId}/transfer-ownership`,
+    { targetUserId }
+  )
   return response.data
 }
 
