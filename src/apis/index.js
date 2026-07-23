@@ -428,6 +428,27 @@ export const importBoardAPI = async (payload) => {
   return response.data
 }
 
+export const getBoardInvitationsAPI = async (boardId) => {
+  const response = await authorizedAxiosInstance.get(
+    `${API_ROOT}/v1/invitations/board?boardId=${boardId}`
+  )
+  return response.data
+}
+
+export const cancelBoardInvitationAPI = async (invitationId) => {
+  const response = await authorizedAxiosInstance.delete(
+    `${API_ROOT}/v1/invitations/board/${invitationId}`
+  )
+  return response.data
+}
+
+export const resendBoardInvitationAPI = async (invitationId) => {
+  const response = await authorizedAxiosInstance.post(
+    `${API_ROOT}/v1/invitations/board/${invitationId}/resend`
+  )
+  return response.data
+}
+
 export const importPersonalBoardsAPI = async (payload) => {
   const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards/import-personal`, payload)
   return response.data

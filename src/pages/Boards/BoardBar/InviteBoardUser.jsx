@@ -9,7 +9,12 @@ import TextField from '@mui/material/TextField'
 import { useForm } from 'react-hook-form'
 import { EMAIL_RULE, FIELD_REQUIRED_MESSAGE, EMAIL_RULE_MESSAGE } from '~/utils/validators'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
-import { inviteUserToBoardAPI } from '~/apis'
+import {
+  cancelBoardInvitationAPI,
+  getBoardInvitationsAPI,
+  inviteUserToBoardAPI,
+  resendBoardInvitationAPI
+} from '~/apis'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '~/redux/user/userSlice'
 import { toast } from 'sonner'
@@ -19,6 +24,7 @@ import ListItem from '@mui/material/ListItem'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemText from '@mui/material/ListItemText'
 import Divider from '@mui/material/Divider'
+import Chip from '@mui/material/Chip'
 
 function InviteBoardUser({ boardId, boardMembers = [], workspaceMembers = [] }) {
   /**
@@ -26,11 +32,20 @@ function InviteBoardUser({ boardId, boardMembers = [], workspaceMembers = [] }) 
    * https://mui.com/material-ui/react-popover/
   */
   const [anchorPopoverElement, setAnchorPopoverElement] = useState(null)
+  const [invitations, setInvitations] = useState([])
   const isOpenPopover = Boolean(anchorPopoverElement)
   const popoverId = isOpenPopover ? 'invite-board-user-popover' : undefined
-  const handleTogglePopover = (event) => {
-    if (!anchorPopoverElement) setAnchorPopoverElement(event.currentTarget)
-    else setAnchorPopoverElement(null)
+  const handleTogglePopover = async (event) => {
+    if (!anchorPopoverElement) {
+      setAnchorPopoverElement(event.currentTarget)
+      try {
+        setInvitations(await getBoardInvitationsAPI(boardId))
+      } catch {
+        setInvitations([])
+      }
+    } else {
+      setAnchorPopoverElement(null)
+    }
   }
 
   const currentUser = useSelector(selectCurrentUser)
@@ -44,9 +59,9 @@ function InviteBoardUser({ boardId, boardMembers = [], workspaceMembers = [] }) 
     // console.log('inviteeEmail:', inviteeEmail)
     // gọi api mời người dùng nào đó vào làm thành viên của board.
     // BE sẽ tự emit realtime tới đúng người được mời (không cần FE emit nữa)
-    inviteUserToBoardAPI({ inviteeEmail, boardId }).then(() => {
+    inviteUserToBoardAPI({ inviteeEmail, boardId }).then((invitation) => {
       setValue('inviteeEmail', null)
-      setAnchorPopoverElement(null)
+      setInvitations(current => [invitation, ...current])
     })
   }
 
@@ -59,6 +74,26 @@ function InviteBoardUser({ boardId, boardMembers = [], workspaceMembers = [] }) 
   const suggestedUsersToInvite = workspaceMembers?.filter(
     (wspMember) => !boardMembers.some((bMemberId) => bMemberId.toString() === wspMember._id.toString())
   ) || []
+
+  const updateInvitation = (updatedInvitation) => {
+    setInvitations(current => current.map(invitation => (
+      invitation._id === updatedInvitation._id
+        ? { ...invitation, ...updatedInvitation }
+        : invitation
+    )))
+  }
+
+  const handleCancelInvitation = async (invitationId) => {
+    const updated = await cancelBoardInvitationAPI(invitationId)
+    updateInvitation(updated)
+    toast.success('Invitation cancelled.')
+  }
+
+  const handleResendInvitation = async (invitationId) => {
+    const updated = await resendBoardInvitationAPI(invitationId)
+    updateInvitation(updated)
+    toast.success('Invitation resent.')
+  }
 
   return (
     <Box>
@@ -100,7 +135,7 @@ function InviteBoardUser({ boardId, boardMembers = [], workspaceMembers = [] }) 
           if (errors.inviteeEmail) {
             toast.error(errors.inviteeEmail.message, { id: 'error-invitee-email' })
           }
-        })} style={{ width: '320px' }}>
+        })} style={{ width: 'min(420px, calc(100vw - 32px))' }}>
           <Box sx={{ p: '15px 20px 20px 20px', display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography variant="span" sx={{ fontWeight: 'bold', fontSize: '16px' }}>Invite User To This Board!</Typography>
             <Box>
@@ -169,6 +204,56 @@ function InviteBoardUser({ boardId, boardMembers = [], workspaceMembers = [] }) 
                       </Button>
                     </ListItem>
                   ))}
+                </List>
+              </>
+            )}
+
+            {invitations.length > 0 && (
+              <>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                  Invitation history
+                </Typography>
+                <List sx={{ pt: 0, pb: 0, maxHeight: 200, overflow: 'auto' }}>
+                  {invitations.map((invitation) => {
+                    const status = invitation.boardInvitation?.status
+                    const canCancel = status === 'PENDING'
+                    const canResend = ['REJECTED', 'CANCELLED', 'EXPIRED'].includes(status)
+                    return (
+                      <ListItem key={invitation._id} disableGutters sx={{ py: 0.75, gap: 1 }}>
+                        <ListItemText
+                          primary={invitation.invitee?.displayName || invitation.invitee?.email}
+                          secondary={invitation.invitee?.email}
+                          primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+                          secondaryTypographyProps={{ variant: 'caption' }}
+                          sx={{ my: 0, minWidth: 0 }}
+                        />
+                        <Chip
+                          label={status?.toLowerCase()}
+                          size="small"
+                          color={status === 'PENDING' ? 'info' : status === 'ACCEPTED' ? 'success' : 'default'}
+                          sx={{ textTransform: 'capitalize' }}
+                        />
+                        {canCancel && (
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => handleCancelInvitation(invitation._id)}
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                        {canResend && (
+                          <Button
+                            size="small"
+                            onClick={() => handleResendInvitation(invitation._id)}
+                          >
+                            Resend
+                          </Button>
+                        )}
+                      </ListItem>
+                    )
+                  })}
                 </List>
               </>
             )}
