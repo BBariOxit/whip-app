@@ -41,3 +41,13 @@ export const addRecentBoard = (userId, board) => {
     // localStorage đầy / bị chặn (private mode) -> bỏ qua, không phá luồng chính
   }
 }
+
+export const clearRecentBoards = (userId) => {
+  if (!userId) return false
+  try {
+    localStorage.removeItem(buildKey(userId))
+    return true
+  } catch {
+    return false
+  }
+}

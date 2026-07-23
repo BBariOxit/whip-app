@@ -20,6 +20,7 @@ import { toast } from 'sonner'
 import { LeaveWorkspaceModal } from '~/components/Modal/LeaveWorkspaceModal/LeaveWorkspaceModal'
 import { WorkspaceNotifications } from './WorkspaceNotifications'
 import { WorkspaceActivityLog } from './WorkspaceActivityLog'
+import { downloadJson } from '~/utils/downloadJson'
 
 export const MainContent = ({
   currentUser,
@@ -224,16 +225,7 @@ export const MainContent = ({
     setIsExporting(true)
     try {
       const data = await exportWorkspaceAPI(currentWorkspace._id)
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const safeTitle = (currentWorkspace.title || 'workspace').replace(/[^a-z0-9-_]+/gi, '-').toLowerCase()
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `whip-${safeTitle}-${new Date().toISOString().slice(0, 10)}.json`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      downloadJson(data, `whip-${currentWorkspace.title || 'workspace'}`)
       toast.success('Workspace data exported successfully!')
     } catch (error) {
       toast.error('Error: ' + (error?.message || 'Failed to export data'))

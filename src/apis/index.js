@@ -220,6 +220,39 @@ export const resetPasswordAPI = async (token, newPassword) => {
   return response.data
 }
 
+export const exportAccountDataAPI = async () => {
+  const response = await authorizedAxiosInstance.get(
+    `${API_ROOT}/v1/users/export-data`,
+    { skipGlobalErrorToast: true }
+  )
+  return response.data
+}
+
+export const exportPersonalBoardsAPI = async () => {
+  const response = await authorizedAxiosInstance.get(
+    `${API_ROOT}/v1/users/export-personal-boards`,
+    { skipGlobalErrorToast: true }
+  )
+  return response.data
+}
+
+export const requestAccountDeletionAPI = async () => {
+  const response = await authorizedAxiosInstance.post(
+    `${API_ROOT}/v1/users/request-account-deletion`,
+    {},
+    { skipGlobalErrorToast: true }
+  )
+  return response.data
+}
+
+export const deleteAccountAPI = async (data) => {
+  const response = await authorizedAxiosInstance.delete(
+    `${API_ROOT}/v1/users/account`,
+    { data, skipGlobalErrorToast: true }
+  )
+  return response.data
+}
+
 export const refreshTokenAPI = async () => {
   const response = await authorizedAxiosInstance.get(`${API_ROOT}/v1/users/refresh_token`)
   return response.data
