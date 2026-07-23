@@ -513,6 +513,14 @@ export const leaveBoardAPI = async (boardId) => {
   return response.data
 }
 
+export const transferBoardOwnershipAPI = async (boardId, targetUserId) => {
+  const response = await authorizedAxiosInstance.post(
+    `${API_ROOT}/v1/boards/${boardId}/transfer-ownership`,
+    { targetUserId }
+  )
+  return response.data
+}
+
 export const acceptWorkspaceInviteAPI = async (data) => {
   const response = await authorizedAxiosInstance.put(`${API_ROOT}/v1/workspaces/accept-invite`, data)
   toast.success(response.data?.message || 'Invitation accepted successfully!')

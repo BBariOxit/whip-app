@@ -4,12 +4,10 @@ import LockIcon from '@mui/icons-material/Lock'
 import { toast } from 'sonner'
 import { updateBoardVisibilityAPI } from '~/apis'
 import { useDispatch } from 'react-redux'
-import { updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
+import { fetchBoardDetailAPI, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import AddToDriveIcon from '@mui/icons-material/AddToDrive'
 import BoltIcon from '@mui/icons-material/Bolt'
-import ViewColumnIcon from '@mui/icons-material/ViewColumn'
 import FilterListIcon from '@mui/icons-material/FilterList'
-import VpnLockIcon from '@mui/icons-material/VpnLock'
 import ArchiveIcon from '@mui/icons-material/Archive'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
@@ -39,13 +37,15 @@ import StarBorderIcon from '@mui/icons-material/StarBorder'
 import BusinessIcon from '@mui/icons-material/Business'
 import PersonIcon from '@mui/icons-material/Person'
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove'
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import IconButton from '@mui/material/IconButton'
 import { useNavigate } from 'react-router-dom'
-import { updateBoardDetailAPI, fetchWorkspacesAPI, joinBoardAPI, leaveBoardAPI, deleteBoardAPI, toggleStarBoardAPI, exportBoardAPI } from '~/apis'
+import { updateBoardDetailAPI, fetchWorkspacesAPI, joinBoardAPI, leaveBoardAPI, deleteBoardAPI, toggleStarBoardAPI, exportBoardAPI, transferBoardOwnershipAPI } from '~/apis'
 import Typography from '@mui/material/Typography'
 import DeleteIcon from '@mui/icons-material/Delete'
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 import { downloadJson } from '~/utils/downloadJson'
+import TransferBoardOwnershipModal from '~/components/Modal/TransferBoardOwnershipModal/TransferBoardOwnershipModal'
 
 const MENU_STYLE = {
   color: 'text.primary',
@@ -81,15 +81,15 @@ export const BoardTitleIndicator = ({ board, onClickTitle }) => {
           )}
         </Box>
       </Tooltip>
-      
+
       <Typography sx={{ color: 'text.secondary', fontSize: '1.2rem', userSelect: 'none' }}>/</Typography>
-      
+
       <Tooltip title="Board options" arrow>
-        <Box 
+        <Box
           onClick={onClickTitle}
-          sx={{ 
-            display: 'flex', alignItems: 'center', cursor: 'pointer', p: 0.5, borderRadius: 1, 
-            '&:hover': { bgcolor: 'action.hover' } 
+          sx={{
+            display: 'flex', alignItems: 'center', cursor: 'pointer', p: 0.5, borderRadius: 1,
+            '&:hover': { bgcolor: 'action.hover' }
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
@@ -101,7 +101,7 @@ export const BoardTitleIndicator = ({ board, onClickTitle }) => {
   )
 }
 
-export const BoardTitleMenu = ({ board, currentUser, anchorEl, handleClose, onLeave, onDelete, onExport }) => {
+export const BoardTitleMenu = ({ board, currentUser, anchorEl, handleClose, onLeave, onDelete, onExport, onTransfer }) => {
   const isOwner = board.ownerIds?.includes(currentUser?._id)
   const isMember = board.memberIds?.includes(currentUser?._id)
 
@@ -136,12 +136,21 @@ export const BoardTitleMenu = ({ board, currentUser, anchorEl, handleClose, onLe
       </MenuItem>
 
       {isOwner && (
-        <MenuItem onClick={() => { handleClose(); onDelete() }} sx={{ gap: 1.5, px: 2, py: 1, color: 'error.main' }}>
-          <Box sx={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <DeleteIcon fontSize="small" sx={{ color: 'error.main' }} /> 
-          </Box>
-          <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>Delete Board</ListItemText>
-        </MenuItem>
+        <>
+          <MenuItem onClick={() => { handleClose(); onTransfer() }} sx={{ gap: 1.5, px: 2, py: 1 }}>
+            <Box sx={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <SwapHorizIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+            </Box>
+            <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>Transfer ownership</ListItemText>
+          </MenuItem>
+
+          <MenuItem onClick={() => { handleClose(); onDelete() }} sx={{ gap: 1.5, px: 2, py: 1, color: 'error.main' }}>
+            <Box sx={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <DeleteIcon fontSize="small" sx={{ color: 'error.main' }} />
+            </Box>
+            <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>Delete Board</ListItemText>
+          </MenuItem>
+        </>
       )}
     </Menu>
   )
@@ -159,6 +168,8 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
   const [anchorElFilters, setAnchorElFilters] = useState(null)
   const [anchorElMove, setAnchorElMove] = useState(null)
   const [anchorElTitleMenu, setAnchorElTitleMenu] = useState(null)
+  const [isTransferOwnershipOpen, setIsTransferOwnershipOpen] = useState(false)
+  const [isTransferringOwnership, setIsTransferringOwnership] = useState(false)
   const [workspaces, setWorkspaces] = useState([])
   // Tên tính năng Pro đang được "gạ" nâng cấp (null = đóng modal)
   const [premiumFeature, setPremiumFeature] = useState(null)
@@ -190,9 +201,9 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
     try {
       const res = await joinBoardAPI(board._id)
       toast.success('Joined board successfully!')
-      
-      const newBoard = { 
-        ...board, 
+
+      const newBoard = {
+        ...board,
         memberIds: [...(board.memberIds || []), currentUser._id],
         members: [...(board.members || []), res.newMember],
         FE_allUser: [...(board.FE_allUser || []), res.newMember],
@@ -233,7 +244,7 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
             autoFocus: true,
             variant: 'outlined',
             size: 'small',
-            sx: { 
+            sx: {
               mt: 2,
               '& .MuiOutlinedInput-root': {
                 '& fieldset': {
@@ -293,7 +304,7 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
         variant: 'outlined',
         size: 'small',
         placeholder: `LEAVE ${board.title}`,
-        sx: { 
+        sx: {
           mt: 2,
           '& .MuiOutlinedInput-root': {
             '& fieldset': { borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)' },
@@ -310,6 +321,24 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
         toast.error('Failed to leave board')
       }
     }).catch(() => {})
+  }
+
+  const handleTransferOwnership = async (targetUserId) => {
+    setIsTransferringOwnership(true)
+    try {
+      await transferBoardOwnershipAPI(board._id, targetUserId)
+      setIsTransferOwnershipOpen(false)
+      toast.success('Board ownership transferred successfully!')
+      try {
+        await dispatch(fetchBoardDetailAPI(board._id)).unwrap()
+      } catch {
+        toast.warning('Ownership changed, but the board could not be refreshed. Reload the page to see the new roles.')
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to transfer board ownership')
+    } finally {
+      setIsTransferringOwnership(false)
+    }
   }
 
   // Export board: lấy JSON qua axios (giữ auth + xử lý lỗi tập trung) rồi tạo Blob để tải file.
@@ -338,7 +367,7 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
         autoFocus: true,
         variant: 'outlined',
         size: 'small',
-        sx: { 
+        sx: {
           mt: 2,
           '& .MuiOutlinedInput-root': {
             '& fieldset': { borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)' },
@@ -383,6 +412,7 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
             onLeave={handleLeaveBoard}
             onDelete={handleDeleteBoard}
             onExport={handleExportBoard}
+            onTransfer={() => setIsTransferOwnershipOpen(true)}
           />
         </Box>
 
@@ -423,24 +453,24 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
           onClose={handleCloseVisibilityMenu}
           sx={{ mt: 1 }}
         >
-          <MenuItem 
+          <MenuItem
             onClick={() => handleToggleVisibility('private')}
             selected={board?.type === 'private'}
           >
             <ListItemIcon><LockIcon sx={{ color: 'text.secondary' }} fontSize="small" /></ListItemIcon>
-            <ListItemText 
+            <ListItemText
               primaryTypographyProps={{ fontSize: 14 }}
-              primary="Private" 
+              primary="Private"
             />
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleToggleVisibility('public')}
             selected={board?.type === 'public'}
           >
             <ListItemIcon><PublicIcon sx={{ color: 'info.main' }} fontSize="small" /></ListItemIcon>
-            <ListItemText 
+            <ListItemText
               primaryTypographyProps={{ fontSize: 14 }}
-              primary="Public" 
+              primary="Public"
             />
           </MenuItem>
         </Menu>
@@ -498,7 +528,7 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
             }
           }}
         />
-        
+
         {/* Menu cho Move Board */}
         <Menu
           anchorEl={anchorElMove}
@@ -512,7 +542,7 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
               Move to Workspace
             </Typography>
           </Box>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleMoveBoard(null)}
             selected={!board.workspaceId}
             sx={{ gap: 1.5, px: 2, py: 1 }}
@@ -523,8 +553,8 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
             <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>Personal Boards</ListItemText>
           </MenuItem>
           {workspaces.map(wsp => (
-            <MenuItem 
-              key={wsp._id} 
+            <MenuItem
+              key={wsp._id}
               onClick={() => handleMoveBoard(wsp._id)}
               selected={board.workspaceId === wsp._id}
               sx={{ gap: 1.5, px: 2, py: 1 }}
@@ -532,8 +562,8 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
               <Box sx={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <BusinessIcon fontSize="small" sx={{ color: 'text.secondary' }} />
               </Box>
-              <ListItemText primaryTypographyProps={{ 
-                fontSize: 14, 
+              <ListItemText primaryTypographyProps={{
+                fontSize: 14,
                 fontWeight: 500,
                 sx: {
                   display: 'block',
@@ -550,16 +580,16 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         {!isJoined && currentUser && board.type !== 'private' ? (
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             onClick={handleJoinInsideBoard}
             sx={{
               color: 'text.primary',
               bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#ffffff',
               borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'divider',
               borderWidth: '2px',
-              '&:hover': { 
-                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)', 
+              '&:hover': {
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)',
                 borderWidth: '2px',
                 bgcolor: (theme) => theme.palette.mode === 'dark' ? '#161b22' : '#ffffff'
               }
@@ -593,6 +623,15 @@ function BoardBar({ board, isAuthorized, filters, setFilters }) {
         shareUrl={`${window.location.origin}/share/boards/${board?._id}`}
         title={board?.title}
         type="Board"
+      />
+
+      <TransferBoardOwnershipModal
+        isOpen={isTransferOwnershipOpen}
+        onClose={() => setIsTransferOwnershipOpen(false)}
+        boardTitle={board.title}
+        members={board.members}
+        onConfirm={handleTransferOwnership}
+        isSubmitting={isTransferringOwnership}
       />
 
       {/* Placeholder cho các tính năng Pro chưa mở (Drive, Automation) */}
